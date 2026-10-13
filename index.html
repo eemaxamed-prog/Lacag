@@ -431,8 +431,10 @@ function dense(points,d0,N,mode){
   return out;
 }
 const histKey=a=>(a.cls==='crypto'?'bin:':'td:')+(a.dataSymbol||a.symbol).toUpperCase();
-const TYPE_ORDER={deposit:0,transfer:1,balance:2,buy:3,sell:4,dividend:5,interest:6,withdraw:7};
+const TYPE_ORDER={deposit:0,transfer:1,balance:2,split:2.5,buy:3,sell:4,dividend:5,interest:6,withdraw:7};
 
+/* product of split ratios after a date: turns an old per-share price into today's share terms */
+function splitAfter(assetId,date){let f=1;for(const t of S.txs)if(t.type==='split'&&t.assetId===assetId&&t.date>date&&t.ratio>0)f*=t.ratio;return f;}
 /* shared market data (independent of portfolio) */
 function market(){
   if(MEMO.mkt&&MEMO.mkt.v===VERSION)return MEMO.mkt;
@@ -447,8 +449,8 @@ function market(){
     const conv=(day,v,q)=>{if(!q||q===a.currency||!CCYS.includes(q))return v;const i=day-d0;return v*fxAt(q,i)/fxAt(a.currency,i);};
     let lastHist=-Infinity;
     if(h&&h.s&&h.s.length){mode='step';for(const [d,v] of h.s){const day=dn(d);m.set(day,conv(day,v,h.q));if(day>lastHist)lastHist=day;}src[a.id]='live';}
-    else{for(const t of S.txs)if(t.assetId===a.id&&(t.type==='buy'||t.type==='sell')&&t.price>0)m.set(dn(t.date),t.price);src[a.id]='manual';}
-    for(const p of S.prices)if(p.assetId===a.id&&dn(p.date)>lastHist)m.set(dn(p.date),p.price);
+    else{for(const t of S.txs)if(t.assetId===a.id&&(t.type==='buy'||t.type==='sell')&&t.price>0)m.set(dn(t.date),t.price/splitAfter(a.id,t.date));src[a.id]='manual';}
+    for(const p of S.prices)if(p.assetId===a.id&&dn(p.date)>lastHist)m.set(dn(p.date),p.price/splitAfter(a.id,p.date));
     const lv=C.live[a.id];if(lv&&lv.date===localToday()&&lv.price>0)m.set(today,conv(today,lv.price,lv.q));
     priceCur[a.id]=dense([...m.entries()].sort((x,y)=>x[0]-y[0]),d0,N,mode);
   }
@@ -483,6 +485,7 @@ function compute(){
         if(srcIn){const sa=accById(src);cash[src]-=signed/fxAt(sa.currency,i);if(!secIn)CF[i]-=signed;}
         else if(secIn)CF[i]+=signed;
       }
+      else if(t.type==='split'){const a=assetById(t.assetId);if(!a||!inP(t.accountId)||!(t.ratio>0))continue;const h=H[a.id];const q=h.byAcc[acc.id]||0;const add=q*(t.ratio-1);h.byAcc[acc.id]=q*t.ratio;h.qty+=add;}
       else if(t.type==='dividend'){const a=assetById(t.assetId);const secIn=inP(t.accountId);const dest=t.fundAccountId==='__outside'?null:(t.fundAccountId||(acc.tracksCash?acc.id:null));
         if(secIn&&a)H[a.id].divs+=t.amount;
         if(inP(dest)){const da=accById(dest);cash[dest]+=t.amount/fxAt(da.currency,i);if(!secIn)CF[i]+=t.amount;}
@@ -866,17 +869,18 @@ function viewCash(v,M,head){
    <div class="note" style="margin-top:12px">For a money market fund like KLP Likviditet or a savings account, add the money you put in as <b>deposits</b> and now and then <b>update the balance</b> from your statement. The difference counts as your return. ${accs.length?'':'Turn on cash for an account in Settings → Accounts.'}</div>`;
 }
 function txTitle(t){const a=t.assetId&&assetById(t.assetId);const acc=accById(t.accountId);
-  switch(t.type){case 'buy':return 'Buy · '+a.symbol;case 'sell':return 'Sell · '+a.symbol;case 'dividend':return (t.amount<0?'Withholding tax · ':'Dividend · ')+(a?a.symbol:'');case 'deposit':return 'Deposit · '+acc.name;case 'withdraw':return 'Withdrawal · '+acc.name;case 'interest':return (t.amount<0?'Fee · ':'Interest · ')+acc.name;case 'balance':return 'Balance update · '+acc.name;case 'transfer':return 'Transfer → '+((accById(t.toAccountId)||{}).name||'?');}return t.type;}
+  switch(t.type){case 'buy':return 'Buy · '+a.symbol;case 'sell':return 'Sell · '+a.symbol;case 'split':return 'Split · '+a.symbol;case 'dividend':return (t.amount<0?'Withholding tax · ':'Dividend · ')+(a?a.symbol:'');case 'deposit':return 'Deposit · '+acc.name;case 'withdraw':return 'Withdrawal · '+acc.name;case 'interest':return (t.amount<0?'Fee · ':'Interest · ')+acc.name;case 'balance':return 'Balance update · '+acc.name;case 'transfer':return 'Transfer → '+((accById(t.toAccountId)||{}).name||'?');}return t.type;}
 function txLine(t){const a=t.assetId&&assetById(t.assetId);const acc=accById(t.accountId);if(!acc||(t.assetId&&!a))return '';
   let sub='',amt='';const accCur=acc.currency;
   if(t.type==='buy'||t.type==='sell'){const fx=a.currency==='NOK'?1:t.fx;const nok=t.qty*t.price*fx+(t.type==='buy'?(t.fee||0):-(t.fee||0));
     sub=`${qtyFmt(t.qty)} × ${money(t.price,a.currency)}${a.currency!=='NOK'?` · ${nf2.format(fx)}`:''} · ${esc(acc.name)}`;amt=`${t.type==='buy'?'−':'+'}${kr(nok,{dec:true})}`;}
+  else if(t.type==='split'){sub=esc(acc.name);amt=nf2.format(t.ratio).replace(/,00$/,'')+' for 1';}
   else if(t.type==='dividend'){sub=esc(acc.name);amt=kr(t.amount,{sign:true,dec:true});}
   else if(t.type==='balance'){sub='Set to';amt=money(t.amount,accCur);}
   else if(t.type==='transfer'){sub='From '+esc(acc.name);amt=money(t.amount,accCur);}
   else{const s=t.type==='withdraw'?-1:1;sub=esc(acc.broker||'');amt=money(s*t.amount,accCur,{sign:true});}
-  const ic={buy:'buy',sell:'sell',dividend:'dividend',deposit:'cash',withdraw:'cash',interest:'cash',balance:'cash',transfer:'transfer'}[t.type];
-  const bg={buy:'var(--accent)',sell:'var(--c4)',dividend:'var(--up)',deposit:'var(--c2)',withdraw:'var(--c4)',interest:'var(--c7)',balance:'var(--muted)',transfer:'var(--c5)'}[t.type];
+  const ic={buy:'buy',sell:'sell',split:'transfer',dividend:'dividend',deposit:'cash',withdraw:'cash',interest:'cash',balance:'cash',transfer:'transfer'}[t.type];
+  const bg={buy:'var(--accent)',sell:'var(--c4)',split:'var(--c5)',dividend:'var(--up)',deposit:'var(--c2)',withdraw:'var(--c4)',interest:'var(--c7)',balance:'var(--muted)',transfer:'var(--c5)'}[t.type];
   return `<button class="item" data-tx="${t.id}"><span class="badge" style="background:${bg}"><span style="width:18px;height:18px;display:block">${ICON[ic]}</span></span><div class="mid"><div class="t1">${esc(txTitle(t))}</div><div class="t2">${sub}</div></div><div class="end"><div class="t1">${amt}</div><div class="t2 muted small">${dateLabel(dn(t.date),true)}</div></div></button>`;}
 function viewActivity(v,M,head){
   const txs=M.txs.slice().reverse();const groups=new Map();for(const t of txs){const k=t.date.slice(0,7);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(t);}
@@ -1157,32 +1161,34 @@ function txSheet(tx,opts={}){
   const firstAsset=t.assetId||(assets[0]&&assets[0].id)||'';
   const body=`<form class="form" id="txForm" novalidate>
    ${S.demo&&!isEdit?'<div class="banner" style="margin:0">Saving this clears the example portfolio.</div>':''}
-   <div class="seg" role="group" style="align-self:flex-start">${['buy','sell','dividend'].map(k=>`<button type="button" data-ttype="${k}" aria-pressed="${t.type===k}">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div>
+   <div class="seg" role="group" style="align-self:flex-start">${['buy','sell','dividend','split'].map(k=>`<button type="button" data-ttype="${k}" aria-pressed="${t.type===k}">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div>
    <div class="field"><label for="fAsset">Holding</label><select id="fAsset">${assets.map(a=>`<option value="${a.id}" ${a.id===firstAsset?'selected':''}>${esc(a.symbol)} · ${esc(a.name||'')}</option>`).join('')}<option value="__new" ${!assets.length||!firstAsset?'selected':''}>+ New holding…</option></select></div>
    <div id="newAsset" class="stack" hidden>
      <div class="presets">${PRESETS.map((p,i)=>`<button type="button" class="btn sm" data-preset="${i}">${p.symbol}</button>`).join('')}</div>
-     <div class="grid2"><div class="field"><label for="fSym">Ticker</label><input id="fSym" autocapitalize="characters" placeholder="BTC, WEBN, AAPL"></div><div class="field"><label for="fName">Name</label><input id="fName" placeholder="Bitcoin"></div></div>
+     <div class="grid2"><div class="field"><label for="fSym">Ticker or name</label><input id="fSym" autocapitalize="characters" autocomplete="off" placeholder="NFLX, Netflix, AAPL"></div><div class="field"><label for="fName">Name</label><input id="fName" placeholder="Bitcoin"></div></div>
      <div class="grid2"><div class="field"><label for="fCls">Type</label><select id="fCls"><option value="stock">Stock</option><option value="etf">ETF / fund</option><option value="crypto">Crypto</option></select></div><div class="field"><label for="fCur">Trades in</label><select id="fCur">${ASSET_CCYS.map(c=>`<option>${c}</option>`).join('')}</select></div></div>
      <div class="grid2"><div class="field"><label for="fSector">Sector</label><select id="fSector">${SECTORS.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="field"><label for="fRegion">Region</label><select id="fRegion">${REGIONS.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
      <div class="field"><label for="fData">Price ticker (for live prices)</label><input id="fData" autocapitalize="characters" placeholder="AAPL · WEBN:XETR · BTC"><div class="hint">Add <code>:EXCHANGE</code> for non-US listings, e.g. <code>WEBN:XETR</code>.</div></div>
    </div>
+   <div class="note small" id="lookupNote" hidden></div>
    <div class="grid2"><div class="field"><label for="fAcc">Account</label><select id="fAcc">${accOptions(t.accountId,a=>a.kind!=='cash')}</select></div><div class="field"><label for="fDate">Date</label><input id="fDate" type="date" value="${esc(t.date)}" max="${localToday()}"></div></div>
    <div id="tradeFields" class="stack">
      <div class="grid2"><div class="field"><label for="fQty">Quantity</label><input id="fQty" inputmode="decimal" value="${inputNum(t.qty,8)}" placeholder="0,05"></div><div class="field"><label for="fPrice" id="lPrice">Price per unit</label><input id="fPrice" inputmode="decimal" value="${inputNum(t.price,6)}"></div></div>
      <div class="grid2"><div class="field" id="fxWrap"><label for="fFx" id="lFx">NOK per 1 USD</label><input id="fFx" inputmode="decimal" value="${inputNum(t.fx,4)}"></div><div class="field"><label for="fFee">Fee (NOK)</label><input id="fFee" inputmode="decimal" value="${inputNum(t.fee,2)}" placeholder="0"></div></div>
      <div class="total-box"><div><div class="small muted" id="lTotal">Total paid in NOK</div><div class="small muted">Edit to match your statement</div></div><input id="fTotal" inputmode="decimal" class="num tot-in"></div>
    </div>
+   <div id="splitFields" class="stack" hidden><div class="field"><label for="fRatio">New shares for each old share</label><input id="fRatio" inputmode="decimal" value="${inputNum(t.ratio,6)}" placeholder="10"><div class="hint">A 10-for-1 split (like Netflix in Nov 2025) is 10. A 1-for-5 reverse split is 0,2. Use the first trading day after the split.</div></div></div>
    <div id="divFields" class="field" hidden><label for="fAmt">Amount received (NOK, after withholding tax)</label><input id="fAmt" inputmode="decimal" value="${inputNum(t.amount,2)}"></div>
-   <div class="field"><label for="fFund">Paid from / paid into</label><select id="fFund"><option value="__outside">Outside Lacag (bank, salary)</option>${accOptions(t.fundAccountId||((accById(t.accountId)||{}).tracksCash?t.accountId:'__outside'),a=>a.tracksCash)}</select><div class="hint">Pick a cash account if the money moved from or to cash you track here.</div></div>
+   <div class="field" id="fundWrap"><label for="fFund">Paid from / paid into</label><select id="fFund"><option value="__outside">Outside Lacag (bank, salary)</option>${accOptions(t.fundAccountId||((accById(t.accountId)||{}).tracksCash?t.accountId:'__outside'),a=>a.tracksCash)}</select><div class="hint">Pick a cash account if the money moved from or to cash you track here.</div></div>
    <div class="err" id="fErr"></div>
    <button class="btn primary block" type="submit">${isEdit?'Save changes':'Save'}</button>
    ${isEdit?'<button class="btn danger block" type="button" id="delTx">Delete</button>':''}
   </form>`;
-  openSheet(isEdit?'Edit transaction':'Buy, sell or dividend',body,()=>{
+  openSheet(isEdit?'Edit transaction':'Add a transaction',body,()=>{
     let type=t.type;
     const curAsset=()=>{const id=fv('fAsset').value;return id==='__new'?null:assetById(id);};
     const curOf=()=>{const a=curAsset();return a?a.currency:fv('fCur').value;};
-    const syncType=()=>{$$('[data-ttype]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ttype===type));fv('tradeFields').hidden=type==='dividend';fv('divFields').hidden=type!=='dividend';fv('lTotal').textContent=type==='sell'?'Total received in NOK':'Total paid in NOK';calc();};
+    const syncType=()=>{$$('[data-ttype]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ttype===type));fv('tradeFields').hidden=type==='dividend'||type==='split';fv('divFields').hidden=type!=='dividend';fv('splitFields').hidden=type!=='split';fv('fundWrap').hidden=type==='split';fv('lTotal').textContent=type==='sell'?'Total received in NOK':'Total paid in NOK';calc();};
     const syncAsset=fill=>{const a=curAsset();fv('newAsset').hidden=!!a;const cur=curOf();fv('fxWrap').style.visibility=cur==='NOK'?'hidden':'visible';fv('lFx').textContent='NOK per 1 '+cur;fv('lPrice').textContent='Price per unit ('+cur+')';
       if(fill){if(!isEdit){const cls=a?a.cls:fv('fCls').value;const last=a&&S.txs.filter(x=>x.assetId===a.id).slice(-1)[0];fv('fAcc').value=last?last.accountId:defaultAccFor(cls);}
         if(cur!=='NOK')fv('fFx').value=inputNum(fxForDate(cur,fv('fDate').value),4);if(a){const p=priceForDate(a,fv('fDate').value);if(p)fv('fPrice').value=inputNum(p,a.cls==='crypto'?0:2);}}calc();};
@@ -1194,24 +1200,48 @@ function txSheet(tx,opts={}){
     fv('fTotal').oninput=()=>{const q=parseNum(fv('fQty').value),p=parseNum(fv('fPrice').value),fee=parseNum(fv('fFee').value)||0,tot=parseNum(fv('fTotal').value);if(curOf()!=='NOK'&&q>0&&p>0&&tot>0){const fx=(type==='sell'?tot+fee:tot-fee)/(q*p);if(fx>0)fv('fFx').value=inputNum(fx,4);}};
     $$('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRESETS[+b.dataset.preset];fv('fSym').value=p.symbol;fv('fName').value=p.name;fv('fCls').value=p.cls;fv('fCur').value=p.currency;fv('fData').value=p.dataSymbol;fv('fSector').value=p.sector;fv('fRegion').value=p.region;fv('fAcc').value=defaultAccFor(p.cls);syncAsset(true);});
     fv('fCls').onchange=()=>{const c=fv('fCls').value;if(c==='crypto'){fv('fCur').value='USD';fv('fSector').value='Crypto';fv('fRegion').value='Global (no country)';}fv('fAcc').value=defaultAccFor(c);syncAsset(true);};
+    let lookSeq=0;
+    fv('fSym').onchange=async()=>{const q=fv('fSym').value.trim();const note=fv('lookupNote');if(!q||curAsset())return;
+      const known=PRESETS.find(p=>p.symbol===q.toUpperCase());if(known)return;
+      if(!S.settings.tdKey){note.hidden=false;note.textContent='Tip: add your Twelve Data key in Settings and Lacag fills in the name, currency and today\'s price for you.';return;}
+      const my=++lookSeq;note.hidden=false;note.textContent='Looking up '+q+'…';
+      const r=await lookupTicker(q);if(my!==lookSeq)return;
+      if(!r||r.error){note.textContent='Couldn\'t look it up'+(r&&r.error?': '+r.error:'')+'. Fill in the fields yourself.';return;}
+      if(r.none){note.textContent='No match for "'+q+'". Check the ticker, or fill in the fields yourself.';return;}
+      const us=r.country==='United States';const cls=/etf|fund/i.test(r.instrument_type||'')?'etf':'stock';
+      fv('fSym').value=r.symbol;fv('fName').value=r.instrument_name||r.symbol;fv('fCls').value=cls;if(ASSET_CCYS.includes(r.currency))fv('fCur').value=r.currency;
+      fv('fData').value=us?r.symbol:r.symbol+':'+(r.mic_code||r.exchange);fv('fRegion').value=us?'North America':/norway/i.test(r.country||'')?'Norway':/japan/i.test(r.country||'')?'Japan':'Europe (ex-Norway)';
+      if(cls==='etf')fv('fSector').value='Other';fv('fAcc').value=defaultAccFor(cls);
+      note.textContent=`Found ${r.instrument_name} · ${r.exchange} · ${r.currency}. Check the details below.`;syncAsset(true);
+      if(fv('fDate').value===localToday()){try{const pr=await td('price',tdSym(fv('fData').value));if(pr&&pr.price&&my===lookSeq&&!fv('fPrice').value){fv('fPrice').value=inputNum(+pr.price,2);calc();}}catch(e){}}
+    };
     syncAsset(!isEdit);syncType();
     fv('txForm').onsubmit=e=>{e.preventDefault();const err=fv('fErr');err.textContent='';
       let a=curAsset();let newA=null;
-      if(!a){const sym=fv('fSym').value.trim().toUpperCase();if(!sym){err.textContent='Enter a ticker, for example BTC or AAPL.';return;}
+      if(!a){const sym=fv('fSym').value.trim().toUpperCase();if(!sym){return showErr(err,'Enter a ticker, for example BTC or AAPL.');}
         a=(S.demo?[]:S.assets).find(x=>x.symbol.toUpperCase()===sym);
         if(!a){const pre=PRESETS.find(p=>p.symbol===sym);newA={id:uid(),symbol:sym,name:fv('fName').value.trim()||sym,cls:fv('fCls').value,currency:fv('fCur').value,dataSymbol:(fv('fData').value.trim()||sym).toUpperCase(),sector:fv('fSector').value,region:fv('fRegion').value,look:pre&&pre.look?JSON.parse(JSON.stringify(pre.look)):null};a=newA;}}
-      const date=fv('fDate').value;if(!date){err.textContent='Pick a date.';return;}if(date>localToday()){err.textContent='The date can\'t be in the future.';return;}
-      const accountId=fv('fAcc').value;if(!accountId){err.textContent='Add an account in Settings first.';return;}
+      const date=fv('fDate').value;if(!date){return showErr(err,'Pick a date.');}if(date>localToday()){return showErr(err,'The date can\'t be in the future.');}
+      const accountId=fv('fAcc').value;if(!accountId){return showErr(err,'Add an account in Settings first.');}
       const fund=fv('fFund').value||'__outside';let rec;
-      if(type==='dividend'){const amt=parseNum(fv('fAmt').value);if(!(amt>0)){err.textContent='Enter the amount you received in NOK.';return;}rec={type,assetId:a.id,accountId,date,amount:amt,fundAccountId:fund};}
+      if(type==='split'){if(newA)return showErr(err,'Pick the holding that was split.');const r=parseNum(fv('fRatio').value);if(!(r>0)||r===1)return showErr(err,'Enter how many new shares you got for each old share, for example 10.');rec={type,assetId:a.id,accountId,date,ratio:r};}
+      else if(type==='dividend'){const amt=parseNum(fv('fAmt').value);if(!(amt>0)){return showErr(err,'Enter the amount you received in NOK.');}rec={type,assetId:a.id,accountId,date,amount:amt,fundAccountId:fund};}
       else{const qty=parseNum(fv('fQty').value),price=parseNum(fv('fPrice').value),fee=parseNum(fv('fFee').value)||0,fx=a.currency==='NOK'?1:parseNum(fv('fFx').value);
-        if(!(qty>0)){err.textContent='Enter how many units (comma or dot for decimals).';return;}if(!(price>0)){err.textContent='Enter the price per unit in '+a.currency+'.';return;}if(!(fx>0)){err.textContent='Enter the exchange rate (NOK per 1 '+a.currency+').';return;}if(fee<0){err.textContent='The fee can\'t be negative.';return;}
+        if(!(qty>0)){return showErr(err,'Enter how many units (comma or dot for decimals).');}if(!(price>0)){return showErr(err,'Enter the price per unit in '+a.currency+'.');}if(!(fx>0)){return showErr(err,'Enter the exchange rate (NOK per 1 '+a.currency+').');}if(fee<0){return showErr(err,'The fee can\'t be negative.');}
         rec={type,assetId:a.id,accountId,date,qty,price,fx,fee,fundAccountId:fund};}
       if(!isEdit)leaveDemo();if(newA)S.assets.push(newA);
       if(isEdit){const i=S.txs.findIndex(x=>x.id===t.id);S.txs[i]=Object.assign({id:t.id},rec);}else S.txs.push(Object.assign({id:uid()},rec));
       pruneAssets();Store.save();closeSheet();render();toast(isEdit?'Updated':'Saved');refresh(false);};
     const del=fv('delTx');if(del)del.onclick=()=>{if(!armed(del,'Tap again to delete'))return;S.txs=S.txs.filter(x=>x.id!==t.id);pruneAssets();Store.save();closeSheet();render();toast('Deleted');};
   });
+}
+function showErr(el,msg){el.textContent=msg;try{el.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}toast(msg);}
+/* look up a ticker or company name with Twelve Data and fill in the new-holding fields */
+async function lookupTicker(q,onDone){
+  if(!S.settings.tdKey||NET.blocked||!q)return null;
+  try{const j=await td('symbol_search',{symbol:q,outputsize:'12'});const list=(j&&j.data)||[];if(!list.length)return {none:true};
+    const Q=q.toUpperCase();const score=x=>(x.symbol.toUpperCase()===Q?100:0)+(x.country==='United States'?20:0)+(['NASDAQ','NYSE'].includes(x.exchange)?10:0)+(/norway/i.test(x.country)?8:0)+(ASSET_CCYS.includes(x.currency)?5:0);
+    return list.slice().sort((a,b)=>score(b)-score(a))[0];}catch(e){return {error:String(e.message||e)};}
 }
 function pruneAssets(){S.assets=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));S.prices=S.prices.filter(p=>assetById(p.assetId));}
 
@@ -1231,8 +1261,8 @@ function cashSheet(tx,accId){
     const sync=()=>{$$('[data-ctype]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ctype===type));fv('toWrap').style.display=type==='transfer'?'':'none';fv('cHint').textContent=hints[type];fv('lAmt').textContent=type==='balance'?'New balance':'Amount';fv('lAcc').textContent=type==='transfer'?'From account':'Account';};
     $$('[data-ctype]').forEach(b=>b.onclick=()=>{type=b.dataset.ctype;sync();});sync();
     fv('cashForm').onsubmit=e=>{e.preventDefault();const err=fv('cErr');const amt=parseNum(fv('cAmt').value);const date=fv('cDate').value;
-      if(!date){err.textContent='Pick a date.';return;}if(!isFinite(amt)||(type!=='interest'&&type!=='balance'&&amt<=0)){err.textContent='Enter an amount above 0.';return;}
-      const rec={type,accountId:fv('cAcc').value,date,amount:amt};if(type==='transfer'){rec.toAccountId=fv('cTo').value;if(rec.toAccountId===rec.accountId){err.textContent='Pick two different accounts.';return;}}
+      if(!date){return showErr(err,'Pick a date.');}if(!isFinite(amt)||(type!=='interest'&&type!=='balance'&&amt<=0)){return showErr(err,'Enter an amount above 0.');}
+      const rec={type,accountId:fv('cAcc').value,date,amount:amt};if(type==='transfer'){rec.toAccountId=fv('cTo').value;if(rec.toAccountId===rec.accountId){return showErr(err,'Pick two different accounts.');}}
       if(!isEdit)leaveDemo();if(isEdit){const i=S.txs.findIndex(x=>x.id===t.id);S.txs[i]=Object.assign({id:t.id},rec);}else S.txs.push(Object.assign({id:uid()},rec));
       Store.save();closeSheet();render();toast('Saved');};
     const del=fv('delC');if(del)del.onclick=()=>{if(!armed(del,'Tap again to delete'))return;S.txs=S.txs.filter(x=>x.id!==t.id);Store.save();closeSheet();render();toast('Deleted');};
@@ -1505,7 +1535,7 @@ document.addEventListener('click',async e=>{
   for(const k of ['range','mode','alloc','hsort','sub','asub','psub','brk'])if(d[k]){UI[k]=d[k];saveUI();softRender();return;}
   if(d.bm){const i=UI.bms.indexOf(d.bm);if(i>=0){if(UI.bms.length>1)UI.bms.splice(i,1);}else UI.bms.push(d.bm);saveUI();softRender();if(!NET.blocked)fetchBenchmarks();return;}
   if(d.asset){assetSheet(d.asset);return;}
-  if(d.tx){const t=S.txs.find(x=>x.id===d.tx);if(S.demo){toast('Example entries can\'t be edited');return;}if(!t)return;if(['buy','sell','dividend'].includes(t.type))txSheet(t);else cashSheet(t);return;}
+  if(d.tx){const t=S.txs.find(x=>x.id===d.tx);if(S.demo){toast('Example entries can\'t be edited');return;}if(!t)return;if(['buy','sell','dividend','split'].includes(t.type))txSheet(t);else cashSheet(t);return;}
   if(d.cashacc){if(S.demo){toast('Example entries can\'t be edited');return;}cashSheet(null,d.cashacc);return;}
   if(d.editacc){accountSheet(d.editacc);return;}
   if(d.editpf){if(S.demo&&d.editpf==='__new'){toast('Start with your own data first');return;}portfolioSheet(d.editpf);return;}
