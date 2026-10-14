@@ -287,6 +287,87 @@ table.ytab tr.cur{background:color-mix(in srgb,var(--amber) 12%,transparent)}
 table.ytab tr.tot th,table.ytab tr.tot td{font-weight:600;border-bottom:0}
 .grid-months{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
 
+/* overview / positions / returns v3 */
+.amber-v{color:var(--amber);font-family:var(--f-num)}
+.bm-chips{margin-top:8px}
+.sub-h{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);font-weight:600;margin:18px 2px 8px}
+table.rtab{width:100%;border-collapse:collapse;font-family:var(--f-num);font-size:12px;font-variant-numeric:tabular-nums;min-width:360px}
+table.rtab th,table.rtab td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+table.rtab thead th{color:var(--muted);font-weight:500;font-size:11px}
+table.rtab tbody th{text-align:left;font-family:var(--f-body);font-weight:600;color:var(--fg);max-width:130px;overflow:hidden;text-overflow:ellipsis}
+table.rtab tr.bm th{font-weight:500;color:var(--muted)}
+table.rtab th .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+table.rtab td.na{color:var(--muted)}
+.ptable{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:6px}
+.prow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 22px;gap:6px;align-items:center;padding:11px 8px 11px 12px;border-top:1px solid var(--line);cursor:pointer}
+.prow:first-child{border-top:0}
+.prow.phead{cursor:default;padding-top:9px;padding-bottom:9px;background:var(--surface2)}
+.prow.ptot{cursor:default;background:var(--surface2);font-family:var(--f-num);font-size:12px}
+.ph{border:0;background:none;color:var(--muted);font-size:11px;font-weight:600;text-align:right;padding:0;white-space:nowrap}
+.ph.pt{text-align:left}.ph.on{color:var(--amber)}
+.pt{min-width:0}
+.pn{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qb{display:inline-block;background:var(--surface2);border-radius:4px;padding:0 4px;font-family:var(--f-num);color:var(--fg);font-size:10.5px}
+.pv{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:12px;min-width:0}
+.pv>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pu{color:var(--muted);font-size:10.5px;margin-top:2px}
+.pv .up::before,.pv .down::before{font-size:.55em}
+.pm{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 0;text-align:center}
+.rb-wrap{overflow-x:auto;padding-bottom:4px}
+.rb-wrap svg{display:block}
+.rb-wrap rect{cursor:pointer}
+.rb-read{font-family:var(--f-num);font-size:13px;margin-bottom:8px;color:var(--amber)}
+@media (max-width:400px){.prow{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 18px;gap:4px;padding-left:10px}.pv{font-size:11px}.pn{font-size:12px}}
+
+table.rtab{min-width:0;font-size:11.5px}
+table.rtab th,table.rtab td{padding:9px 4px}
+table.rtab tbody th{max-width:92px}
+.rep-g .num{white-space:nowrap}
+.ps{white-space:normal}
+.ret-ctl{margin:20px 2px 8px}
+table.rtab td.why{text-align:left;font-family:var(--f-body);font-size:11.5px}
+table.rtab{font-size:11px}
+table.rtab th,table.rtab td{padding:9px 3px}
+table.rtab tbody th{max-width:84px;font-size:12px}
+
+/* ---- appearance settings ---- */
+:root{--card-alpha:100}
+:root[data-look="day"]{--bg:#F1F2F4;--surface:#FFFFFF;--surface2:#E7E9ED;--line:#D3D7DE;--fg:#111317;--muted:#5D6370;--btc:#C77700;
+  --c2:#2F6FD0;--c3:#B58900;--c4:#3A7BD5;--c5:#7A7F8A;--c6:#A05A00;--c7:#1F4E99;--c8:#6B7280;--badge-ink:#FFFFFF;color-scheme:light}
+:root[data-look="day"]:not([data-updown="cvd"]){--up:#0B8659;--down:#CF3B2F}
+.card,.kpi,.list,.rep,.ptable,.bgroup{background:color-mix(in srgb,var(--surface) calc(var(--card-alpha)*1%),transparent)}
+.top{background:color-mix(in srgb,var(--bg) 88%,transparent)}
+.tabs{background:color-mix(in srgb,var(--surface) 94%,transparent)}
+.ctip{background:color-mix(in srgb,var(--surface) 78%,transparent)}
+.hero.card{padding:16px 16px 14px;margin-top:12px}
+.chart-card{margin-top:12px;padding:14px 12px 10px}
+.chart-card .chart{margin:8px -4px 4px}
+/* big tables */
+:root[data-tables="fit"] table.hm{min-width:0;font-size:9.5px;border-spacing:2px}
+:root[data-tables="fit"] table.hm td{padding:6px 0}
+:root[data-tables="fit"] table.hm th{font-size:9px;padding:2px 0}
+:root[data-tables="scroll"] table.rtab{min-width:540px;font-size:13px}
+:root[data-tables="scroll"] table.rtab th,:root[data-tables="scroll"] table.rtab td{padding:10px 9px}
+:root[data-tables="scroll"] table.hm{min-width:640px;font-size:12px}
+:root[data-tables="scroll"] .ptable{overflow-x:auto}
+:root[data-tables="scroll"] .prow{min-width:620px;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 26px}
+:root[data-tables="scroll"] .pv{font-size:13px}
+:root[data-tables="scroll"] .pn{font-size:14px}
+/* settings controls */
+.look-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.look-row.col{flex-direction:column;align-items:stretch}
+.lbl2{font-size:12.5px;color:var(--amber);font-weight:600}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);padding:0;position:relative;display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--muted);background:var(--surface2)}
+.swatch.on{border-color:var(--fg);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--amber)}
+.swatch.custom{overflow:hidden;cursor:pointer;background:conic-gradient(#FFA028,#FFD23F,#4AA3FF,#7CC4FF,#E6E6E6,#FFA028)}
+.swatch.custom span{color:#000;font-size:16px;text-shadow:0 0 4px #fff}
+.swatch.custom input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.hint{font-size:12px;color:var(--muted)}
+.chart-card .ranges button{padding:7px 3px;font-size:12px}
+
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -354,8 +435,7 @@ const CLASS_LABEL={crypto:'Crypto',etf:'ETF / fund',stock:'Stock',cash:'Cash'};
 const ACCOUNT_KINDS={ask:'Aksjesparekonto (ASK)',aksje:'Aksjekonto',crypto:'Crypto exchange',cash:'Cash / savings',ips:'IPS pension',other:'Other'};
 const SECTORS=['Technology','Communication Services','Consumer Discretionary','Consumer Staples','Health Care','Financials','Industrials','Energy','Materials','Utilities','Real Estate','Crypto','Cash','Other'];
 const REGIONS=['North America','Norway','Europe (ex-Norway)','Japan','Asia Pacific (ex-Japan)','Emerging markets','Global (no country)','Other'];
-const BENCHMARKS=[{id:'SPY',name:'S&P 500',sym:'SPY',cur:'USD'},{id:'QQQ',name:'Nasdaq-100',sym:'QQQ',cur:'USD'},{id:'URTH',name:'MSCI World',sym:'URTH',cur:'USD'},{id:'ACWI',name:'MSCI ACWI',sym:'ACWI',cur:'USD'},
-  {id:'OSEBX',name:'Oslo Børs (OSEBX)',sym:'OSEBX',cur:'NOK',alts:[{symbol:'OSEBX'},{symbol:'OSEBX',exchange:'OSE'},{symbol:'OSEBX',exchange:'XOSL'}]}];
+const BENCHMARKS=[{id:'SPY',name:'S&P 500',sym:'SPY',cur:'USD'},{id:'QQQ',name:'Nasdaq-100',sym:'QQQ',cur:'USD'},{id:'URTH',name:'MSCI World',sym:'URTH',cur:'USD'},{id:'ACWI',name:'MSCI ACWI',sym:'ACWI',cur:'USD'}];
 const LOOK_ALLWORLD={region:{'North America':64,'Europe (ex-Norway)':12,'Norway':0.3,'Japan':5,'Asia Pacific (ex-Japan)':4,'Emerging markets':11,'Other':3.7},
   sector:{'Technology':26,'Financials':17,'Industrials':11,'Consumer Discretionary':10,'Health Care':9,'Communication Services':8,'Consumer Staples':6,'Energy':4,'Materials':4,'Utilities':3,'Real Estate':2}};
 const PRESETS=[
@@ -516,6 +596,7 @@ function compute(){
   const V=new Float64Array(N),CF=new Float64Array(N),DIV=new Float64Array(N),NET=new Float64Array(N),CASH=new Float64Array(N);
   /* investments only: cash is not part of the chart or the returns, it is only added to the total */
   const VI=new Float64Array(N),CFI=new Float64Array(N),DIVI=new Float64Array(N),NETI=new Float64Array(N);let netI=0;
+  const AV={},ACF={},ADIV={};for(const a of S.assets){AV[a.id]=new Float64Array(N);ACF[a.id]=new Float64Array(N);ADIV[a.id]=new Float64Array(N);}
   const H={};for(const a of S.assets)H[a.id]={qty:0,cost:0,costCur:0,costNoFee:0,realized:0,divs:0,fees:0,invested:0,accs:new Set(),byAcc:{}};
   const cash={};const cashIn={};for(const a of S.accounts){cash[a.id]=0;cashIn[a.id]={dep:0,int:0};}
   const firstDay=dn(txs[0].date);
@@ -532,14 +613,14 @@ function compute(){
         else{const q=secIn?Math.min(t.qty,h.qty):t.qty;if(q<=0)continue;nok=q*t.price*fx-fee;
           if(secIn){const f=q/h.qty;const cb=h.cost*f;h.realized+=nok-cb;h.cost-=cb;h.costCur-=h.costCur*f;h.costNoFee-=h.costNoFee*f;h.qty-=q;h.fees+=fee;h.byAcc[acc.id]=Math.max(0,(h.byAcc[acc.id]||0)-q);if(h.qty<1e-12){h.qty=0;h.cost=0;h.costCur=0;h.costNoFee=0;}}}
         const signed=t.type==='buy'?nok:-nok; // money leaving cash / entering securities
-        if(secIn)CFI[i]+=signed;
+        if(secIn){CFI[i]+=signed;ACF[a.id][i]+=signed;}
         if(srcIn){const sa=accById(src);cash[src]-=signed/fxAt(sa.currency,i);if(!secIn)CF[i]-=signed;}
         else if(secIn)CF[i]+=signed;
       }
       else if(t.type==='split'){const a=assetById(t.assetId);if(!a||!inP(t.accountId)||!(t.ratio>0))continue;const h=H[a.id];const q=h.byAcc[acc.id]||0;const add=q*(t.ratio-1);h.byAcc[acc.id]=q*t.ratio;h.qty+=add;}
       else if(t.type==='dividend'){const a=assetById(t.assetId);const secIn=inP(t.accountId);const dest=t.fundAccountId==='__outside'?null:(t.fundAccountId||(acc.tracksCash?acc.id:null));
         if(secIn&&a)H[a.id].divs+=t.amount;
-        if(secIn)DIVI[i]+=t.amount;
+        if(secIn){DIVI[i]+=t.amount;if(a)ADIV[a.id][i]+=t.amount;}
         if(inP(dest)){const da=accById(dest);cash[dest]+=t.amount/fxAt(da.currency,i);if(!secIn)CF[i]+=t.amount;}
         else if(secIn)DIV[i]+=t.amount;}
       else if(t.type==='deposit'||t.type==='withdraw'){if(!inP(acc.id))continue;const s=t.type==='deposit'?1:-1;cash[acc.id]+=s*t.amount;CF[i]+=s*t.amount*accFx;cashIn[acc.id].dep+=s*t.amount;}
@@ -550,7 +631,7 @@ function compute(){
         if(inA&&!inB)CF[i]-=nok;if(!inA&&inB)CF[i]+=nok;}
     }
     let v=0;
-    for(const a of S.assets){const h=H[a.id];if(h.qty>0){const p=priceCur[a.id][i];if(isFinite(p))v+=h.qty*p*fxAt(a.currency,i);}}
+    for(const a of S.assets){const h=H[a.id];if(h.qty>0){const p=priceCur[a.id][i];if(isFinite(p)){const x=h.qty*p*fxAt(a.currency,i);v+=x;AV[a.id][i]=x;}}}
     let c=0;for(const acc of S.accounts)if(cash[acc.id])c+=cash[acc.id]*fxAt(acc.currency,i);
     CASH[i]=c;V[i]=v+c;net+=CF[i];NET[i]=net;VI[i]=v;netI+=CFI[i];NETI[i]=netI;
   }
@@ -560,7 +641,7 @@ function compute(){
     const value=h.qty*p*fxNow;const avgCur=h.qty>0?h.costCur/h.qty:0;const avgFx=h.costCur>0?h.costNoFee/h.costCur:fxNow;
     holdings.push({a,kind:'asset',qty:h.qty,value,cost:h.cost,avgCur,avgFx,priceNow:p,fxNow,gain:value-h.cost,gainPct:h.cost>0?(value-h.cost)/h.cost:0,
       dayChg:h.qty*(p*fxNow-pPrev),dayPct:pPrev>0?(p*fxNow-pPrev)/pPrev:0,priceEffect:h.qty*(p-avgCur)*fxNow,fxEffect:h.qty*avgCur*(fxNow-avgFx),
-      realized:h.realized,divs:h.divs,fees:h.fees,invested:h.invested,src:mk.src[a.id],accs:[...h.accs],byAcc:h.byAcc});}
+      realized:h.realized,divs:h.divs,fees:h.fees,invested:h.invested,src:mk.src[a.id],accs:[...h.accs],byAcc:h.byAcc,AV:AV[a.id],ACF:ACF[a.id],ADIV:ADIV[a.id]});}
   const cashRows=[];for(const acc of S.accounts){if(!inP(acc.id))continue;const bal=cash[acc.id];if(Math.abs(bal)<0.005&&!cashIn[acc.id].dep)continue;
     cashRows.push({acc,balance:bal,value:bal*fxAt(acc.currency,L),deposited:cashIn[acc.id].dep,interest:cashIn[acc.id].int});}
   const M={P,d0,N,today,firstDay,V:VI,CF:CFI,DIV:DIVI,NET:NETI,VT:V,CASH,holdings,cashRows,fxAt,priceCur,txs,total:V[L],invested:VI[L],cash:CASH[L]};
@@ -577,11 +658,11 @@ function series(M,ccy){
     if(!isFinite(R[i]))R[i]=0;idx*=1+R[i];IDX[i]=idx;prev=V[i];}
   return (M._ser[ccy]={ccy,V,CF,DIV,NET,R,IDX});
 }
-const RANGES=['1D','1W','1M','6M','YTD','1Y','5Y','10Y','MAX'];
-const RANGE_WORD={'1D':'today','1W':'past week','1M':'past month','6M':'past 6 months','YTD':'this year','1Y':'past year','5Y':'past 5 years','10Y':'past 10 years','MAX':'all time'};
+const RANGES=['1D','1W','1M','6M','YTD','1Y','3Y','5Y','10Y','MAX'];
+const RANGE_WORD={'1D':'today','1W':'past week','1M':'past month','6M':'past 6 months','YTD':'this year','1Y':'past year','3Y':'past 3 years','5Y':'past 5 years','10Y':'past 10 years','MAX':'all time'};
 function rangeBase(key,today){const y=yearOf(today);
   switch(key){case '1D':return today-1;case '1W':return today-7;case '1M':return addMonths(today,-1);case '6M':return addMonths(today,-6);
-    case 'YTD':return dn((y-1)+'-12-31');case '1Y':return addMonths(today,-12);case '5Y':return addMonths(today,-60);case '10Y':return addMonths(today,-120);default:return -Infinity;}}
+    case 'YTD':return dn((y-1)+'-12-31');case '1Y':return addMonths(today,-12);case '2Y':return addMonths(today,-24);case '3Y':return addMonths(today,-36);case '5Y':return addMonths(today,-60);case '10Y':return addMonths(today,-120);default:return -Infinity;}}
 function xirr(flows){if(flows.length<2)return null;const t0=flows[0].t;if(!flows.some(f=>f.v>0)||!flows.some(f=>f.v<0))return null;
   const f=r=>flows.reduce((s,x)=>s+x.v/Math.pow(1+r,(x.t-t0)/365),0);
   let lo=-0.9999,hi=10,flo=f(lo),fhi=f(hi);if(flo*fhi>0){hi=1000;fhi=f(hi);if(flo*fhi>0)return null;}
@@ -701,7 +782,7 @@ async function refresh(force){
 const PALETTE=['--c1','--c2','--c3','--c4','--c5','--c6','--c7','--c8'];
 function colorVar(a){if(a.symbol&&a.symbol.toUpperCase()==='BTC')return 'var(--btc)';const i=Math.max(0,S.assets.indexOf(a));return `var(${PALETTE[i%PALETTE.length]})`;}
 function accColor(acc){const i=Math.max(0,S.accounts.indexOf(acc));return `var(${PALETTE[(i+1)%PALETTE.length]})`;}
-const BM_COLOR={SPY:'var(--c4)',QQQ:'var(--c3)',URTH:'var(--c6)',ACWI:'var(--c7)',OSEBX:'var(--c5)'};
+const BM_COLOR={SPY:'var(--c4)',QQQ:'var(--c3)',URTH:'var(--c6)',ACWI:'var(--c7)'};
 function niceTicks(lo,hi,n=3){const span=hi-lo;if(span<=0)return [lo];const step0=span/n;const mag=Math.pow(10,Math.floor(Math.log10(step0)));const err=step0/mag;const step=(err>=7.5?10:err>=3.5?5:err>=1.5?2:1)*mag;const out=[];for(let v=Math.ceil(lo/step)*step;v<=hi+1e-9;v+=step)out.push(+v.toFixed(10));return out;}
 let chartSeq=0;
 function mountChart(host,cfg){
@@ -779,7 +860,7 @@ function badge(a){return `<span class="badge" style="background:${colorVar(a)}">
 function accBadge(acc){return `<span class="badge" style="background:${accColor(acc)}">${iconSm('cash',18)}</span>`;}
 function kpi(k,v,c,s){return `<div class="kpi"><div class="k">${k}</div><div class="v ${c||''}">${v}</div>${s?`<div class="s">${s}</div>`:''}</div>`;}
 function seg(name,items,cur){return `<div class="seg" role="group">${items.map(([k,l])=>`<button data-${name}="${k}" aria-pressed="${cur===k}">${l}</button>`).join('')}</div>`;}
-function ccySelect(){return `<label class="ccy-sel"><span class="sr">Currency</span><select id="ccySel" aria-label="Show values in">${CCYS.map(c=>`<option ${c===UI.ccy?'selected':''}>${c}</option>`).join('')}</select></label>`;}
+function ccySelect(){return `<label class="ccy-sel"><span class="sr">Currency</span><select class="ccysel" aria-label="Show values in">${CCYS.map(c=>`<option ${c===UI.ccy?'selected':''}>${c}</option>`).join('')}</select></label>`;}
 function demoBanner(){if(!S.demo)return '';return `<div class="banner"><div><b>This is an example portfolio</b>The trades, prices and plans here are made up to show how Lacag works. Add or import your own and the example disappears.<div class="btns"><button class="btn sm primary" data-act="add">Add my first trade</button><button class="btn sm" data-act="import">Import CSV</button><button class="btn sm" data-act="cleardemo">Start empty</button></div></div></div>`;}
 function emptyState(){return `<div class="empty-state"><b>Nothing in ${esc(portfolio().name)} yet</b>Add a trade, import your Nordnet or Kraken file, or add your cash savings.<div class="btns" style="justify-content:center;margin-top:14px"><button class="btn primary" data-act="add">${iconSm('plus')} Add</button><button class="btn" data-act="import">${iconSm('import')} Import CSV</button></div></div>`;}
 const F=(v,o)=>fmtC(v,UI.ccy,o);
@@ -815,55 +896,6 @@ function portfolioSeries(M,Z,key,st){
     return {time:true,pts};}
   const idxs=[];for(let i=st.startI;i<=st.ei;i++)idxs.push(i);const base=st.bi>=0?Z.IDX[st.bi]:1;
   return {time:false,idx:downsample(idxs)};
-}
-function viewOverview(v){
-  const M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
-  const Z=series(M,UI.ccy);const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
-  const total=conv(M,M.total);const invNow=Z.V[M.N-1];
-  let pts,inv=null;
-  if(ser.idx){const base=st.bi>=0?Z.IDX[st.bi]:1;const netB=st.bi>=0?Z.NET[st.bi]:0;
-    pts=ser.idx.map(i=>({x:M.d0+i,v:UI.mode==='perf'?Z.IDX[i]/base-1:Z.V[i]}));
-    if(UI.mode==='value')inv=ser.idx.map(i=>({x:M.d0+i,v:Z.NET[i]}));}
-  else pts=ser.pts;
-  const bmId=UI.bms[0];const bm=key!=='1D'&&bmId?bmCompare(M,Z,bmId,st.bi,st.ei):null;const bmInfo=BENCHMARKS.find(b=>b.id===bmId);
-  let bmLine=null;if(bm&&!bm.missing&&ser.idx){const b0=bm.p[st.startI]&&st.bi>=0?bm.p[st.bi]:bm.p[st.startI];bmLine=ser.idx.map(i=>({x:M.d0+i,v:bm.p[i]/b0-1}));}
-  const cashPct=M.total?M.cash/M.total:0;
-  v.innerHTML=`${demoBanner()}
-  <section class="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button></div>
-    <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
-    <div class="small muted" style="margin-top:4px">Investments ${F(invNow)} · Cash ${F(conv(M,M.cash))} (${pct1(cashPct)})</div><div class="small muted">Chart and returns are for investments only; cash is added to the total.</div></section>
-  <div class="row-between" style="margin-top:8px">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${ccySelect()}</div>
-  <div class="legend-line small muted">${UI.mode==='value'?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in':`<span class="lk solid"></span>${esc(portfolio().name)} (time-weighted)${bmLine?` <span class="lk" style="background:${BM_COLOR[bmId]}"></span>${esc(bmInfo.name)}`:''}`}</div>
-  <div class="chart" id="mainChart"></div>
-  <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
-  <h2 class="sec">Key figures · ${esc(RANGE_WORD[key])}</h2>
-  <div class="kpis">
-    ${kpi('True time-weighted return',pct(st.twr),cl(st.twr),'TTWROR · deposits removed')}
-    ${kpi('Money-weighted return p.a.',st.irr!=null?pct(st.irr):'—',st.irr!=null?cl(st.irr):'',st.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
-    ${kpi('Gain / loss',F(st.gain,{sign:true}),cl(st.gain),'After fees, incl. dividends')}
-    ${kpi('Avg. annual return',st.annual!=null?pct(st.annual):'—',st.annual!=null?cl(st.annual):'',st.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
-    ${kpi('Money added',F(st.cf,{sign:true}),'','Deposits minus withdrawals')}
-    ${bm&&!bm.missing?kpi('Alpha vs '+esc(bmInfo.name),pct(st.twr-bm.twr),cl(st.twr-bm.twr),`${bmInfo.name} ${pct(bm.twr)}`):kpi('Dividends',F(st.div),'',' ')}
-    ${kpi('Max drawdown',pct(st.mdd),st.mdd<0?'down':'','Worst fall from a peak')}
-    ${kpi('Volatility p.a.',st.vol!=null?pct(st.vol,{sign:false}):'—','','Size of daily swings')}
-  </div>${fxNote()}
-  ${buyPlanCard(M)}
-  <h2 class="sec">Allocation</h2>
-  <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div>
-  <h2 class="sec">Today's movers</h2>${moversBlock(M)}`;
-  const host=$('#mainChart');const up=UI.mode==='perf'?pts[pts.length-1].v>=0:st.gain>=0;
-  const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
-  const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
-  const series_=[{pts,color:up?'var(--up)':'var(--down)',label:UI.mode==='perf'?portfolio().name:'Investments',fmt:UI.mode==='perf'&&ser.idx?'pct':'money'}];
-  if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
-  if(bmLine)series_.push({pts:bmLine,color:BM_COLOR[bmId],width:1.8,label:bmInfo.name,fmt:'pct',hidden:UI.mode!=='perf'});
-  if(bmLine&&UI.mode!=='perf'){const b0=pts.length?ser.idx[0]:0;series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:Z.IDX[i]/(st.bi>=0?Z.IDX[st.bi]:1)-1})),color:'var(--fg)',label:portfolio().name+' return',fmt:'pct',hidden:true});}
-  const reset=()=>{heroEy.textContent=eyTotal;heroVal.textContent=F(total);heroChg.textContent=F(st.gain,{sign:true});heroChg.className=cl(st.gain);heroPct.textContent=pct(st.twr);heroPct.className='pill '+cl(st.twr);heroWhen.textContent=RANGE_WORD[key];};
-  const draw=()=>mountChart(host,{series:series_,kind:UI.mode==='perf'&&ser.idx?'pct':'money',ccy:UI.ccy,diff:UI.mode==='perf'&&!!bmLine,time:ser.time,onScrub:i=>{
-    if(i==null)return reset();heroEy.textContent=portfolio().name+' · investments';
-    if(!ser.idx){const p=pts[i],f=pts[0];heroVal.textContent=F(p.v);const g=p.v-f.v;heroChg.textContent=F(g,{sign:true});heroChg.className=cl(g);const r=f.v?g/f.v:0;heroPct.textContent=pct(r);heroPct.className='pill '+cl(r);heroWhen.textContent=ser.time?'at '+timeLabel(p.x):dateLabel(p.x,true);return;}
-    const di=ser.idx[i];const s2=statsIdx(M,Z,st.bi,di);heroVal.textContent=F(Z.V[di]);heroChg.textContent=F(s2.gain,{sign:true});heroChg.className=cl(s2.gain);heroPct.textContent=pct(s2.twr);heroPct.className='pill '+cl(s2.twr);heroWhen.textContent='to '+dateLabel(M.d0+di,true);}});
-  draw();watchResize(host,draw);
 }
 function moversBlock(M){const hs=M.holdings.filter(h=>h.qty>0).sort((a,b)=>Math.abs(b.dayPct)-Math.abs(a.dayPct)).slice(0,5);
   if(!hs.length)return '<div class="card muted">No investments held right now.</div>';
@@ -908,26 +940,6 @@ function breakdownBlock(M,by,name,opts){const {tot,items}=breakdown(M,by);
   <div class="legend">${items.slice(0,9).map(it=>`<div class="li"><span class="sw" style="background:${it.color}"></span><span class="nm">${esc(it.name)}</span><span class="pc">${nf1.format(it.v/tot*100)} %</span></div>`).join('')}${items.length>9?`<div class="small muted">+ ${items.length-9} more</div>`:''}</div></div>`;}
 
 /* ================= holdings ================= */
-function viewHoldings(v){
-  const M=compute();const sub=UI.sub;
-  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity']],sub)}<button class="btn sm primary" data-act="add">${iconSm('plus')} Add</button></div>`;
-  if(!M){v.innerHTML=head+emptyState();return;}
-  if(sub==='cash')return viewCash(v,M,head);if(sub==='activity')return viewActivity(v,M,head);
-  const open=M.holdings.filter(h=>h.qty>0),closed=M.holdings.filter(h=>h.qty===0);
-  const val=open.reduce((s,h)=>s+h.value,0),cost=open.reduce((s,h)=>s+h.cost,0),realized=M.holdings.reduce((s,h)=>s+h.realized,0),divs=M.holdings.reduce((s,h)=>s+h.divs,0),day=open.reduce((s,h)=>s+h.dayChg,0);
-  const sorters={value:(a,b)=>b.value-a.value,gain:(a,b)=>b.gainPct-a.gainPct,today:(a,b)=>b.dayPct-a.dayPct};open.sort(sorters[UI.hsort]||sorters.value);
-  const accNames=h=>h.accs.map(id=>accById(id)).filter(Boolean).map(a=>a.name).join(', ');
-  const row=h=>`<button class="item" data-asset="${h.a.id}">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.name||h.a.symbol)}</div><div class="t2">${qtyFmt(h.qty)} ${esc(h.a.symbol)} · ${esc(accNames(h))}</div></div><div class="end"><div class="t1">${F(conv(M,h.value))}</div><div class="t2"><span class="${cl(h.gain)}">${pct(h.gainPct)}</span> <span class="muted">· ${val?nf1.format(h.value/val*100):0} %</span></div></div></button>`;
-  const groups=S.accounts.filter(a=>M.P.accountIds.includes(a.id));
-  v.innerHTML=`${head}
-  <div class="card sumgrid" style="margin-top:14px"><div><div class="k">Market value</div><div class="v">${F(conv(M,val))}</div></div><div><div class="k">Cost basis</div><div class="v">${F(conv(M,cost))}</div></div>
-   <div><div class="k">Unrealised gain</div><div class="v ${cl(val-cost)}">${F(conv(M,val-cost),{sign:true})} <span class="small">${cost?pct((val-cost)/cost):''}</span></div></div><div><div class="k">Today</div><div class="v ${cl(day)}">${F(conv(M,day),{sign:true})}</div></div>
-   <div><div class="k">Realised gain</div><div class="v ${cl(realized)}">${F(conv(M,realized),{sign:true})}</div></div><div><div class="k">Dividends received</div><div class="v">${F(conv(M,divs))}</div></div></div>
-  <div class="row-between" style="margin:16px 0 10px">${seg('hsort',[['value','Value'],['gain','Return'],['today','Today']],UI.hsort)}${ccySelect()}</div>
-  ${open.length?`<div class="list">${open.map(row).join('')}</div>`:'<div class="card muted">No investments held right now.</div>'}
-  <div class="small muted" style="margin:8px 2px">% after the return is each holding's weight in your investments.</div>
-  ${closed.length?`<div class="month-h">Closed positions</div><div class="list">${closed.map(h=>`<button class="item" data-asset="${h.a.id}">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.name||h.a.symbol)}</div><div class="t2">Sold</div></div><div class="end"><div class="t1 ${cl(h.realized)}">${F(conv(M,h.realized),{sign:true})}</div><div class="t2 muted">realised</div></div></button>`).join('')}</div>`:''}`;
-}
 function viewCash(v,M,head){
   const rows=M.cashRows;const tot=rows.reduce((s,c)=>s+c.value,0);
   const accs=S.accounts.filter(a=>M.P.accountIds.includes(a.id)&&(a.tracksCash||a.kind==='cash'));
@@ -959,43 +971,6 @@ function viewActivity(v,M,head){
 }
 
 /* ================= analysis ================= */
-function viewAnalysis(v){
-  const M=compute();const sub=UI.asub;
-  const head=`${demoBanner()}<div style="margin-top:14px;overflow-x:auto">${seg('asub',[['performance','Returns'],['breakdown','Breakdown'],['benchmark','Benchmark'],['reports','Reports']],sub)}</div>`;
-  if(!M){v.innerHTML=head+emptyState();return;}
-  if(sub==='breakdown')return viewBreakdown(v,M,head);if(sub==='benchmark')return viewBenchmark(v,M,head);if(sub==='reports')return viewReports(v,M,head);
-  const Z=series(M,UI.ccy);const st=stats(M,Z,'MAX');
-  const months=new Map();for(let i=0;i<M.N;i++){const d=new Date((M.d0+i)*DAY);const k=d.getUTCFullYear()*12+d.getUTCMonth();months.set(k,(months.get(k)||1)*(1+Z.R[i]));}
-  const years=[...new Set([...months.keys()].map(k=>Math.floor(k/12)))].sort((a,b)=>b-a);
-  const hm=heatTable(years,MON,(y,m)=>{const x=months.get(y*12+m);return x==null?null:x-1;});
-  const open=M.holdings.filter(h=>h.qty>0);const pe=open.reduce((s,h)=>s+h.priceEffect,0),fe=open.reduce((s,h)=>s+h.fxEffect,0),fees=M.holdings.reduce((s,h)=>s+h.fees,0),divs=M.holdings.reduce((s,h)=>s+h.divs,0);
-  const absT=Math.abs(pe)+Math.abs(fe)||1;
-  const fxRows=open.filter(h=>h.a.currency!=='NOK').map(h=>`<div class="item" style="cursor:default">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.symbol)}</div><div class="t2">${h.a.currency}/NOK ${nf2.format(h.avgFx)} → ${nf2.format(h.fxNow)}</div></div><div class="end"><div class="t1 ${cl(h.priceEffect)}">${kr(h.priceEffect,{sign:true})}</div><div class="t2 ${cl(h.fxEffect)}">${kr(h.fxEffect,{sign:true})} FX</div></div></div>`).join('');
-  const ranked=M.holdings.map(h=>({h,total:h.gain+h.realized+h.divs})).sort((a,b)=>b.total-a.total);
-  const contrib=new Map();for(let i=0;i<M.N;i++){if(Z.CF[i]){const y=yearOf(M.d0+i);contrib.set(y,(contrib.get(y)||0)+Z.CF[i]);}}
-  const cy=[...contrib.entries()].sort((a,b)=>a[0]-b[0]);const cmax=Math.max(1,...cy.map(x=>Math.abs(x[1])));
-  v.innerHTML=`${head}<h2 class="sec">Since ${dateLabel(M.firstDay,true)}</h2>
-  <div class="kpis">
-    ${kpi('True time-weighted return',pct(st.twr),cl(st.twr),'TTWROR, total')}
-    ${kpi('Money-weighted return p.a.',st.irr!=null?pct(st.irr):'—',st.irr!=null?cl(st.irr):'','MWR (IRR)')}
-    ${kpi('Avg. annual return',st.annual!=null?pct(st.annual):'—',st.annual!=null?cl(st.annual):'','TTWROR, annualised')}
-    ${kpi('Total gain',F(st.gain,{sign:true}),cl(st.gain),'Investments − money put in')}
-    ${kpi('Best day',st.best?pct(st.best.r):'—','up',st.best?dateLabel(M.d0+st.best.i,true):'')}
-    ${kpi('Worst day',st.worst?pct(st.worst.r):'—','down',st.worst?dateLabel(M.d0+st.worst.i,true):'')}
-    ${kpi('Max drawdown',pct(st.mdd),st.mdd<0?'down':'','Worst fall from a peak')}
-    ${kpi('Fees paid',kr(fees),'',kr(divs)+' dividends')}
-  </div>${fxNote()}
-  <div class="note" style="margin-top:10px"><b>Which return should I look at?</b> TTWROR shows how well your investments did, as if you had invested everything on day one, so it's the one to compare with an index. MWR shows what you personally earned, so buying more just before a rise lifts it.</div>
-  <h2 class="sec">Monthly returns</h2><div class="card">${hm}<div class="small muted" style="margin-top:8px">TTWROR per month in ${UI.ccy}. Deposits don't count as gains.</div></div>
-  <h2 class="sec">Currency effect</h2>
-  <div class="card"><div class="note">You buy USD and EUR assets with kroner, so your result is the price move plus the krone move. This splits your unrealised gain into the two.</div>
-   <div class="split"><span style="width:${Math.abs(pe)/absT*100}%;background:var(--c1)"></span><span style="width:${Math.abs(fe)/absT*100}%;background:var(--c3)"></span></div>
-   <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div></div><div><div class="k"><span class="dotk" style="background:var(--c3)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div></div></div></div>
-  ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}
-  <h2 class="sec">Winners and losers</h2>
-  <div class="list">${ranked.map(({h,total})=>`<button class="item" data-asset="${h.a.id}">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.name||h.a.symbol)}</div><div class="t2">Paid ${kr(h.invested)}</div></div><div class="end"><div class="t1 ${cl(total)}">${kr(total,{sign:true})}</div><div class="t2 muted">${h.invested?pct(total/h.invested):''}</div></div></button>`).join('')}</div>
-  <h2 class="sec">Money added per year</h2><div class="card"><div class="bars">${cy.map(([y,val])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${Math.abs(val)/cmax*100}%;${val<0?'background:var(--c4)':''}"></div></div><span class="val">${F(val,{sign:true})}</span></div>`).join('')||'<span class="muted">Nothing added yet</span>'}</div></div>`;
-}
 function heatTable(years,cols,get,withTotal=true){
   const cell=r=>{if(r==null)return '<td class="na">·</td>';const a=Math.min(1,Math.abs(r)/0.12);const c=r>=0?'var(--up)':'var(--down)';return `<td style="background:color-mix(in srgb,${c} ${Math.round(12+a*60)}%,var(--surface2));color:${a>0.55?'#fff':'var(--fg)'}">${sgn(r,true)}${nf1.format(Math.abs(r*100))}</td>`;};
   return `<div class="hm-wrap"><table class="hm ${cols.length<6?'narrow':''}"><thead><tr><th></th>${cols.map(m=>`<th>${m}</th>`).join('')}${withTotal?'<th>Year</th>':''}</tr></thead><tbody>${years.map(y=>{let yr=1,any=false;const tds=cols.map((_,m)=>{const r=get(y,m);if(r==null)return cell(null);any=true;yr*=1+r;return cell(r);}).join('');return `<tr><th class="y">${y}</th>${tds}${withTotal?(any?cell(yr-1).replace('<td','<td class="tot"'):'<td class="na">·</td>'):''}</tr>`;}).join('')}</tbody></table></div>`;}
@@ -1011,45 +986,162 @@ function viewBreakdown(v,M,head){
   <h2 class="sec">Concentration</h2>
   <div class="kpis">${kpi('Largest holding',pct1(top1),'',hb.items[0]?esc(hb.items[0].name):'')}${kpi('Top 5 holdings',pct1(top5),'','of net worth')}${kpi('Effective holdings',nf1.format(effN),'','Diversification in "equal-sized" positions')}${kpi('Positions',String(hb.items.length),'','incl. cash accounts')}</div>`;
 }
-function viewBenchmark(v,M,head){
-  const Z=series(M,UI.ccy);const key=UI.range==='1D'?'1Y':UI.range;const st=stats(M,Z,key);
-  const idxs=[];for(let i=st.startI;i<=st.ei;i++)idxs.push(i);const ix=downsample(idxs);const base=st.bi>=0?Z.IDX[st.bi]:1;
-  const ser=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/base-1})),color:'var(--accent)',width:2.4,label:portfolio().name,fmt:'pct'}];
-  const rows=[];const missing=[];
-  for(const id of UI.bms){const b=BENCHMARKS.find(x=>x.id===id);const r=bmCompare(M,Z,id,st.bi,st.ei);
-    if(!r||r.missing){missing.push(b.name+(C.err['bm:'+id]?` (${C.err['bm:'+id]})`:''));continue;}
-    const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];ser.push({pts:ix.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[id],width:1.8,label:b.name,fmt:'pct'});rows.push({b,r});}
-  const yours=Z.V[st.ei]+st.div;
-  v.innerHTML=`${head}<h2 class="sec">Against the market · ${esc(RANGE_WORD[key])}</h2>
-  <div class="row-between"><div class="chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>${ccySelect()}</div>
-  ${UI.bms.length?'':'<div class="note" style="margin-top:8px">No index selected. Tap one above to compare.</div>'}
-  <div class="chart" id="bmChart"></div>
-  <div class="ranges">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-range="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
-  ${missing.length?`<div class="banner" style="margin-top:10px"><div><b>No index data yet</b>${S.settings.tdKey?(NET.blocked?'Live data is off in this view. Open Lacag from your home screen to load index prices.':'Loading or unavailable: '+esc(missing.join(', '))):'Index prices come from Twelve Data. Add your free key in Settings → Live prices.'}</div></div>`:''}
-  ${rows.length?`<div class="list" style="margin-top:12px">
-    <div class="item" style="cursor:default"><span class="badge" style="background:var(--accent)">${esc(portfolio().name.slice(0,3).toUpperCase())}</span><div class="mid"><div class="t1">${esc(portfolio().name)}</div><div class="t2">TTWROR${st.annual!=null?' · '+pct(st.annual)+' p.a.':''}</div></div><div class="end"><div class="t1 ${cl(st.twr)}">${pct(st.twr)}</div></div></div>
-    ${rows.map(({b,r})=>{const alpha=st.twr-r.twr;const aAnn=st.annual!=null&&r.annual!=null?st.annual-r.annual:null;return `<div class="item" style="cursor:default"><span class="badge" style="background:${BM_COLOR[b.id]}">${esc(b.sym)}</span><div class="mid"><div class="t1">${esc(b.name)} <span class="muted small">${pct(r.twr)}</span></div><div class="t2">Alpha ${aAnn!=null?pct(aAnn)+' p.a.':'over period'}</div></div><div class="end"><div class="t1 ${cl(alpha)}">${pct(alpha)}</div><div class="t2 muted">alpha</div></div></div>`;}).join('')}</div>
-  <h2 class="sec">Same money, same days</h2>
-  <div class="note">If every krone you put in (and took out) had gone into the index on the same days instead:</div>
-  <div class="list" style="margin-top:10px">${rows.map(({b,r})=>{const d=yours-r.end;return `<div class="item" style="cursor:default"><span class="badge" style="background:${BM_COLOR[b.id]}">${esc(b.sym)}</span><div class="mid"><div class="t1 wrap">${esc(b.name)} would be ${F(r.end)}</div><div class="t2 wrap">You have ${F(yours)}${st.div?' incl. dividends paid out':''}</div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}</div>
-  <div class="small muted" style="margin-top:8px">Index prices are ETF prices with dividends reinvested (${BENCHMARKS.map(b=>b.sym).join(', ')}), converted to ${UI.ccy}. Alpha here is your return minus the index return; it doesn't adjust for risk.</div>`:''}`;
-  const host=$('#bmChart');const draw=()=>mountChart(host,{series:ser,kind:'pct',label:'Benchmark comparison',diff:ser.length>1});draw();watchResize(host,draw);
+
+/* ================= overview ================= */
+const CUM_PERIODS=[['YTD','YTD'],['1M','1 mo'],['1Y','1 yr'],['3Y','3 yrs'],['10Y','10 yrs']];
+const ANN_PERIODS=[['1Y','1 yr'],['2Y','2 yrs'],['3Y','3 yrs'],['5Y','5 yrs'],['10Y','10 yrs']];
+/* returns for a fixed period, or null if the history doesn't reach back that far */
+function periodRet(M,Z,code,annual){const base=rangeBase(code,M.today);if(base<M.firstDay-1)return null;const bi=base-M.d0;if(bi<0)return null;
+  const r=Z.IDX[M.N-1]/Z.IDX[bi]-1;if(!annual)return r;const days=M.N-1-bi;return days>0?Math.pow(1+r,365/days)-1:null;}
+function bmPeriodRet(M,Z,id,code,annual){const b=bmSeries(M,id,Z.ccy);if(!b)return null;const base=rangeBase(code,M.today);if(base<M.firstDay-1||base<b.firstDay)return null;const bi=base-M.d0;if(bi<0)return null;
+  const r=b.p[M.N-1]/b.p[bi]-1;if(!isFinite(r))return null;if(!annual)return r;const days=M.N-1-bi;return Math.pow(1+r,365/days)-1;}
+function retTable(M,Z,periods,annual){
+  const cell=v=>v==null?'<td class="na">—</td>':`<td class="${cl(v)}">${pct(v).replace(' %','')}</td>`;
+  const rows=[`<tr><th>${esc(portfolio().name)}</th>${periods.map(([c])=>cell(periodRet(M,Z,c,annual))).join('')}</tr>`];
+  for(const id of UI.bms){const b=BENCHMARKS.find(x=>x.id===id);if(!b)continue;
+    if(!bmSeries(M,id,Z.ccy)){const why=!S.settings.tdKey?'Needs your Twelve Data key (Settings)':NET.blocked?'Loads when opened from your home screen':C.err['bm:'+id]?C.err['bm:'+id]:'Loading index prices…';rows.push(`<tr class="bm"><th><span class="sw" style="background:${BM_COLOR[id]}"></span>${esc(b.name)}</th><td colspan="${periods.length}" class="na why">${esc(why)}</td></tr>`);continue;}
+    rows.push(`<tr class="bm"><th><span class="sw" style="background:${BM_COLOR[id]}"></span>${esc(b.name)}</th>${periods.map(([c])=>cell(bmPeriodRet(M,Z,id,c,annual))).join('')}</tr>`);}
+  return `<div class="hm-wrap"><table class="rtab"><thead><tr><th></th>${periods.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
+function viewOverview(v){
+  const M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
+  const Z=series(M,UI.ccy);const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
+  const total=conv(M,M.total);const invNow=Z.V[M.N-1];const perf=UI.mode==='perf'&&!!ser.idx;
+  let pts,inv=null;
+  if(ser.idx){const base=st.bi>=0?Z.IDX[st.bi]:1;pts=ser.idx.map(i=>({x:M.d0+i,v:perf?Z.IDX[i]/base-1:Z.V[i]}));if(!perf)inv=ser.idx.map(i=>({x:M.d0+i,v:Z.NET[i]}));}
+  else pts=ser.pts;
+  const bms=key==='1D'?[]:UI.bms.map(id=>({b:BENCHMARKS.find(x=>x.id===id),r:bmCompare(M,Z,id,st.bi,st.ei)})).filter(x=>x.b);
+  const cashPct=M.total?M.cash/M.total:0;
+  const compare=bms.filter(x=>x.r&&!x.r.missing);const yours=Z.V[st.ei]+st.div;
+  v.innerHTML=`${demoBanner()}
+  <section class="hero card"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button></div>
+    <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
+    <div class="small muted" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
+  <section class="card chart-card"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${ccySelect()}</div>
+  <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in':`<span class="lk" style="background:var(--accent)"></span>${esc(portfolio().name)}${compare.map(x=>` <span class="lk" style="background:${BM_COLOR[x.b.id]}"></span>${esc(x.b.name)}`).join('')}`}</div>
+  <div class="chart" id="mainChart"></div>
+  <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
+  ${UI.mode==='perf'?`<div class="chips bm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
+    ${bms.some(x=>!x.r||x.r.missing)?`<div class="small muted" style="margin-top:6px">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}`:''}</section>
+  <h2 class="sec">Key figures · ${esc(RANGE_WORD[key])}</h2>
+  <div class="kpis">
+    ${kpi('True time-weighted return',pct(st.twr),cl(st.twr),'TTWROR · deposits removed')}
+    ${kpi('Money-weighted return p.a.',st.irr!=null?pct(st.irr):'—',st.irr!=null?cl(st.irr):'',st.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
+    ${kpi('Gain / loss',F(st.gain,{sign:true}),cl(st.gain),'After fees, incl. dividends')}
+    ${kpi('Avg. annual return',st.annual!=null?pct(st.annual):'—',st.annual!=null?cl(st.annual):'',st.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
+    ${kpi('Money added',F(st.cf,{sign:true}),'','Bought minus sold')}
+    ${kpi('Dividends',F(st.div),'',' ')}
+    ${kpi('Max drawdown',pct(st.mdd),st.mdd<0?'down':'','Worst fall from a peak')}
+    ${kpi('Volatility p.a.',st.vol!=null?pct(st.vol,{sign:false}):'—','','Size of daily swings')}
+  </div>
+  ${compare.length?`<div class="sub-h">Same money, same days</div><div class="note small">If every krone you put in and took out had gone into the index on the same days:</div>
+   <div class="list" style="margin-top:8px">${compare.map(({b,r})=>{const d=yours-r.end;const alpha=st.twr-r.twr;return `<div class="item" style="cursor:default"><span class="badge" style="background:${BM_COLOR[b.id]}">${esc(b.sym)}</span><div class="mid"><div class="t1 wrap">${esc(b.name)} would be ${F(r.end)}</div><div class="t2 wrap">Index ${pct(r.twr)} · alpha <span class="${cl(alpha)}">${pct(alpha)}</span></div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}</div>`:''}
+  <section class="card" style="margin-top:16px"><div class="row-between"><div class="sub-h" style="margin:0">Compare with</div>${ccySelect()}</div>
+  <div class="chips" style="margin-top:10px">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div></section>
+  <section class="card" style="margin-top:12px"><div class="sub-h" style="margin-top:0">Cumulative return (%) · ${UI.ccy}</div>${retTable(M,Z,CUM_PERIODS,false)}</section>
+  <section class="card" style="margin-top:12px"><div class="sub-h" style="margin-top:0">Annualised return (%) · ${UI.ccy}</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
+  <h2 class="sec">Allocation</h2>
+  <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div>
+  <h2 class="sec">Today's movers</h2>${moversBlock(M)}`;
+  const host=$('#mainChart');const up=perf?pts[pts.length-1].v>=0:st.gain>=0;
+  const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
+  const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
+  const series_=[{pts,color:perf?'var(--accent)':(up?'var(--up)':'var(--down)'),label:perf?portfolio().name:'Investments',fmt:perf?'pct':'money'}];
+  if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
+  if(perf)for(const {b,r} of compare){const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[b.id],width:1.8,label:b.name,fmt:'pct'});}
+  const reset=()=>{heroEy.textContent=eyTotal;heroVal.textContent=F(total);heroChg.textContent=F(st.gain,{sign:true});heroChg.className=cl(st.gain);heroPct.textContent=pct(st.twr);heroPct.className='pill '+cl(st.twr);heroWhen.textContent=RANGE_WORD[key];};
+  const draw=()=>mountChart(host,{series:series_,kind:perf?'pct':'money',ccy:UI.ccy,diff:perf&&series_.length>1,time:ser.time,onScrub:i=>{
+    if(i==null)return reset();heroEy.textContent=portfolio().name+' · investments';
+    if(!ser.idx){const p=pts[i],f=pts[0];heroVal.textContent=F(p.v);const g=p.v-f.v;heroChg.textContent=F(g,{sign:true});heroChg.className=cl(g);const r=f.v?g/f.v:0;heroPct.textContent=pct(r);heroPct.className='pill '+cl(r);heroWhen.textContent=ser.time?'at '+timeLabel(p.x):dateLabel(p.x,true);return;}
+    const di=ser.idx[i];const s2=statsIdx(M,Z,st.bi,di);heroVal.textContent=F(Z.V[di]);heroChg.textContent=F(s2.gain,{sign:true});heroChg.className=cl(s2.gain);heroPct.textContent=pct(s2.twr);heroPct.className='pill '+cl(s2.twr);heroWhen.textContent='to '+dateLabel(M.d0+di,true);}});
+  draw();watchResize(host,draw);
 }
-function viewReports(v,M,head){
-  const Z=series(M,UI.ccy);const t=M.today;const dow=(new Date(t*DAY).getUTCDay()+6)%7;
+
+/* ================= holdings: positions table ================= */
+function posPL(M,h,key){const bi=Math.max(-1,rangeBase(key,M.today)-M.d0),ei=M.N-1;
+  const Vb=bi>=0?h.AV[bi]:0;let f=0,fin=0,div=0;for(let i=bi+1;i<=ei;i++){f+=h.ACF[i];if(h.ACF[i]>0)fin+=h.ACF[i];div+=h.ADIV[i];}
+  const pl=h.AV[ei]-Vb-f+div;const base=Vb+fin;return {pl,pct:base>0?pl/base:0};}
+function viewHoldings(v){
+  const M=compute();const sub=UI.sub;
+  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity']],sub)}<button class="btn sm primary" data-act="add">${iconSm('plus')} Add transaction</button></div>`;
+  if(!M){v.innerHTML=head+emptyState();return;}
+  if(sub==='cash')return viewCash(v,M,head);if(sub==='activity')return viewActivity(v,M,head);
+  const key=UI.prange||'MAX';
+  const open=M.holdings.filter(h=>h.qty>0).map(h=>Object.assign({},h,posPL(M,h,key)));const closed=M.holdings.filter(h=>h.qty===0);
+  const val=open.reduce((s,h)=>s+h.value,0),cost=open.reduce((s,h)=>s+h.cost,0),realized=M.holdings.reduce((s,h)=>s+h.realized,0),divs=M.holdings.reduce((s,h)=>s+h.divs,0),day=open.reduce((s,h)=>s+h.dayChg,0);
+  const srt=UI.psort||'position',dir=UI.pdir||-1;
+  const getv={title:h=>(h.a.name||h.a.symbol).toLowerCase(),buyin:h=>h.cost,position:h=>h.value,pl:h=>h.pl}[srt]||(h=>h.value);
+  open.sort((a,b)=>{const x=getv(a),y=getv(b);return (x<y?-1:x>y?1:0)*dir;});
+  const plTot=open.reduce((s,h)=>s+h.pl,0);
+  const hcol=(k,l,cls='')=>`<button class="ph ${cls} ${srt===k?'on':''}" data-psort="${k}">${l}${srt===k?(dir>0?' ↑':' ↓'):''}</button>`;
+  const fx=n=>F(conv(M,n));const fxd=n=>F(conv(M,n),{dec:true});
+  v.innerHTML=`${head}
+  <div class="card sumgrid" style="margin-top:14px"><div><div class="k">Market value</div><div class="v">${fx(val)}</div></div><div><div class="k">Cost basis</div><div class="v">${fx(cost)}</div></div>
+   <div><div class="k">Unrealised gain</div><div class="v ${cl(val-cost)}">${F(conv(M,val-cost),{sign:true})} <span class="small">${cost?pct((val-cost)/cost):''}</span></div></div><div><div class="k">Today</div><div class="v ${cl(day)}">${F(conv(M,day),{sign:true})}</div></div>
+   <div><div class="k">Realised gain</div><div class="v ${cl(realized)}">${F(conv(M,realized),{sign:true})}</div></div><div><div class="k">Dividends received</div><div class="v">${fx(divs)}</div></div></div>
+  <div class="row-between" style="margin:16px 0 8px"><h2 class="sec" style="margin:0">Positions</h2>${ccySelect()}</div>
+  <div class="ranges" role="group" aria-label="P/L period">${RANGES.map(r=>`<button data-prange="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
+  ${open.length?`<div class="ptable"><div class="prow phead">${hcol('title','Title','pt')}${hcol('buyin','Buy in')}${hcol('position','Position')}${hcol('pl','P/L '+key)}<span></span></div>
+   ${open.map(h=>`<div class="prow" role="button" tabindex="0" data-asset="${h.a.id}"><div class="pt"><div class="pn">${esc(h.a.name||h.a.symbol)}</div><div class="ps">${esc(h.a.symbol)} <span class="qb">×${qtyFmt(h.qty)}</span></div></div>
+     <div class="pv"><div>${fx(h.cost)}</div><div class="pu">${fxd(h.cost/h.qty)}</div></div>
+     <div class="pv"><div>${fx(h.value)}</div><div class="pu">${fxd(h.priceNow*h.fxNow)}</div></div>
+     <div class="pv"><div class="${cl(h.pl)}">${F(conv(M,h.pl),{sign:true})}</div><div class="pu ${cl(h.pct)}">${pct(h.pct)}</div></div>
+     <button class="pm" data-pmenu="${h.a.id}" aria-label="More for ${esc(h.a.symbol)}">⋮</button></div>`).join('')}
+   <div class="prow ptot"><div class="pt"><div class="pn">Total</div></div><div class="pv">${fx(cost)}</div><div class="pv">${fx(val)}</div><div class="pv ${cl(plTot)}">${F(conv(M,plTot),{sign:true})}</div><span></span></div></div>
+   <div class="small muted" style="margin:6px 2px">P/L ${esc(RANGE_WORD[key])}: change in value including what you bought, sold and got in dividends in the period. Tap a column to sort.</div>`
+  :'<div class="card muted">No investments held right now.</div>'}
+  ${closed.length?`<div class="month-h">Closed positions</div><div class="list">${closed.map(h=>`<button class="item" data-asset="${h.a.id}">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.name||h.a.symbol)}</div><div class="t2">Sold</div></div><div class="end"><div class="t1 ${cl(h.realized)}">${F(conv(M,h.realized),{sign:true})}</div><div class="t2 muted">realised</div></div></button>`).join('')}</div>`:''}`;
+}
+function posMenu(id){const a=assetById(id);if(!a)return;
+  openSheet(a.name||a.symbol,`<div class="list"><button class="item" id="pmAdd"><div class="mid"><div class="t1">Add transaction</div><div class="t2">Buy, sell, dividend or split</div></div></button><button class="item" id="pmOpen"><div class="mid"><div class="t1">Details and chart</div><div class="t2">Price history, update price, sector and region</div></div></button></div>`,()=>{
+    fv('pmAdd').onclick=()=>{if(S.demo){toast('Start with your own data first');return;}txSheet(null,{assetId:id});};fv('pmOpen').onclick=()=>assetSheet(id);});}
+
+/* ================= analysis: returns ================= */
+function periodReturns(M,Z,per){const map=new Map();for(let i=0;i<M.N;i++){const d=new Date((M.d0+i)*DAY);if(M.d0+i<M.firstDay)continue;const k=per==='quarter'?d.getUTCFullYear()*4+Math.floor(d.getUTCMonth()/3):d.getUTCFullYear()*12+d.getUTCMonth();map.set(k,(map.get(k)||1)*(1+Z.R[i]));}return map;}
+function returnsBars(map,per){const keys=[...map.keys()].sort((a,b)=>a-b);if(!keys.length)return '<div class="muted">No returns yet.</div>';
+  const vals=keys.map(k=>map.get(k)-1);const sortedAbs=vals.map(Math.abs).sort((a,b)=>a-b);const mx=Math.max(0.01,sortedAbs[Math.floor(sortedAbs.length*0.92)]||0.01);const bw=per==='quarter'?22:11,gap=per==='quarter'?6:3;const h=180,mid=h/2,pt=8;const w=keys.length*(bw+gap)+gap;
+  const lab=k=>per==='quarter'?`Q${k%4+1} ${Math.floor(k/4)}`:`${MON[k%12]} ${Math.floor(k/12)}`;
+  let svg=`<svg width="${w}" height="${h+22}" viewBox="0 0 ${w} ${h+22}" role="img" aria-label="Returns per ${per}"><line x1="0" x2="${w}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>`;
+  keys.forEach((k,j)=>{const v=vals[j];const bh=Math.max(1,Math.min(1,Math.abs(v)/mx)*(mid-pt));const x=gap+j*(bw+gap);const y=v>=0?mid-bh:mid;
+    svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${v>=0?'var(--up)':'var(--down)'}" data-rbar="${esc(lab(k))}|${v}"/>`;
+    const first=per==='quarter'?k%4===0:k%12===0;if(first||j===0)svg+=`<text x="${x}" y="${h+14}" font-size="10" fill="var(--muted)">${per==='quarter'?Math.floor(k/4):Math.floor(k/12)}</text>`;});
+  svg+='</svg>';const last=keys.length-1;
+  return `<div class="rb-read" id="rbRead">${esc(lab(keys[last]))} · <span class="${cl(vals[last])}">${pct(vals[last])}</span></div><div class="rb-wrap" id="rbWrap">${svg}</div><div class="small muted" style="margin-top:4px">Tap a bar to see its value.</div>`;}
+function reportCards(M,Z){
+  const t=M.today;const dow=(new Date(t*DAY).getUTCDay()+6)%7;
   const wkB=t-dow-1;const qB=periodStart(t,'quarter')-1;const pqB=addMonths(qB+1,-3)-1;const yB=dn((yearOf(t)-1)+'-12-31');const pyB=dn((yearOf(t)-2)+'-12-31');
-  const idx=d=>d-M.d0;const per=[['This week',wkB,t],['Last week',wkB-7,wkB],['This quarter',qB,t],['Last quarter',pqB,qB],['This year',yB,t],['Last year',pyB,yB]];
+  const per=[['This week',wkB,t],['Last week',wkB-7,wkB],['This quarter',qB,t],['Last quarter',pqB,qB],['This year',yB,t],['Last year',pyB,yB]];
   const bmId=UI.bms[0];const bmInfo=BENCHMARKS.find(b=>b.id===bmId);
-  const cards=per.map(([name,b,e])=>{if(e<M.d0)return `<div class="rep"><div class="rep-h">${name}</div><div class="muted small">No data</div></div>`;
-    const s=statsIdx(M,Z,b-M.d0,idx(e));const bm=bmId?bmCompare(M,Z,bmId,s.bi,s.ei):null;
+  return `<div class="reps">${per.map(([name,b,e])=>{if(e<M.d0)return `<div class="rep"><div class="rep-h">${name}</div><div class="muted small">No data</div></div>`;
+    const s=statsIdx(M,Z,b-M.d0,e-M.d0);const bm=bmId?bmCompare(M,Z,bmId,s.bi,s.ei):null;
     return `<div class="rep"><div class="rep-h">${name}</div><div class="muted small">${dateLabel(Math.max(b+1,M.d0))} – ${dateLabel(e)}</div>
       <div class="rep-v ${cl(s.twr)}">${pct(s.twr)}</div><div class="small ${cl(s.gain)}">${F(s.gain,{sign:true})}</div>
-      <div class="rep-g"><span class="muted">Investments</span><span class="num">${F(s.Ve)}</span><span class="muted">Added</span><span class="num">${F(s.cf,{sign:true})}</span>${bm&&!bm.missing?`<span class="muted">${esc(bmInfo.name)}</span><span class="num ${cl(bm.twr)}">${pct(bm.twr)}</span>`:''}</div></div>`;}).join('');
-  const qMap=new Map();for(let i=0;i<M.N;i++){const d=new Date((M.d0+i)*DAY);const k=d.getUTCFullYear()*4+Math.floor(d.getUTCMonth()/3);qMap.set(k,(qMap.get(k)||1)*(1+Z.R[i]));}
-  const years=[...new Set([...qMap.keys()].map(k=>Math.floor(k/4)))].sort((a,b)=>b-a);
-  v.innerHTML=`${head}<div class="row-between"><h2 class="sec">Your updates</h2>${ccySelect()}</div><div class="reps">${cards}</div>
-  <div class="small muted" style="margin:8px 2px">Returns are TTWROR. Weeks run Monday to Sunday.</div>
-  <h2 class="sec">Quarterly returns</h2><div class="card">${heatTable(years,['Q1','Q2','Q3','Q4'],(y,q)=>{const x=qMap.get(y*4+q);return x==null?null:x-1;})}</div>`;
+      <div class="rep-g"><span class="muted">Investments</span><span class="num">${F(s.Ve)}</span><span class="muted">Added</span><span class="num">${F(s.cf,{sign:true})}</span>${bm&&!bm.missing?`<span class="muted">${esc(bmInfo.name)}</span><span class="num ${cl(bm.twr)}">${pct(bm.twr)}</span>`:''}</div></div>`;}).join('')}</div>
+  <div class="small muted" style="margin:8px 2px">Returns are TTWROR. Weeks run Monday to Sunday.</div>`;}
+function viewAnalysis(v){
+  const M=compute();const sub=UI.asub==='breakdown'?'breakdown':'performance';
+  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('asub',[['performance','Returns'],['breakdown','Breakdown']],sub)}${ccySelect()}</div>`;
+  if(!M){v.innerHTML=head+emptyState();return;}
+  if(sub==='breakdown')return viewBreakdown(v,M,head);
+  const Z=series(M,UI.ccy);const per=UI.rper==='quarter'?'quarter':'month';const view=UI.rview==='bars'?'bars':'grid';
+  const map=periodReturns(M,Z,per);const years=[...new Set([...map.keys()].map(k=>Math.floor(k/(per==='quarter'?4:12))))].sort((a,b)=>b-a);
+  const grid=per==='quarter'?heatTable(years,['Q1','Q2','Q3','Q4'],(y,q)=>{const x=map.get(y*4+q);return x==null?null:x-1;}):heatTable(years,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;});
+  const open=M.holdings.filter(h=>h.qty>0);const pe=open.reduce((s,h)=>s+h.priceEffect,0),fe=open.reduce((s,h)=>s+h.fxEffect,0);
+  const forCost=open.filter(h=>h.a.currency!=='NOK').reduce((s,h)=>s+h.cost,0)||open.reduce((s,h)=>s+h.cost,0)||1;const absT=Math.abs(pe)+Math.abs(fe)||1;
+  const fxRows=open.filter(h=>h.a.currency!=='NOK').map(h=>{const c=h.cost||1;return `<div class="item" style="cursor:default">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.symbol)}</div><div class="t2">${h.a.currency}/NOK ${nf2.format(h.avgFx)} → ${nf2.format(h.fxNow)}</div></div><div class="end"><div class="t1 ${cl(h.priceEffect)}">${kr(h.priceEffect,{sign:true})} <span class="small">${pct(h.priceEffect/c)}</span></div><div class="t2 ${cl(h.fxEffect)}">${kr(h.fxEffect,{sign:true})} FX · ${pct(h.fxEffect/c)}</div></div></div>`;}).join('');
+  const contrib=new Map();for(let i=0;i<M.N;i++){if(Z.CF[i]){const y=yearOf(M.d0+i);contrib.set(y,(contrib.get(y)||0)+Z.CF[i]);}}
+  const cy=[...contrib.entries()].sort((a,b)=>a[0]-b[0]);const cmax=Math.max(1,...cy.map(x=>Math.abs(x[1])));
+  v.innerHTML=`${head}
+  <div class="row-between" style="margin-top:22px"><h2 class="sec" style="margin:0">${per==='quarter'?'Quarterly':'Monthly'} returns</h2><div class="btns">${seg('rper',[['month','Month'],['quarter','Quarter']],per)}${seg('rview',[['grid','Grid'],['bars','Columns']],view)}</div></div>
+  <div class="card" style="margin-top:10px">${view==='bars'?returnsBars(map,per):grid}<div class="small muted" style="margin-top:8px">TTWROR per ${per} in ${UI.ccy}. Deposits don't count as gains.</div></div>
+  <h2 class="sec">Currency effect</h2>
+  <div class="card"><div class="note">You buy USD and EUR assets with kroner, so your result is the price move plus the krone move. This splits your unrealised gain into the two.</div>
+   <div class="split"><span style="width:${Math.abs(pe)/absT*100}%;background:var(--c1)"></span><span style="width:${Math.abs(fe)/absT*100}%;background:var(--c2)"></span></div>
+   <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div><div class="small ${cl(pe)}">${pct(pe/forCost)}</div></div><div><div class="k"><span class="dotk" style="background:var(--c2)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div><div class="small ${cl(fe)}">${pct(fe/forCost)}</div></div></div>
+   <div class="small muted" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
+  ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}
+  <h2 class="sec">Money added per year</h2><div class="card"><div class="bars">${cy.map(([y,val])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${Math.abs(val)/cmax*100}%;${val<0?'background:var(--c6)':''}"></div></div><span class="val">${F(val,{sign:true})}</span></div>`).join('')||'<span class="muted">Nothing added yet</span>'}</div></div>
+  <h2 class="sec">Your updates</h2>${reportCards(M,Z)}`;
+  const wrap=$('#rbWrap');if(wrap){wrap.scrollLeft=wrap.scrollWidth;wrap.onclick=e=>{const r=e.target.closest('[data-rbar]');if(!r)return;const [l,val]=r.dataset.rbar.split('|');$('#rbRead').innerHTML=`${esc(l)} · <span class="${cl(+val)}">${pct(+val)}</span>`;};}
 }
 
 /* ================= plan: goals, retirement, buying plan ================= */
@@ -1168,7 +1260,7 @@ function viewSettings(v){
   const live=C.fxLive;const inArtifact=IN_CLAUDE&&!IS_STANDALONE;
   const assetsActive=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));
   const txCount=id=>S.txs.filter(t=>t.accountId===id||t.toAccountId===id).length;
-  v.innerHTML=`<h2 class="sec">Portfolios</h2>
+  v.innerHTML=`${lookSettingsHTML()}<h2 class="sec">Portfolios</h2>
   <div class="list">${S.portfolios.map(p=>`<button class="item" data-editpf="${p.id}"><span class="badge" style="background:var(--accent)">${esc(p.name.slice(0,3).toUpperCase())}</span><div class="mid"><div class="t1">${esc(p.name)}${p.id===UI.pid?' <span class="pill flat">open</span>':''}</div><div class="t2">${p.accountIds.map(id=>(accById(id)||{}).name).filter(Boolean).map(esc).join(', ')||'No accounts'}</div></div></button>`).join('')}
    <button class="item" data-editpf="__new"><span class="badge" style="background:var(--surface2);color:var(--fg)">${iconSm('plus',18)}</span><div class="mid"><div class="t1">New portfolio</div><div class="t2">Group any of your accounts</div></div></button></div>
   <h2 class="sec">Accounts</h2>
@@ -1352,7 +1444,7 @@ function assetSheet(id){
   const accRows=Object.entries(h.byAcc||{}).filter(([,q])=>q>0).map(([aid,q])=>`<div class="row-between small"><span>${esc((accById(aid)||{}).name||'')}</span><span class="num">${qtyFmt(q)}</span></div>`).join('');
   const body=`<div class="row-between" style="margin-bottom:6px"><div style="display:flex;gap:10px;align-items:center">${badge(a)}<div><div style="font-weight:700">${esc(a.symbol)}</div><div class="small muted">${CLASS_LABEL[a.cls]} · ${a.currency} · ${esc(a.sector||'')}</div></div></div><div style="text-align:right"><div class="num" style="font-size:18px">${money(h.priceNow,a.currency)}</div><div class="small ${cl(h.dayPct)}">${pct(h.dayPct)} today</div></div></div>
    <div class="chart" id="assetChart" style="height:200px"></div>
-   <div class="ranges">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}">${r}</button>`).join('')}</div>
+   <div class="ranges">${RANGES.map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}">${r}</button>`).join('')}</div>
    <div class="small muted" id="aRangeTxt" style="margin:2px 0 14px"></div>
    <div class="card sumgrid">
     <div><div class="k">Holding</div><div class="v">${qtyFmt(h.qty)}</div></div><div><div class="k">Value</div><div class="v">${kr(h.value)}</div></div>
@@ -1802,14 +1894,68 @@ document.addEventListener('click',e=>{
   switch(d.bact){case 'import':bankImportSheet();return;case 'uncat':txListSheet(true);return;case 'txlist':txListSheet(false);return;case 'match':matchSheet();return;case 'target':targetSheet();return;}
 });
 
+/* ================= appearance: night/day, colours, fonts, card transparency, wide tables (per device) ================= */
+const LOOK_DEFAULT={mode:'night',accent:'#FFA028',bg:'',alpha:100,font:'plex',num:'plexmono',tables:'fit'};
+const ACCENTS=[['Amber','#FFA028'],['Orange','#FF7A1A'],['Yellow','#FFD23F'],['Blue','#4AA3FF'],['Sky','#7CC4FF'],['White','#E6E6E6']];
+const BGS={night:[['Black','#000000'],['Graphite','#14161A'],['Navy','#0A1424']],day:[['White','#FFFFFF'],['Light grey','#F1F2F4'],['Warm','#F6F2EA']]};
+const FONTS={plex:['IBM Plex Sans','"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif'],schibsted:['Schibsted Grotesk','"Schibsted Grotesk",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif'],system:['iPhone system font','-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif'],mono:['Terminal (all mono)','"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace']};
+const NUMFONTS={plexmono:['IBM Plex Mono','"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace'],sfmono:['iPhone mono','ui-monospace,"SF Mono",Menlo,Consolas,monospace'],same:['Same as text','var(--f-body)']};
+function look(){return Object.assign({},LOOK_DEFAULT,UI.look||{});}
+function inkFor(hex){const m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(!m)return '#000';const n=parseInt(m[1],16);const r=(n>>16)/255,g=(n>>8&255)/255,b=(n&255)/255;const L=0.2126*r+0.7152*g+0.0722*b;return L>0.5?'#000000':'#FFFFFF';}
+function applyLook(){const L=look();const root=document.documentElement;const st=root.style;
+  root.dataset.look=L.mode==='day'?'day':'night';root.dataset.tables=L.tables==='scroll'?'scroll':'fit';
+  let acc=L.accent||LOOK_DEFAULT.accent;
+  if(L.mode==='day'&&acc.toUpperCase()==='#FFA028')acc='#C77700'; // amber that stays readable on light backgrounds
+  st.setProperty('--amber',acc);st.setProperty('--accent',acc);st.setProperty('--accent-ink',inkFor(acc));st.setProperty('--c1',acc);
+  if(L.bg)st.setProperty('--bg',L.bg);else st.removeProperty('--bg');
+  st.setProperty('--card-alpha',String(Math.max(10,Math.min(100,+L.alpha||100))));
+  const f=(FONTS[L.font]||FONTS.plex)[1];st.setProperty('--f-body',f);st.setProperty('--f-display',f);
+  st.setProperty('--f-num',(NUMFONTS[L.num]||NUMFONTS.plexmono)[1]);
+  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',L.bg||(L.mode==='day'?'#F1F2F4':'#000000'));}
+function setLook(patch){UI.look=Object.assign(look(),patch);saveUI();applyLook();}
+function lookSettingsHTML(){const L=look();const bgs=BGS[L.mode==='day'?'day':'night'];
+  const sw=(attr,list,cur)=>list.map(([n,c])=>`<button class="swatch ${String(cur).toUpperCase()===c.toUpperCase()?'on':''}" data-${attr}="${c}" aria-label="${n}" title="${n}" style="background:${c}"></button>`).join('');
+  return `<h2 class="sec">Appearance</h2>
+  <div class="card stack">
+   <div class="look-row"><span class="lbl2">Mode</span><div class="seg" role="group"><button data-lkmode="night" aria-pressed="${L.mode!=='day'}">Night</button><button data-lkmode="day" aria-pressed="${L.mode==='day'}">Day</button></div></div>
+   <div class="look-row col"><span class="lbl2">Accent colour</span><div class="swatches">${sw('lkacc',ACCENTS,L.accent)}<label class="swatch custom" title="Custom"><input type="color" id="lkAccIn" value="${esc(L.accent)}" aria-label="Custom accent colour"><span>+</span></label></div><div class="hint">Used for buttons, labels and your own line on charts. Green and red stay reserved for up and down.</div></div>
+   <div class="look-row col"><span class="lbl2">Background</span><div class="swatches"><button class="swatch auto ${!L.bg?'on':''}" data-lkbg="" aria-label="Default" title="Default">A</button>${sw('lkbg',bgs,L.bg)}<label class="swatch custom" title="Custom"><input type="color" id="lkBgIn" value="${esc(L.bg||(L.mode==='day'?'#FFFFFF':'#000000'))}" aria-label="Custom background colour"><span>+</span></label></div></div>
+   <div class="look-row col"><label class="lbl2" for="lkAlpha">Card transparency <span class="muted" id="lkAlphaV">${100-L.alpha} %</span></label><input type="range" id="lkAlpha" min="0" max="90" step="5" value="${100-L.alpha}"><div class="hint">0 % is solid. Higher lets the background show through the cards.</div></div>
+   <div class="grid2"><div class="field"><label for="lkFont">Text font</label><select id="lkFont">${Object.entries(FONTS).map(([k,[n]])=>`<option value="${k}" ${L.font===k?'selected':''}>${n}</option>`).join('')}</select></div>
+    <div class="field"><label for="lkNum">Number font</label><select id="lkNum">${Object.entries(NUMFONTS).map(([k,[n]])=>`<option value="${k}" ${L.num===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
+   <div class="look-row"><span class="lbl2">Big tables</span><div class="seg" role="group"><button data-lktables="fit" aria-pressed="${L.tables!=='scroll'}">Fit to screen</button><button data-lktables="scroll" aria-pressed="${L.tables==='scroll'}">Slide sideways</button></div></div>
+   <div class="hint">"Slide sideways" keeps tables at full size; swipe left and right to see every column.</div>
+   <div><button class="btn sm" data-lkreset="1">Reset appearance</button></div>
+  </div>`;}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-lkmode],[data-lkacc],[data-lkbg],[data-lktables],[data-lkreset]');if(!el)return;const d=el.dataset;
+  if(d.lkmode){setLook({mode:d.lkmode,bg:''});softRender();return;}
+  if(d.lkacc){setLook({accent:d.lkacc});softRender();return;}
+  if(d.lkbg!==undefined&&el.hasAttribute('data-lkbg')){setLook({bg:d.lkbg});softRender();return;}
+  if(d.lktables){setLook({tables:d.lktables});softRender();return;}
+  if(d.lkreset){UI.look={};saveUI();applyLook();softRender();toast('Appearance reset');}});
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.id==='lkAlpha'){const a=100-(+t.value);const L=look();L.alpha=a;UI.look=L;applyLook();const v=$('#lkAlphaV');if(v)v.textContent=t.value+' %';return;}
+  if(t.id==='lkAccIn'){UI.look=Object.assign(look(),{accent:t.value});applyLook();return;}
+  if(t.id==='lkBgIn'){UI.look=Object.assign(look(),{bg:t.value});applyLook();return;}});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='lkAlpha'||t.id==='lkAccIn'||t.id==='lkBgIn'){saveUI();softRender();return;}
+  if(t.id==='lkFont'){setLook({font:t.value});return;}
+  if(t.id==='lkNum'){setLook({num:t.value});return;}});
+applyLook();
+
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
-  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-act]');if(!el)return;
+  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-act]');if(!el)return;
   const d=el.dataset;
   if(d.tab){UI.tab=d.tab;if(d.psub)UI.psub=d.psub;saveUI();closeSheet();render();window.scrollTo(0,0);return;}
   for(const k of ['range','mode','alloc','hsort','sub','asub','psub','brk'])if(d[k]){UI[k]=d[k];saveUI();softRender();return;}
   if(d.bm){const i=UI.bms.indexOf(d.bm);if(i>=0)UI.bms.splice(i,1);else UI.bms.push(d.bm);saveUI();softRender();if(!NET.blocked)fetchBenchmarks();return;}
   if(d.updown){S.settings.updown=d.updown;applyUpdown();if(S.demo){lsSet('lq_state',S);VERSION++;}else Store.save();softRender();return;}
+  if(d.pmenu){posMenu(d.pmenu);return;}
+  if(d.prange){UI.prange=d.prange;saveUI();softRender();return;}
+  if(d.psort){if(UI.psort===d.psort)UI.pdir=-(UI.pdir||-1);else{UI.psort=d.psort;UI.pdir=d.psort==='title'?1:-1;}saveUI();softRender();return;}
+  if(d.rview){UI.rview=d.rview;saveUI();softRender();return;}
+  if(d.rper){UI.rper=d.rper;saveUI();softRender();return;}
   if(d.asset){assetSheet(d.asset);return;}
   if(d.tx){const t=S.txs.find(x=>x.id===d.tx);if(S.demo){toast('Example entries can\'t be edited');return;}if(!t)return;if(['buy','sell','dividend','split'].includes(t.type))txSheet(t);else cashSheet(t);return;}
   if(d.cashacc){if(S.demo){toast('Example entries can\'t be edited');return;}cashSheet(null,d.cashacc);return;}
@@ -1847,7 +1993,7 @@ document.addEventListener('click',async e=>{
 });
 document.addEventListener('change',e=>{
   const t=e.target;
-  if(t.id==='ccySel'){UI.ccy=t.value;saveUI();softRender();return;}
+  if(t.classList&&t.classList.contains('ccysel')){UI.ccy=t.value;saveUI();softRender();return;}
   if(t.dataset&&t.dataset.evtoggle){const ev=S.plan.events.find(x=>x.id===t.dataset.evtoggle);if(ev){ev.on=t.checked;if(S.demo){VERSION++;lsSet('lq_state',S);}else Store.save();softRender();}return;}
 });
 document.addEventListener('submit',e=>{
@@ -1871,7 +2017,7 @@ function boot(){
   $$('[data-icon]').forEach(el=>el.innerHTML=ICON[el.dataset.icon]);
   const local=Store.loadLocal();S=local||demoState();if(!local)lsSet('lq_state',S);
   if(UI.pid!=='__all'&&!S.portfolios.some(p=>p.id===UI.pid))UI.pid=(S.portfolios[0]||{}).id;
-  if(!CCYS.includes(UI.ccy))UI.ccy='NOK';if(!['class','account','currency'].includes(UI.alloc))UI.alloc='class';
+  if(!CCYS.includes(UI.ccy))UI.ccy='NOK';if(!['class','account','currency'].includes(UI.alloc))UI.alloc='class';if(!['performance','breakdown'].includes(UI.asub))UI.asub='performance';UI.bms=(UI.bms||[]).filter(id=>BENCHMARKS.some(b=>b.id===id));if(!RANGES.includes(UI.prange))UI.prange='MAX';
   applyUpdown();VERSION++;render();
   Store.connect();initAsk();refresh(false);
   setInterval(()=>{if(!document.hidden&&!NET.blocked)refresh(false);},15*60000);
