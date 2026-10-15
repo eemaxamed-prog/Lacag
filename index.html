@@ -832,13 +832,23 @@ function yahooSym(a){if(a.yahoo)return a.yahoo.toUpperCase();const raw=String(a.
 const helperUrl=()=>String(S.settings.helper||'').trim().replace(/\/+$/,'');
 function useHelper(a){return !!helperUrl()&&(!!a.yahoo||/:/.test(a.dataSymbol||'')||!S.settings.tdKey);}
 async function helperGet(sym,range){const j=await getJSON(helperUrl()+'/?symbol='+encodeURIComponent(sym)+'&range='+range,20000);if(j&&j.error)throw new Error(j.error);if(!j||!Array.isArray(j.series))throw new Error('The helper sent no prices');return j;}
+/* Yahoo sometimes has bad ticks: one day (or two) far off that snaps straight back. A price is treated as a spike
+   when it is far from BOTH the days before and the days after it (a real jump stays; a glitch goes back).
+   Diversified ETFs/funds: 8 %; single stocks: 15 %. The spike is replaced by the typical price just before and after it. */
+function cleanSpikes(s,thr){const med=a=>{const b=a.slice().sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
+  const out=s.map(x=>[x[0],x[1]]);let fixed=0;
+  for(let i=1;i<out.length-1;i++){const p=out[i][1];const before=out.slice(Math.max(0,i-3),i).map(x=>x[1]);const after=out.slice(i+1,i+4).map(x=>x[1]);if(!before.length||!after.length)continue;
+    const mb=med(before),ma=med(after);const db=p/mb-1,da=p/ma-1;
+    if(Math.abs(db)>thr&&Math.abs(da)>thr&&Math.sign(db)===Math.sign(da)&&Math.abs(mb/ma-1)<thr/2){out[i][1]=+((mb+ma)/2).toFixed(4);fixed++;}}
+  return {s:out,fixed};}
 async function fetchHelper(a){const sym=yahooSym(a);if(!sym)throw new Error('Set a helper ticker for this holding (tap it in Holdings)');
   const key=histKey(a);const first=firstDateFor(a);if(!first)return;const from=ds(dn(first)-7);const h=C.hist[key];
-  const need=!h||h.src!=='yahoo'||Date.now()-h.t>12*36e5||h.from>from;
+  const need=!h||h.src!=='yahoo'||!h.clean||Date.now()-h.t>12*36e5||h.from>from;
+  const thr=a.cls==='stock'?0.15:0.08;
   const yrs=(dn(localToday())-dn(from))/365;const range=!need?'5d':yrs<0.9?'1y':yrs<1.9?'2y':yrs<4.9?'5y':yrs<9.9?'10y':'max';
   const j=await helperGet(sym,range);const q=j.currency||a.currency;
-  if(need)C.hist[key]={t:Date.now(),from,q,src:'yahoo',s:j.series.filter(x=>x[0]>=from&&x[1]>0)};
-  else{const s=C.hist[key].s;for(const [d,c] of j.series){const i=s.findIndex(x=>x[0]===d);if(i>=0)s[i][1]=c;else if(!s.length||d>s[s.length-1][0])s.push([d,c]);}}
+  if(need){const cs=cleanSpikes(j.series.filter(x=>x[1]>0),thr);C.hist[key]={t:Date.now(),from,q,src:'yahoo',clean:true,fixed:cs.fixed,s:cs.s.filter(x=>x[0]>=from)};}
+  else{const s=C.hist[key].s;for(const [d,c] of j.series){const i=s.findIndex(x=>x[0]===d);if(i>=0)s[i][1]=c;else if(!s.length||d>s[s.length-1][0])s.push([d,c]);}const cs=cleanSpikes(s,thr);C.hist[key].s=cs.s;C.hist[key].fixed=(C.hist[key].fixed||0)+cs.fixed;}
   if(j.price>0)C.live[a.id]={date:localToday(),price:+j.price,q,t:Date.now(),src:'yahoo'};}
 let tdNext=0;
 async function td(endpoint,params){
@@ -1510,7 +1520,7 @@ function settingsAllHTML(){
    <div class="btns"><button class="btn primary sm" data-act="savekey">Save key</button><button class="btn sm" data-act="refresh">Update prices now</button></div>
    <div class="field"><label for="helperUrl">Price helper address</label><input id="helperUrl" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://lacag-prices.yourname.workers.dev" value="${esc(S.settings.helper||'')}"><div class="hint">Your own free Cloudflare helper. Used for holdings Twelve Data's free plan doesn't cover, such as WEBN on Xetra.</div></div>
    <div class="btns"><button class="btn primary sm" data-act="savehelper">Save helper</button><button class="btn sm" data-act="testhelper">Test with WEBN</button></div>
-   ${assetsActive.length?`<div class="list" style="background:var(--surface2)">${assetsActive.map(a=>{const lv=C.live[a.id];const e=C.err[a.id];const hh=C.hist[histKey(a)];const srcTxt=hh?(a.cls==='crypto'?'Binance':hh.src==='yahoo'?'Price helper':'Twelve Data'):'Your prices';return `<div class="item" style="cursor:default">${badge(a)}<div class="mid"><div class="t1">${esc(a.symbol)} <span class="muted small">· ${srcTxt}</span></div><div class="t2 ${e?'down':''}">${e?esc(e):lv?('Updated '+timeLabel(lv.t)+' · '+money(lv.price,lv.q||a.currency)):'Ticker: '+esc(a.dataSymbol||a.symbol)}</div></div></div>`;}).join('')}</div>`:''}
+   ${assetsActive.length?`<div class="list" style="background:var(--surface2)">${assetsActive.map(a=>{const lv=C.live[a.id];const e=C.err[a.id];const hh=C.hist[histKey(a)];const srcTxt=hh?(a.cls==='crypto'?'Binance':hh.src==='yahoo'?'Price helper':'Twelve Data'):'Your prices';return `<div class="item" style="cursor:default">${badge(a)}<div class="mid"><div class="t1">${esc(a.symbol)} <span class="muted small">· ${srcTxt}</span></div><div class="t2 ${e?'down':''}">${e?esc(e):lv?('Updated '+timeLabel(lv.t)+' · '+money(lv.price,lv.q||a.currency)+(hh&&hh.fixed?' · '+hh.fixed+' bad price'+(hh.fixed>1?'s':'')+' fixed':'')):'Ticker: '+esc(a.dataSymbol||a.symbol)}</div></div></div>`;}).join('')}</div>`:''}
   </div>
   <h2 class="sec">Up and down colours</h2>
   <div class="card stack"><div class="note">Up and down values always show an arrow (▲ ▼) as well as a colour. If green and red are hard to tell apart, Bloomberg's colour-blind research suggests blue for up and red for down.</div>
