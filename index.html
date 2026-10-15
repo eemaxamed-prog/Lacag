@@ -826,6 +826,20 @@ async function fetchCrypto(a){
   C.intra[a.id]={t:Date.now(),q:'USD',s:rows.map(r=>[r[0]+15*60000,+r[4]])};
   const last=rows.length?+rows[rows.length-1][4]:null;if(last)C.live[a.id]={date:localToday(),price:last,q:'USD',t:Date.now()};
 }
+/* ---- price helper (your own free Cloudflare Worker that reads Yahoo Finance) for prices Twelve Data's free plan doesn't cover, e.g. WEBN on Xetra ---- */
+const MIC_YAHOO={XETR:'.DE',XFRA:'.F',XAMS:'.AS',XPAR:'.PA',XBRU:'.BR',XLON:'.L',XMIL:'.MI',XSWX:'.SW',XOSL:'.OL',XSTO:'.ST',XCSE:'.CO',XHEL:'.HE',XMAD:'.MC',XWBO:'.VI',XLIS:'.LS',XDUB:'.IR'};
+function yahooSym(a){if(a.yahoo)return a.yahoo.toUpperCase();const raw=String(a.dataSymbol||a.symbol).toUpperCase();const [sym,ex]=raw.split(':');if(!ex)return sym;return MIC_YAHOO[ex]?sym+MIC_YAHOO[ex]:null;}
+const helperUrl=()=>String(S.settings.helper||'').trim().replace(/\/+$/,'');
+function useHelper(a){return !!helperUrl()&&(!!a.yahoo||/:/.test(a.dataSymbol||'')||!S.settings.tdKey);}
+async function helperGet(sym,range){const j=await getJSON(helperUrl()+'/?symbol='+encodeURIComponent(sym)+'&range='+range,20000);if(j&&j.error)throw new Error(j.error);if(!j||!Array.isArray(j.series))throw new Error('The helper sent no prices');return j;}
+async function fetchHelper(a){const sym=yahooSym(a);if(!sym)throw new Error('Set a helper ticker for this holding (tap it in Holdings)');
+  const key=histKey(a);const first=firstDateFor(a);if(!first)return;const from=ds(dn(first)-7);const h=C.hist[key];
+  const need=!h||h.src!=='yahoo'||Date.now()-h.t>12*36e5||h.from>from;
+  const yrs=(dn(localToday())-dn(from))/365;const range=!need?'5d':yrs<0.9?'1y':yrs<1.9?'2y':yrs<4.9?'5y':yrs<9.9?'10y':'max';
+  const j=await helperGet(sym,range);const q=j.currency||a.currency;
+  if(need)C.hist[key]={t:Date.now(),from,q,src:'yahoo',s:j.series.filter(x=>x[0]>=from&&x[1]>0)};
+  else{const s=C.hist[key].s;for(const [d,c] of j.series){const i=s.findIndex(x=>x[0]===d);if(i>=0)s[i][1]=c;else if(!s.length||d>s[s.length-1][0])s.push([d,c]);}}
+  if(j.price>0)C.live[a.id]={date:localToday(),price:+j.price,q,t:Date.now(),src:'yahoo'};}
 let tdNext=0;
 async function td(endpoint,params){
   const wait=tdNext-Date.now();if(wait>0)await sleep(wait);tdNext=Date.now()+7800;
@@ -862,8 +876,11 @@ async function refresh(force){
     if(!NET.blocked){
       const active=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));
       for(const a of active.filter(a=>a.cls==='crypto')){try{await fetchCrypto(a);delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();render();}
-      for(const a of active.filter(a=>a.cls!=='crypto')){if(!S.settings.tdKey){C.err[a.id]='Add a Twelve Data key in Settings for live prices';continue;}
-        try{await fetchTD(a);delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();render();}
+      for(const a of active.filter(a=>a.cls!=='crypto')){
+        if(!S.settings.tdKey&&!helperUrl()){C.err[a.id]='Add a Twelve Data key or a price helper in Settings → Live prices';continue;}
+        try{if(useHelper(a)){try{await fetchHelper(a);}catch(e){if(!S.settings.tdKey||/:/.test(a.dataSymbol||''))throw e;await fetchTD(a);}}
+          else{try{await fetchTD(a);}catch(e){if(helperUrl()&&/plan|not available|not found|invalid/i.test(String(e.message||e)))await fetchHelper(a);else throw e;}}
+          delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();render();}
       await fetchBenchmarks();NET.lastOk=Date.now();}
   }finally{NET.busy=false;VERSION++;saveCache();render();}
 }
@@ -1488,10 +1505,12 @@ function settingsAllHTML(){
   <div class="card stack"><div class="note">Import CSV files from <b>Nordnet</b> (Transaksjoner og notaer → Eksporter), <b>Kraken</b> (History → Export → Trades) or any broker. Transactions you already have are skipped.</div><div><button class="btn primary sm" data-act="import">${iconSm('import')} Import CSV</button></div></div>
   <h2 class="sec">Live prices</h2>
   <div class="card stack">
-   ${NET.blocked?`<div class="note keep"><b>Live prices are off here.</b> This view blocks internet requests, so Lacag values your holdings from your trade prices and the prices you enter. Put Lacag on your phone (Settings → Install on your phone) for daily prices.</div>`:`<div class="note">Crypto and exchange rates update by themselves for free. Stocks, ETFs and the benchmark indexes need a free key from <b>Twelve Data</b> (twelvedata.com → sign up → API keys). The free plan covers US stocks and US-listed ETFs; European ETFs such as WEBN may need a paid plan, so update those by hand if they fail.</div>`}
+   ${NET.blocked?`<div class="note keep"><b>Live prices are off here.</b> This view blocks internet requests, so Lacag values your holdings from your trade prices and the prices you enter. Put Lacag on your phone (Settings → Install on your phone) for daily prices.</div>`:`<div class="note">Crypto and exchange rates update by themselves for free. Stocks, ETFs and the benchmark indexes need a free key from <b>Twelve Data</b> (twelvedata.com → sign up → API keys). The free plan covers US stocks and US-listed ETFs; European ETFs such as WEBN need a paid plan there, so Lacag gets those through your price helper (below).</div>`}
    <div class="field"><label for="tdKey">Twelve Data API key</label><input id="tdKey" autocomplete="off" spellcheck="false" placeholder="Paste your key" value="${esc(S.settings.tdKey)}"></div>
    <div class="btns"><button class="btn primary sm" data-act="savekey">Save key</button><button class="btn sm" data-act="refresh">Update prices now</button></div>
-   ${assetsActive.length?`<div class="list" style="background:var(--surface2)">${assetsActive.map(a=>{const lv=C.live[a.id];const e=C.err[a.id];const srcTxt=C.hist[histKey(a)]?(a.cls==='crypto'?'Binance':'Twelve Data'):'Your prices';return `<div class="item" style="cursor:default">${badge(a)}<div class="mid"><div class="t1">${esc(a.symbol)} <span class="muted small">· ${srcTxt}</span></div><div class="t2 ${e?'down':''}">${e?esc(e):lv?('Updated '+timeLabel(lv.t)+' · '+money(lv.price,lv.q||a.currency)):'Ticker: '+esc(a.dataSymbol||a.symbol)}</div></div></div>`;}).join('')}</div>`:''}
+   <div class="field"><label for="helperUrl">Price helper address</label><input id="helperUrl" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://lacag-prices.yourname.workers.dev" value="${esc(S.settings.helper||'')}"><div class="hint">Your own free Cloudflare helper. Used for holdings Twelve Data's free plan doesn't cover, such as WEBN on Xetra.</div></div>
+   <div class="btns"><button class="btn primary sm" data-act="savehelper">Save helper</button><button class="btn sm" data-act="testhelper">Test with WEBN</button></div>
+   ${assetsActive.length?`<div class="list" style="background:var(--surface2)">${assetsActive.map(a=>{const lv=C.live[a.id];const e=C.err[a.id];const hh=C.hist[histKey(a)];const srcTxt=hh?(a.cls==='crypto'?'Binance':hh.src==='yahoo'?'Price helper':'Twelve Data'):'Your prices';return `<div class="item" style="cursor:default">${badge(a)}<div class="mid"><div class="t1">${esc(a.symbol)} <span class="muted small">· ${srcTxt}</span></div><div class="t2 ${e?'down':''}">${e?esc(e):lv?('Updated '+timeLabel(lv.t)+' · '+money(lv.price,lv.q||a.currency)):'Ticker: '+esc(a.dataSymbol||a.symbol)}</div></div></div>`;}).join('')}</div>`:''}
   </div>
   <h2 class="sec">Up and down colours</h2>
   <div class="card stack"><div class="note">Up and down values always show an arrow (▲ ▼) as well as a colour. If green and red are hard to tell apart, Bloomberg's colour-blind research suggests blue for up and red for down.</div>
@@ -1678,6 +1697,7 @@ function assetSheet(id){
    <h2 class="sec">Details</h2>
    <div class="card stack"><div class="grid2"><div class="field"><label for="eName">Name</label><input id="eName" value="${esc(a.name)}"></div><div class="field"><label for="eData">Price ticker</label><input id="eData" autocapitalize="characters" value="${esc(a.dataSymbol||a.symbol)}"></div></div>
     <div class="grid2"><div class="field"><label for="eCls">Type</label><select id="eCls">${['stock','etf','crypto'].map(c=>`<option value="${c}" ${a.cls===c?'selected':''}>${CLASS_LABEL[c]}</option>`).join('')}</select></div><div class="field"><label for="eSector">Sector</label><select id="eSector">${SECTORS.map(s=>`<option ${a.sector===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="eYahoo">Helper ticker <span class="muted">(Yahoo)</span></label><input id="eYahoo" autocapitalize="characters" placeholder="${esc(yahooSym(Object.assign({},a,{yahoo:''}))||'e.g. WEBN.DE')}" value="${esc(a.yahoo||'')}"><div class="hint">Only needed if the automatic one is wrong. Xetra = .DE, Oslo = .OL, London = .L</div></div>
     <div class="field"><label for="eRegion">Region</label><select id="eRegion">${REGIONS.map(s=>`<option ${a.region===s?'selected':''}>${s}</option>`).join('')}</select></div>
     ${a.cls==='etf'?`<div class="field"><label for="eLookR">Fund regions (approx. %)</label><textarea id="eLookR" style="min-height:120px">${esc(lookToText(a.look&&a.look.region))}</textarea><div class="hint">One per line, like <code>North America: 64</code>. Leave empty to use the single region above.${a.look===null||!a.look?' <button type="button" class="btn sm" id="useAllWorld">Fill in all-world weights</button>':''}</div></div>
     <div class="field"><label for="eLookS">Fund sectors (approx. %)</label><textarea id="eLookS" style="min-height:120px">${esc(lookToText(a.look&&a.look.sector))}</textarea></div>`:''}
@@ -1696,7 +1716,7 @@ function assetSheet(id){
     $$('[data-delprice]').forEach(b=>b.onclick=()=>{S.prices=S.prices.filter(x=>x.id!==b.dataset.delprice);Store.save();assetSheet(id);softRender();});
     document.querySelector('[data-act="saveasset"]').onclick=()=>{a.name=fv('eName').value.trim()||a.symbol;a.cls=fv('eCls').value;a.sector=fv('eSector').value;a.region=fv('eRegion').value;
       if(fv('eLookR')){const r=textToLook(fv('eLookR').value),s=textToLook(fv('eLookS').value);a.look=r||s?{region:r||{},sector:s||{}}:null;}
-      const nd=fv('eData').value.trim().toUpperCase()||a.symbol;if(nd!==a.dataSymbol){a.dataSymbol=nd;delete C.err[a.id];delete C.live[a.id];}Store.save();toast('Saved');softRender();refresh(false);};
+      const nd=fv('eData').value.trim().toUpperCase()||a.symbol;if(nd!==a.dataSymbol){a.dataSymbol=nd;delete C.err[a.id];delete C.live[a.id];}{const y=(fv('eYahoo').value||'').trim().toUpperCase();if(y!==(a.yahoo||'')){if(y)a.yahoo=y;else delete a.yahoo;delete C.err[a.id];delete C.live[a.id];delete C.hist[histKey(a)];}}Store.save();toast('Saved');softRender();refresh(false);};
     document.querySelector('[data-act="tradeasset"]').onclick=()=>txSheet(null,{assetId:a.id});
   });
 }
@@ -2311,7 +2331,7 @@ function setSummary(k){const L=look();const T=tblOpt();const O=curOpt();
     case 'portfolios':return S.portfolios.map(p=>p.name).join(', ');
     case 'accounts':return S.accounts.length+' accounts: '+S.accounts.map(a=>a.name).join(', ');
     case 'import':return 'Nordnet, Kraken or any CSV file';
-    case 'prices':return S.settings.tdKey?'Twelve Data key saved':'Add your Twelve Data key';
+    case 'prices':return (S.settings.tdKey?'Twelve Data key saved':'No Twelve Data key')+' · '+(S.settings.helper?'price helper on':'no price helper');
     case 'share':return 'Send the app to family and friends';
     case 'install':return IS_STANDALONE?'Installed on this phone':'Home screen on iPhone or Android';
     case 'backup':return Store.cloud?'Saved to your account and this device':'Saved on this device';
@@ -2464,6 +2484,9 @@ document.addEventListener('click',async e=>{
     case 'loaddemo':if(S.txs.length&&!S.demo&&!armed(el,'This replaces your data. Tap again'))return;{const bud=S.budget;S=demoState();if(bud)S.budget=bud;}UI.pid='nabad';saveUI();VERSION++;lsSet('lq_state',S);render();refresh(false);toast('Example portfolio loaded');return;
     case 'wipe':if(!armed(el,'Tap again to delete everything'))return;S=blankState();UI.pid='nabad';saveUI();Store.save();render();toast('All data deleted');return;
     case 'savekey':S.settings.tdKey=$('#tdKey').value.trim();for(const k in C.err)delete C.err[k];Store.save();toast(S.settings.tdKey?'Key saved':'Key removed');refresh(true);return;
+    case 'savehelper':{let u=$('#helperUrl').value.trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;S.settings.helper=u;if(S.demo){lsSet('lq_state',S);}else Store.save();toast(u?'Helper saved':'Helper removed');if(u)refresh(true);softRender();return;}
+    case 'testhelper':{let u=$('#helperUrl').value.trim();if(!u){toast('Paste your helper address first');return;}if(!/^https?:\/\//i.test(u))u='https://'+u;const keep=S.settings.helper;S.settings.helper=u;
+      try{const j=await helperGet('WEBN.DE','5d');toast(j.price>0?`Works: WEBN ${money(j.price,j.currency||'EUR')}`:'Connected, but no WEBN price yet');}catch(e){toast('Helper problem: '+String(e.message||e).slice(0,80));}finally{S.settings.helper=keep;}return;}
     case 'savefx':{for(const c of CCYS){if(c==='NOK')continue;const f=$('#fx_'+c);if(!f)continue;const x=parseNum(f.value);if(x>0)S.fx[c]=x;}if(S.demo){lsSet('lq_state',S);VERSION++;}else Store.save();toast('Rates saved');softRender();return;}
     case 'copybackup':{const txt=JSON.stringify({app:'lacag',v:2,data:S});try{await navigator.clipboard.writeText(txt);toast('Backup copied');}catch(err){const box=$('#importBox');box.value=txt;box.select();toast('Select all and copy the text');}return;}
     case 'savebackup':await saveFile('lacag-backup-'+localToday()+'.json',JSON.stringify({app:'lacag',v:2,data:S},null,1),'application/json');return;
