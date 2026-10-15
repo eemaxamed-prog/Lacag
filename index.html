@@ -448,6 +448,73 @@ table.ytab tr.tot th,table.ytab tr.tot td{padding-top:12px}
 .ev-it{display:flex;gap:8px;align-items:flex-start;margin-top:6px}.ev-it .sw{margin-top:4px;flex:0 0 auto}
 .ev-t{font-weight:600;font-size:12px}.ev-s{font-size:11px;color:var(--muted)}
 .pick{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;color:var(--accent-ink,#000)}.pick.on{background:var(--accent);border-color:var(--accent)}.ev-tog[aria-pressed="false"] .lk{opacity:.35}
+.ranges button.nodata{opacity:.35}.ranges button.nodata[aria-pressed="true"]{opacity:.55}
+/* data check, tax, rebalancing, planned vs invested, activity filter */
+.chk-ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--surface);color:var(--muted);flex:0 0 auto;font-weight:700}
+.chk-ic.warn{color:var(--amber);background:color-mix(in srgb,var(--amber) 14%,var(--surface))}
+.ok-line{display:flex;gap:10px;align-items:center;font-size:14px}
+.recon-row{gap:10px;padding:4px 0}
+.tx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}.tx-row .num{white-space:nowrap}
+.rb-grid{display:grid;grid-template-columns:minmax(0,1.2fr) auto 76px minmax(0,1fr);gap:8px 10px;align-items:center;font-size:13.5px}
+.rb-grid .rb-h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.rb-grid .num{text-align:right}.rb-in{width:76px!important}
+.pva{display:flex;flex-direction:column;gap:6px}.pva-r{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:8px;align-items:center}
+.pva-t{position:relative;height:14px}.pva-p,.pva-a{position:absolute;left:0;border-radius:4px}
+.pva-p{top:0;height:14px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--muted)}.pva-a{top:4px;height:6px;background:var(--accent)}
+.act-filter{margin-top:12px}.act-filter input[type="search"]{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 12px;font-size:16px;color:var(--fg)}
+.backup-banner{margin-top:8px}
+.skj-list{display:flex;flex-direction:column;gap:8px}.skj-list .row-between{gap:10px}.skj-list .num:first-child{width:60px}
+/* freedom, emergency fund, what-if */
+.big3{font-family:var(--f-num);font-size:22px;font-weight:600}
+.ef-bar{position:relative;height:12px;border-radius:6px;background:var(--surface2);overflow:visible}
+.ef-bar span{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--accent)}
+.ef-bar i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.5}
+.ef-st{color:var(--amber)}
+input[type="range"]{width:100%;accent-color:var(--accent)}
+/* calm mode: no daily ups and downs */
+:root[data-calm="on"] [data-range="1D"],:root[data-calm="on"] [data-range="1W"],:root[data-calm="on"] [data-prange="1D"],:root[data-calm="on"] [data-prange="1W"],
+:root[data-calm="on"] [data-arange="1D"],:root[data-calm="on"] [data-arange="1W"],:root[data-calm="on"] [data-card="movers"],:root[data-calm="on"] .today-cell{display:none!important}
+/* text size */
+main,.top-in,.sheet .panel{zoom:var(--zoom,1)}
+/* diary, watchlist, concentration */
+.t2.diary{font-style:italic;color:var(--fg);opacity:.75;white-space:normal}
+.wl-hit{box-shadow:inset 3px 0 0 var(--amber)}
+.conc-note{margin-top:12px;font-size:12.5px;color:var(--amber);border-top:1px solid var(--line);padding-top:10px}
+/* collapsible cards */
+.ctitle{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ctitle::after{content:"";display:inline-block;width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:8px;vertical-align:3px;opacity:.6;transition:transform .15s}
+[data-card].collapsed .ctitle::after{transform:rotate(-45deg);vertical-align:1px}
+[data-card].collapsed > *:not(:has(.ctitle)):not(.ctitle){display:none!important}
+[data-card].collapsed > .card > *:not(:has(.ctitle)):not(.ctitle){display:none!important}
+[data-card].collapsed .row-between:has(.ctitle) > :not(.ctitle){display:none}
+/* full-screen chart: button, or turn the phone sideways */
+.fs-btn{font-size:17px;margin-left:8px}
+.chart-card .row-between{gap:8px}
+body.chart-fs [data-card="chart"]{position:fixed;inset:0;z-index:70;border-radius:0;margin:0;overflow:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg)}
+body.chart-fs #mainChart{height:calc(100dvh - 190px)!important}
+@media (orientation:landscape) and (max-height:500px){
+  body[data-page="overview"]:not(.landfs-off) [data-card="chart"]{position:fixed;inset:0;z-index:70;border-radius:0;margin:0;overflow:auto;padding:8px calc(16px + env(safe-area-inset-right,0px)) 8px calc(16px + env(safe-area-inset-left,0px));background:var(--bg)}
+  body[data-page="overview"]:not(.landfs-off) #mainChart{height:calc(100dvh - 120px)!important}
+  body[data-page="overview"]:not(.landfs-off) [data-card="chart"] .bm-chips,body[data-page="overview"]:not(.landfs-off) [data-card="chart"] .legend-line{display:none}
+}
+/* small touches */
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#view.fade-in{animation:fadeIn .18s ease-out}
+/* Compare card: chips + both return tables in one compact card */
+.cmp-card .cmp-chips{margin:10px 0 2px;gap:6px}.cmp-card .cmp-chips .tog{padding:5px 10px;font-size:12.5px}
+.cmp-h{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin:14px 0 2px}
+.cmp-h .muted{text-transform:none;letter-spacing:0;font-weight:500}
+.cmp-card table.rtab th,.cmp-card table.rtab td{padding-top:7px;padding-bottom:7px}
+/* Key figures: one clean card with its own period */
+.kfig-card .kranges{margin:10px 0 6px}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.kgrid .kpi{background:none!important;border-radius:0;padding:9px 2px}
+.kgrid .kpi:nth-child(odd){padding-right:10px}.kgrid .kpi:nth-child(even){padding-left:10px}
+.kgrid .kpi .k{font-size:11.5px}.kgrid .kpi .v{font-size:16px}.kgrid .kpi .s{font-size:11px}
+@media (min-width:600px){.kgrid{grid-template-columns:repeat(4,1fr)}.kgrid .kpi{padding-left:10px!important;padding-right:10px!important}}
+:root[data-calm="on"] [data-krange="1W"]{display:none!important}
+.kgrid .kpi{border:0!important;box-shadow:none!important}
+table.rtab thead th{line-height:1.15;vertical-align:bottom}
+table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,640px)}@media (min-width:600px){table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:0}}
 
 </style>
 <header class="top"><div class="top-in">
@@ -532,7 +599,10 @@ const PRESETS=[
   {symbol:'AAPL',name:'Apple',cls:'stock',currency:'USD',dataSymbol:'AAPL',sector:'Technology',region:'North America',acct:'aksje'},
   {symbol:'MSFT',name:'Microsoft',cls:'stock',currency:'USD',dataSymbol:'MSFT',sector:'Technology',region:'North America',acct:'aksje'},
   {symbol:'NVDA',name:'Nvidia',cls:'stock',currency:'USD',dataSymbol:'NVDA',sector:'Technology',region:'North America',acct:'aksje'}];
-const TAX={shares:0.3784,capital:0.22,factor:1.72,year:2026};
+/* Norwegian tax rules: editable in Settings → Tax rules (S.taxRules); these are the defaults */
+const TAX_DEFAULT={base:0.22,factor:1.72,crypto:0.22,skj:{2023:0.032,2024:0.039,2025:0.036}};
+function taxRules(){const r=(typeof S!=='undefined'&&S&&S.taxRules)||{};const o=Object.assign({},TAX_DEFAULT,r);o.skj=Object.assign({},r.skj?{}:TAX_DEFAULT.skj,r.skj||{});return o;}
+const TAX={get shares(){const r=taxRules();return r.base*r.factor;},get capital(){return taxRules().base;},get factor(){return taxRules().factor;},get year(){return +localToday().slice(0,4);}};
 
 /* ================= state ================= */
 function defaultAccounts(){return [
@@ -1139,8 +1209,7 @@ function viewActivity(v,M,head){
   const txs=M.txs.slice().reverse();const groups=new Map();for(const t of txs){const k=t.date.slice(0,7);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(t);}
   let bought=0,sold=0,fees=0;for(const t of M.txs){const a=assetById(t.assetId);if(!a||(t.type!=='buy'&&t.type!=='sell'))continue;const fx=a.currency==='NOK'?1:t.fx;if(t.type==='buy')bought+=t.qty*t.price*fx;else sold+=t.qty*t.price*fx;fees+=t.fee||0;}
   v.innerHTML=`${head}<div class="card sumgrid" style="margin-top:14px"><div><div class="k">Bought for</div><div class="v">${kr(bought)}</div></div><div><div class="k">Sold for</div><div class="v">${kr(sold)}</div></div><div><div class="k">Fees paid</div><div class="v">${kr(fees)}</div></div><div><div class="k">Transactions</div><div class="v">${M.txs.length}</div></div></div>
-  ${[...groups.entries()].slice(0,60).map(([k,list])=>`<div class="month-h">${MON[+k.slice(5)-1]} ${k.slice(0,4)}</div><div class="list">${list.map(txLine).join('')}</div>`).join('')}
-  ${groups.size>60?'<div class="small muted expl" style="margin-top:10px">Showing the latest 60 months.</div>':''}`;
+  ${activityFilterHTML(M)}<div id="actList">${activityListHTML(M)}</div>`;
 }
 
 /* ================= analysis ================= */
@@ -1163,7 +1232,7 @@ function viewBreakdown(v,M,head){
 
 /* ================= overview ================= */
 const CUM_PERIODS=[['1D','1D'],['1W','1W'],['1M','1M'],['6M','6M'],['YTD','YTD'],['1Y','1Y'],['3Y','3Y'],['5Y','5Y'],['10Y','10Y'],['MAX','Max']];
-const ANN_PERIODS=[['1Y','1 yr'],['2Y','2 yrs'],['3Y','3 yrs'],['5Y','5 yrs'],['10Y','10 yrs'],['SINCE','Since start']];
+const ANN_PERIODS=[['1Y','1 yr'],['2Y','2 yrs'],['3Y','3 yrs'],['5Y','5 yrs'],['10Y','10 yrs'],['SINCE','Since<br>start']];
 /* returns for a fixed period, or null if the history doesn't reach back that far.
    MAX = since the portfolio's first day. */
 function periodRet(M,Z,code,annual){
@@ -1183,7 +1252,7 @@ function bmPeriodRet(M,Z,id,code,annual){const h=C.bm[id];if(!h||!h.s||!h.s.leng
   const conv=(p,d)=>{const a=fxNokOn(cur,d),c=fxNokOn(ccy,d);return a&&c?p*a/c:null;};
   const vb=conv(pb,bdate),ve=conv(pe,ed);if(!vb||!ve)return null;const r=ve/vb-1;if(!isFinite(r))return null;if(!annual)return r;
   const days=dn(ed)-dn(bdate);return days>0?Math.pow(1+r,365/days)-1:null;}
-function retTable(M,Z,periods,annual){const wide=periods.length>7;const g=annual?null:'cum';
+function retTable(M,Z,periods,annual){const wide=periods.length>5;const g=annual?null:'cum';
   const baseIdx=c=>{if(c==='MAX'||c==='SINCE')return M.firstDay-1-M.d0;const b=rangeBase(c,M.today);if(b<M.firstDay-1)return null;const bi=b-M.d0;return bi<0?null:bi;};
   const myGain=c=>{const bi=baseIdx(c);if(bi==null||bi>=M.N-1)return null;return statsIdx(M,Z,bi,M.N-1).gain;};
   const bmGain=(id,c)=>{const bi=baseIdx(c);if(bi==null||bi>=M.N-1)return null;const r=bmCompare(M,Z,id,bi,M.N-1);if(!r||r.missing)return null;const st=statsIdx(M,Z,bi,M.N-1);return st.gain-(Z.V[M.N-1]+st.div-r.end);};
@@ -1192,7 +1261,7 @@ function retTable(M,Z,periods,annual){const wide=periods.length>7;const g=annual
   for(const id of UI.bms){const b=BENCHMARKS.find(x=>x.id===id);if(!b)continue;
     if(!bmSeries(M,id,Z.ccy)){const why=!S.settings.tdKey?'Needs your Twelve Data key (Settings)':NET.blocked?'Loads when opened from your home screen':C.err['bm:'+id]?C.err['bm:'+id]:'Loading index prices…';rows.push(`<tr class="bm"><th><span class="sw" style="background:${BM_COLOR[id]}"></span>${esc(b.name)}</th><td colspan="${periods.length}" class="na why">${esc(why)}</td></tr>`);continue;}
     rows.push(`<tr class="bm"><th><span class="sw" style="background:${BM_COLOR[id]}"></span>${esc(b.name)}</th>${periods.map(([c])=>cell(bmPeriodRet(M,Z,id,c,annual),g?bmGain(id,c):null)).join('')}</tr>`);}
-  return `<div class="hm-wrap"><table class="rtab${wide?' wide':''}"><thead><tr><th></th>${periods.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
+  return `<div class="hm-wrap"><table class="rtab${wide?' wide':''}" style="--tw:${96+periods.length*60}px"><thead><tr><th></th>${periods.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
 /* performance per asset type, same time-weighted method as the whole portfolio */
 const CLS_LINE={all:['All assets','var(--accent)'],stock:['Stocks','#C9A0FF'],etf:['ETFs & funds','#EDEDED'],crypto:['Crypto','#EDEDED','5 3']};
 function classZ(M,ccy,cls){M._cls=M._cls||{};const key=ccy+'|'+cls;if(M._cls[key])return M._cls[key];
@@ -1217,9 +1286,12 @@ function chartEvents(M,pts,pad){const lo=pts[pad]?pts[pad].x:Infinity,hi=pts[pts
     if(t.type==='buy'||t.type==='sell'){if(!a)continue;const tot=t.qty*t.price*(t.fx||1)+(t.type==='buy'?1:-1)*(t.fee||0);
       it={trade:true,sym:a.symbol,t:(t.type==='buy'?'Bought ':'Sold ')+a.symbol+' · '+qtyFmt(t.qty)+' × '+money(t.price,a.currency),s:when+' · '+F(conv(M,tot))};}
     else it={trade:false,t:(t.type==='deposit'?'Deposit':'Withdrawal')+(acc?' · '+acc.name:''),s:when+' · '+F(conv(M,Math.abs(t.amount)))};
+    if(t.note)it.s+=' · “'+t.note+'”';
     if(!out.has(i))out.set(i,[]);out.get(i).push(it);}
   return [...out.entries()].map(([i,items])=>{const tr=items.filter(x=>x.trade);const syms=[...new Set(tr.map(x=>x.sym))];
     return {i,items:items.map(x=>Object.assign(x,{color:x.trade?'var(--accent)':'var(--fg)'})),color:tr.length?'var(--accent)':'var(--fg)',head:dateLabel(pts[i].x,true),label:syms.length?syms[0]+(syms.length>1?'+'+(syms.length-1):''):''};});}
+/* true when a period reaches back before your first data */
+function rangeShort(r,firstDay){if(r==='MAX'||r==='1D')return false;return rangeBase(r,dn(localToday()))<firstDay-1;}
 function viewOverview(v){
   const M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
   const Z=series(M,UI.ccy);const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
@@ -1237,29 +1309,31 @@ function viewOverview(v){
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${key==='1D'?'':perf?`<button class="gear-btn" data-act="chartcfg" aria-label="Choose what the performance chart shows">${iconSm('gear',18)}</button>`:`<button class="tog ev-tog" data-act="events" aria-pressed="${!!UI.events}"><span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Events</button>`}</div>
   <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${CLS_LINE[k][2]?'repeating-linear-gradient(90deg,'+CLS_LINE[k][1]+' 0 4px,transparent 4px 6px)':CLS_LINE[k][1]}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${BM_COLOR[x.b.id]}"></span>${esc(x.b.name)}`).join('')}`}</div>
   <div class="chart" id="mainChart"></div>
-  <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
-  ${UI.mode==='perf'?`<div class="chips bm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
-    ${bms.some(x=>!x.r||x.r.missing)?`<div class="small muted" style="margin-top:6px">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}`:''}</section>
-  <div data-card="kpis"><h2 class="sec">Key figures · ${esc(RANGE_WORD[key])}</h2>
-  <div class="kpis">
-    ${kpi('True time-weighted return',pct(st.twr),cl(st.twr),'TTWROR · deposits removed')}
-    ${kpi('Money-weighted return p.a.',st.irr!=null?pct(st.irr):'—',st.irr!=null?cl(st.irr):'',st.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
-    ${kpi('Gain / loss',F(st.gain,{sign:true}),cl(st.gain),'After fees, incl. dividends')}
-    ${kpi('Avg. annual return',st.annual!=null?pct(st.annual):'—',st.annual!=null?cl(st.annual):'',st.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
-    ${kpi('Money added',F(st.cf,{sign:true}),'','Bought minus sold')}
-    ${kpi('Dividends',F(st.div),'',' ')}
-    ${kpi('Max drawdown',pct(st.mdd),st.mdd<0?'down':'','Worst fall from a peak')}
-    ${kpi('Volatility p.a.',st.vol!=null?pct(st.vol,{sign:false}):'—','','Size of daily swings')}
-  </div></div>
+  <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}">${r}</button>`).join('')}</div>
+</section>
   ${compare.length?`<div data-card="same"><div class="sub-h">Same money, same days</div><div class="note small">If every krone you put in and took out had gone into the index on the same days:</div>
    <div class="list" style="margin-top:8px">${compare.map(({b,r})=>{const d=yours-r.end;const alpha=st.twr-r.twr;return `<div class="item" style="cursor:default"><span class="badge" style="background:${BM_COLOR[b.id]}">${esc(b.sym)}</span><div class="mid"><div class="t1 wrap">${esc(b.name)} would be ${F(r.end)}</div><div class="t2 wrap">Index ${pct(r.twr)} · alpha <span class="${cl(alpha)}">${pct(alpha)}</span></div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}</div></div>`:''}
-  <section class="card" data-card="compare" style="margin-top:16px"><div class="row-between"><div class="sub-h" style="margin:0">Compare with</div>${ccySelect()}</div>
-  <div class="chips" style="margin-top:10px">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div></section>
-  <section class="card" data-card="cum" style="margin-top:12px"><div class="sub-h" style="margin-top:0">Cumulative return (%) · ${UI.ccy}</div><div class="hint" style="margin:-2px 0 6px">Tap a number to see it in money.</div>${retTable(M,Z,CUM_PERIODS,false)}</section>
-  <section class="card" data-card="ann" style="margin-top:12px"><div class="sub-h" style="margin-top:0">Annualised return (%) · ${UI.ccy}</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
+  <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
+  <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
+  ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
+  <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
+  <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
   <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div></div>
-  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>`;
+  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
+  ${(()=>{const kk=RANGES.includes(UI.krange)&&UI.krange!=='1D'?UI.krange:'1Y';const ks=stats(M,Z,kk);
+   return `<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div><span class="small muted">${esc(RANGE_WORD[kk])}</span></div>
+   <div class="ranges kranges" role="group" aria-label="Key figures period">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-krange="${r}" aria-pressed="${r===kk}" class="${rangeShort(r,M.firstDay)?'nodata':''}">${r}</button>`).join('')}</div>
+   <div class="kgrid">
+    ${kpi('Time-weighted return',pct(ks.twr),cl(ks.twr),'TTWROR · deposits removed')}
+    ${kpi('Money-weighted p.a.',ks.irr!=null?pct(ks.irr):'—',ks.irr!=null?cl(ks.irr):'',ks.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
+    ${kpi('Gain / loss',F(ks.gain,{sign:true}),cl(ks.gain),'After fees, incl. dividends')}
+    ${kpi('Avg. annual return',ks.annual!=null?pct(ks.annual):'—',ks.annual!=null?cl(ks.annual):'',ks.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
+    ${kpi('Money added',F(ks.cf,{sign:true}),'','Bought minus sold')}
+    ${kpi('Dividends',F(ks.div),'','Received')}
+    ${kpi('Max drawdown',pct(ks.mdd),ks.mdd<0?'down':'','Worst fall from a peak')}
+    ${kpi('Volatility p.a.',ks.vol!=null?pct(ks.vol,{sign:false}):'—','','Size of daily swings')}
+   </div></section>`;})()}`;
   const host=$('#mainChart');const up=perf?pts[pts.length-1].v>=0:st.gain>=0;
   const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
   const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
@@ -1271,9 +1345,7 @@ function viewOverview(v){
   if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
   if(perf)for(const {b,r} of compare){const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[b.id],width:1.8,label:b.name,fmt:'pct'});}
   /* long periods that start before your first data: pad the start and dim it, so the chart shows the whole period */
-  let pad=0;if(ser.idx&&key!=='MAX'){const rs=rangeBase(key,M.today);const fx=M.d0+ser.idx[0];const realDays=Math.max(1,M.d0+ser.idx[ser.idx.length-1]-fx);
-    if(rs<fx-1){const padDays=fx-rs;pad=Math.min(ser.idx.length*4,Math.max(2,Math.round(ser.idx.length*padDays/realDays)));
-      for(const sr of series_){const pp=[];for(let k=0;k<pad;k++)pp.push({x:Math.round(rs+k*padDays/pad),v:NaN});sr.pts=pp.concat(sr.pts);}}}
+  const pad=0; /* periods longer than your history: the chart starts at your first data; the period button is shown faded instead */
   const events=!perf&&UI.events&&ser.idx?chartEvents(M,series_[0].pts,pad):[];
   const reset=()=>{heroEy.textContent=eyTotal;heroVal.textContent=F(total);heroChg.textContent=F(st.gain,{sign:true});heroChg.className=cl(st.gain);heroPct.textContent=pct(st.twr);heroPct.className='pill '+cl(st.twr);heroWhen.textContent=RANGE_WORD[key];};
   const draw=()=>mountChart(host,{series:series_,kind:perf?'pct':'money',ccy:UI.ccy,diff:perf&&series_.length>1,time:ser.time,noData:pad,events,evLabels:events.length<=10,onScrub:i=>{
@@ -1302,9 +1374,10 @@ function posPL(M,h,key){const bi=Math.max(-1,rangeBase(key,M.today)-M.d0),ei=M.N
   const pl=h.AV[ei]-Vb-f+div;const base=Vb+fin;return {pl,pct:base>0?pl/base:0};}
 function viewHoldings(v){
   const M=compute();const sub=UI.sub;
-  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity']],sub)}<button class="btn sm primary" data-act="add">${iconSm('plus')} Add transaction</button></div>`;
+  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity'],['watch','Watchlist']],sub)}<button class="btn sm primary" data-act="add">${iconSm('plus')} Add transaction</button></div>`;
+  if(sub==='watch')return viewWatch(v,M,head);
   if(!M){v.innerHTML=head+emptyState();return;}
-  if(sub==='cash')return viewCash(v,M,head);if(sub==='activity')return viewActivity(v,M,head);
+  if(sub==='watch')return viewWatch(v,M,head);if(sub==='cash')return viewCash(v,M,head);if(sub==='activity')return viewActivity(v,M,head);
   const key=UI.prange||'MAX';
   const open=M.holdings.filter(h=>h.qty>0).map(h=>Object.assign({},h,posPL(M,h,key)));const closed=M.holdings.filter(h=>h.qty===0);
   const val=open.reduce((s,h)=>s+h.value,0),cost=open.reduce((s,h)=>s+h.cost,0),realized=M.holdings.reduce((s,h)=>s+h.realized,0),divs=M.holdings.reduce((s,h)=>s+h.divs,0),day=open.reduce((s,h)=>s+h.dayChg,0);
@@ -1317,10 +1390,10 @@ function viewHoldings(v){
   const kM=(n,o={})=>fmtK(conv(M,n),Object.assign({ccy:UI.ccy},o));const kS=n=>fmtK(conv(M,n),{small:true,ccy:UI.ccy});
   v.innerHTML=`${head}
   <div class="card sumgrid" data-card="hsum" style="margin-top:14px"><div><div class="k">Market value</div><div class="v">${fx(val)}</div></div><div><div class="k">Cost basis</div><div class="v">${fx(cost)}</div></div>
-   <div><div class="k">Unrealised gain</div><div class="v ${cl(val-cost)}">${F(conv(M,val-cost),{sign:true})} <span class="small">${cost?pct((val-cost)/cost):''}</span></div></div><div><div class="k">Today</div><div class="v ${cl(day)}">${F(conv(M,day),{sign:true})}</div></div>
+   <div><div class="k">Unrealised gain</div><div class="v ${cl(val-cost)}">${F(conv(M,val-cost),{sign:true})} <span class="small">${cost?pct((val-cost)/cost):''}</span></div></div><div class="today-cell"><div class="k">Today</div><div class="v ${cl(day)}">${F(conv(M,day),{sign:true})}</div></div>
    <div><div class="k">Realised gain</div><div class="v ${cl(realized)}">${F(conv(M,realized),{sign:true})}</div></div><div><div class="k">Dividends received</div><div class="v">${fx(divs)}</div></div></div>
   <div data-card="positions"><div class="row-between" style="margin:16px 0 8px"><h2 class="sec" style="margin:0">Positions</h2>${ccySelect()}</div>
-  <div class="ranges" role="group" aria-label="P/L period">${RANGES.map(r=>`<button data-prange="${r}" aria-pressed="${r===key}">${r}</button>`).join('')}</div>
+  <div class="ranges" role="group" aria-label="P/L period">${RANGES.map(r=>`<button data-prange="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}">${r}</button>`).join('')}</div>
   ${open.length?`${curNote(UI.ccy)}<div class="ptable"><div class="prow phead">${hcol('title','Title','pt')}${hcol('buyin','Buy in')}${hcol('position','Position')}${hcol('pl','P/L '+key)}<span></span></div>
    ${open.map(h=>`<div class="prow" role="button" tabindex="0" data-asset="${h.a.id}"><div class="pt"><div class="pn">${esc(h.a.name||h.a.symbol)}</div><div class="ps">${esc(h.a.symbol)} <span class="qb">×${qtyTbl(h.qty)}</span></div></div>
      <div class="pv"><div>${kM(h.cost)}</div><div class="pu">${kS(h.cost/h.qty)}</div></div>
@@ -1362,10 +1435,11 @@ function reportCards(M,Z){
       <div class="rep-g"><span class="muted">Investments</span><span class="num">${F(s.Ve)}</span><span class="muted">Added</span><span class="num">${F(s.cf,{sign:true})}</span>${bm&&!bm.missing?`<span class="muted">${esc(bmInfo.name)}</span><span class="num ${cl(bm.twr)}">${pct(bm.twr)}</span>`:''}</div></div>`;}).join('')}</div>
   <div class="small muted expl" style="margin:8px 2px">Returns are TTWROR. Weeks run Monday to Sunday.</div>`;}
 function viewAnalysis(v){
-  const M=compute();const sub=UI.asub==='breakdown'?'breakdown':'performance';
-  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('asub',[['performance','Returns'],['breakdown','Breakdown']],sub)}${ccySelect()}</div>`;
+  const M=compute();const sub=UI.asub==='breakdown'?'breakdown':UI.asub==='tax'?'tax':'performance';
+  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('asub',[['performance','Returns'],['breakdown','Breakdown'],['tax','Tax']],sub)}${ccySelect()}</div>`;
   if(!M){v.innerHTML=head+emptyState();return;}
   if(sub==='breakdown')return viewBreakdown(v,M,head);
+  if(sub==='tax')return viewTax(v,M,head);
   const Z=series(M,UI.ccy);const per=UI.rper==='quarter'?'quarter':'month';const view=UI.rview==='bars'?'bars':'grid';
   const map=periodReturns(M,Z,per);const years=[...new Set([...map.keys()].map(k=>Math.floor(k/(per==='quarter'?4:12))))].sort((a,b)=>b-a);
   const gmap=periodGains(M,Z,per);
@@ -1385,6 +1459,9 @@ function viewAnalysis(v){
    <div class="small muted expl" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
   ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}</div>
   <div data-card="added"><h2 class="sec">Money added per year</h2><div class="card"><div class="bars">${cy.map(([y,val])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${Math.abs(val)/cmax*100}%;${val<0?'background:var(--c6)':''}"></div></div><span class="val">${F(val,{sign:true})}</span></div>`).join('')||'<span class="muted">Nothing added yet</span>'}</div></div></div>
+  ${(()=>{const d=dividendsCardHTML(M);return d?`<div data-card="divs"><h2 class="sec">Dividends</h2>${d}</div>`:'';})()}
+  <div data-card="freedom"><h2 class="sec">Freedom number</h2>${freedomHTML(M,true)}</div>
+  <div data-card="costs"><h2 class="sec">Costs</h2>${costsHTML(M)}</div>
   <div data-card="updates"><h2 class="sec">Your updates</h2>${reportCards(M,Z)}</div>`;
   const wrap=$('#rbWrap');if(wrap){wrap.scrollLeft=wrap.scrollWidth;wrap.onclick=e=>{const r=e.target.closest('[data-rbar]');if(!r)return;const [l,val]=r.dataset.rbar.split('|');$('#rbRead').innerHTML=`${esc(l)} · <span class="${cl(+val)}">${pct(+val)}</span>`;};}
 }
@@ -1425,8 +1502,9 @@ function project(M,o={}){
 }
 function viewPlan(v){
   const M=compute();const sub=UI.psub;
-  const head=`${demoBanner()}<div style="margin-top:14px;overflow-x:auto">${seg('psub',[['budget','Budget'],['goals','Goals'],['retire','Retirement'],['buy','Buying plan']],sub)}</div>`;
-  if(sub==='budget')return viewBudget(v,head);
+  const head=`${demoBanner()}<div style="margin-top:14px;overflow-x:auto">${seg('psub',[['budget','Budget'],['goals','Goals'],['retire','Retirement'],['buy','Buying plan'],['free','Freedom']],sub)}</div>`;
+  if(sub==='budget'){viewBudget(v,head);v.insertAdjacentHTML('beforeend',savingsVsPlanHTML());return;}
+  if(sub==='free')return viewFreedom(v,M,head);
   if(sub==='retire')return viewRetire(v,M,head);if(sub==='buy')return viewBuyPlan(v,M,head);
   const today=dn(localToday());
   v.innerHTML=`${head}<div class="row-between"><h2 class="sec">Goals</h2><button class="btn sm primary" data-act="goal">${iconSm('plus')} Goal</button></div>
@@ -1480,6 +1558,7 @@ function viewBuyPlan(v,M,head){
   <form class="card form" id="bpForm"><div class="grid2"><div class="field"><label for="bpFreq">How often</label><select id="bpFreq"><option value="month" ${bp.freq==='month'?'selected':''}>Every month</option><option value="quarter" ${bp.freq==='quarter'?'selected':''}>Every quarter</option></select></div>
    <div class="field"><label for="bpAmt">Amount (NOK)</label><input id="bpAmt" inputmode="decimal" value="${inputNum(bp.amount,0)}"></div></div><button class="btn primary sm" type="submit" style="align-self:flex-start">Save plan</button></form>
   ${hist?`<h2 class="sec">Last 8 ${bp.freq==='month'?'months':'quarters'}</h2><div class="card">${hist}<div class="small muted expl" style="margin-top:8px">Money added from outside: deposits, plus buys paid directly from your bank. The line marks your target.${streak?` You hit the target ${streak} ${bp.freq==='month'?'month':'quarter'}${streak>1?'s':''} in a row.`:''}</div></div>`:''}
+  ${rebalanceHTML(M)}
   <div class="note" style="margin-top:12px">If you set up automatic monthly buys at Nordnet (månedlig sparing), switch to <b>Every month</b> and import the trades each quarter.</div>`;
 }
 function askBlock(){if(!ASK.ok)return '';return `<h2 class="sec">Ask Lacag</h2><div class="card stack"><div class="note">Ask about your plan, like "What if I retire at 64?" or "How should I split my monthly saving between my goals?" Your numbers are sent with the question. Answers are estimates, not advice.</div>
@@ -1581,6 +1660,7 @@ function txSheet(tx,opts={}){
    </div>
    <div class="note small" id="lookupNote" hidden></div>
    <div class="grid2"><div class="field"><label for="fAcc">Account</label><select id="fAcc">${accOptions(t.accountId,a=>a.kind!=='cash')}</select></div><div class="field"><label for="fDate">Date</label><div class="dt2"><input id="fDate" type="date" value="${esc(t.date)}" max="${localToday()}"><input id="fTime" type="time" aria-label="Time (optional)" value="${esc(t.time||'')}"></div></div></div>
+     <div class="field"><label for="fNote">Why? <span class="muted">(optional diary note)</span></label><input id="fNote" maxlength="160" placeholder="e.g. Bought the dip after earnings" value="${esc(t.note||'')}"></div>
    <div id="tradeFields" class="stack">
      <div class="grid2"><div class="field"><label for="fQty">Quantity</label><input id="fQty" inputmode="decimal" value="${inputNum(t.qty,8)}" placeholder="0,05"></div><div class="field"><label for="fPrice" id="lPrice">Price per unit</label><input id="fPrice" inputmode="decimal" value="${inputNum(t.price,6)}"></div></div>
      <div class="grid2"><div class="field" id="fxWrap"><label for="fFx" id="lFx">NOK per 1 USD</label><input id="fFx" inputmode="decimal" value="${inputNum(t.fx,4)}"></div><div class="field"><label for="fFee">Fee (NOK)</label><input id="fFee" inputmode="decimal" value="${inputNum(t.fee,2)}" placeholder="0"></div></div>
@@ -1641,7 +1721,7 @@ function txSheet(tx,opts={}){
         if(!(qty>0)){return showErr(err,'Enter how many units (comma or dot for decimals).');}if(!(price>0)){return showErr(err,'Enter the price per unit in '+a.currency+'.');}if(!(fx>0)){return showErr(err,'Enter the exchange rate (NOK per 1 '+a.currency+').');}if(fee<0){return showErr(err,'The fee can\'t be negative.');}
         rec={type,assetId:a.id,accountId,date,qty,price,fx,fee,fundAccountId:fund};}
       if(!isEdit)leaveDemo();if(newA)S.assets.push(newA);
-      {const tm=fv('fTime');if(tm&&tm.value)rec.time=tm.value;}
+      {const tm=fv('fTime');if(tm&&tm.value)rec.time=tm.value;}{const nt=fv('fNote');const nv=nt?nt.value.trim():'';if(nv)rec.note=nv;}
       if(isEdit){const i=S.txs.findIndex(x=>x.id===t.id);S.txs[i]=Object.assign({id:t.id},rec);}else S.txs.push(Object.assign({id:uid()},rec));
       pruneAssets();Store.save();closeSheet();render();toast(isEdit?'Updated':'Saved');refresh(false);};
     const del=fv('delTx');if(del)del.onclick=()=>{if(!armed(del,'Tap again to delete'))return;S.txs=S.txs.filter(x=>x.id!==t.id);pruneAssets();Store.save();closeSheet();render();toast('Deleted');};
@@ -1690,7 +1770,7 @@ function assetSheet(id){
   const accRows=Object.entries(h.byAcc||{}).filter(([,q])=>q>0).map(([aid,q])=>`<div class="row-between small"><span>${esc((accById(aid)||{}).name||'')}</span><span class="num">${qtyFmt(q)}</span></div>`).join('');
   const body=`<div class="row-between" style="margin-bottom:6px"><div style="display:flex;gap:10px;align-items:center">${badge(a)}<div><div style="font-weight:700">${esc(a.symbol)}</div><div class="small muted">${CLASS_LABEL[a.cls]} · ${a.currency} · ${esc(a.sector||'')}</div></div></div><div style="text-align:right"><div class="num" style="font-size:18px">${money(h.priceNow,a.currency)}</div><div class="small ${cl(h.dayPct)}">${pct(h.dayPct)} today</div></div></div>
    <div class="chart" id="assetChart" style="height:200px"></div>
-   <div class="ranges">${RANGES.map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}">${r}</button>`).join('')}</div>
+   <div class="ranges">${RANGES.map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}" class="${firstDateFor(a)&&rangeShort(r,dn(firstDateFor(a)))?'nodata':''}">${r}</button>`).join('')}</div>
    <div class="small muted" id="aRangeTxt" style="margin:2px 0 14px"></div>
    <div class="card sumgrid">
     <div><div class="k">Holding</div><div class="v">${qtyFmt(h.qty)}</div></div><div><div class="k">Value</div><div class="v">${kr(h.value)}</div></div>
@@ -1707,6 +1787,7 @@ function assetSheet(id){
    <h2 class="sec">Details</h2>
    <div class="card stack"><div class="grid2"><div class="field"><label for="eName">Name</label><input id="eName" value="${esc(a.name)}"></div><div class="field"><label for="eData">Price ticker</label><input id="eData" autocapitalize="characters" value="${esc(a.dataSymbol||a.symbol)}"></div></div>
     <div class="grid2"><div class="field"><label for="eCls">Type</label><select id="eCls">${['stock','etf','crypto'].map(c=>`<option value="${c}" ${a.cls===c?'selected':''}>${CLASS_LABEL[c]}</option>`).join('')}</select></div><div class="field"><label for="eSector">Sector</label><select id="eSector">${SECTORS.map(s=>`<option ${a.sector===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="eTer">Yearly fund fee <span class="muted">(TER %)</span></label><input id="eTer" inputmode="decimal" placeholder="e.g. 0,2" value="${a.ter!=null?inputNum(+a.ter,3):''}"></div>
     <div class="field"><label for="eYahoo">Helper ticker <span class="muted">(Yahoo)</span></label><input id="eYahoo" autocapitalize="characters" placeholder="${esc(yahooSym(Object.assign({},a,{yahoo:''}))||'e.g. WEBN.DE')}" value="${esc(a.yahoo||'')}"><div class="hint">Only needed if the automatic one is wrong. Xetra = .DE, Oslo = .OL, London = .L</div></div>
     <div class="field"><label for="eRegion">Region</label><select id="eRegion">${REGIONS.map(s=>`<option ${a.region===s?'selected':''}>${s}</option>`).join('')}</select></div>
     ${a.cls==='etf'?`<div class="field"><label for="eLookR">Fund regions (approx. %)</label><textarea id="eLookR" style="min-height:120px">${esc(lookToText(a.look&&a.look.region))}</textarea><div class="hint">One per line, like <code>North America: 64</code>. Leave empty to use the single region above.${a.look===null||!a.look?' <button type="button" class="btn sm" id="useAllWorld">Fill in all-world weights</button>':''}</div></div>
@@ -1726,7 +1807,7 @@ function assetSheet(id){
     $$('[data-delprice]').forEach(b=>b.onclick=()=>{S.prices=S.prices.filter(x=>x.id!==b.dataset.delprice);Store.save();assetSheet(id);softRender();});
     document.querySelector('[data-act="saveasset"]').onclick=()=>{a.name=fv('eName').value.trim()||a.symbol;a.cls=fv('eCls').value;a.sector=fv('eSector').value;a.region=fv('eRegion').value;
       if(fv('eLookR')){const r=textToLook(fv('eLookR').value),s=textToLook(fv('eLookS').value);a.look=r||s?{region:r||{},sector:s||{}}:null;}
-      const nd=fv('eData').value.trim().toUpperCase()||a.symbol;if(nd!==a.dataSymbol){a.dataSymbol=nd;delete C.err[a.id];delete C.live[a.id];}{const y=(fv('eYahoo').value||'').trim().toUpperCase();if(y!==(a.yahoo||'')){if(y)a.yahoo=y;else delete a.yahoo;delete C.err[a.id];delete C.live[a.id];delete C.hist[histKey(a)];}}Store.save();toast('Saved');softRender();refresh(false);};
+      const nd=fv('eData').value.trim().toUpperCase()||a.symbol;if(nd!==a.dataSymbol){a.dataSymbol=nd;delete C.err[a.id];delete C.live[a.id];}{const tv=parseNum(fv('eTer').value);if(fv('eTer').value.trim()==='')delete a.ter;else if(isFinite(tv)&&tv>=0&&tv<5)a.ter=tv;}{const y=(fv('eYahoo').value||'').trim().toUpperCase();if(y!==(a.yahoo||'')){if(y)a.yahoo=y;else delete a.yahoo;delete C.err[a.id];delete C.live[a.id];delete C.hist[histKey(a)];}}Store.save();toast('Saved');softRender();refresh(false);};
     document.querySelector('[data-act="tradeasset"]').onclick=()=>txSheet(null,{assetId:a.id});
   });
 }
@@ -2312,20 +2393,23 @@ const SET_SECTIONS={
   currency:{t:'Currency & exchange rates',ic:'cash',from:['Currency','Exchange rates']},
   updown:{t:'Up and down colours',ic:'updown',from:['Up and down colours']},
   arrange:{t:'Arrange pages',ic:'gear',own:()=>arrangeSettingsHTML()},
-  expl:{t:'Explanations & privacy',ic:'eye',own:()=>explSettingsHTML()},
+  expl:{t:'Calm mode, explanations & privacy',ic:'eye',own:()=>explSettingsHTML()},
   portfolios:{t:'Portfolios',ic:'pie',from:['Portfolios']},
   accounts:{t:'Accounts',ic:'bank',from:['Accounts']},
   import:{t:'Import transactions',ic:'import',from:['Import transactions']},
   prices:{t:'Live prices',ic:'refresh',from:['Live prices']},
   share:{t:'Share Lacag',ic:'share',own:()=>shareSettingsHTML()},
   install:{t:'Install on your phone',ic:'phone',from:['Install on your phone']},
-  backup:{t:'Backup & restore',ic:'save',from:['Backup']},
+  backup:{t:'Backup & restore',ic:'save',own:()=>backupSettingsHTML()},
+  check:{t:'Data check',ic:'eye',own:()=>checkSettingsHTML()},
+  taxrules:{t:'Tax rules (Norway)',ic:'bank',own:()=>taxRulesHTML()},
+  household:{t:'Household',ic:'home',own:()=>householdHTML()},
   data:{t:'Example data & delete',ic:'trash',from:['Data']},
 };
 const SET_GROUPS=[
   ['Display',['start','look','tables','currency','updown']],
   ['Pages',['arrange','expl']],
-  ['Your data',['portfolios','accounts','import','prices']],
+  ['Your data',['check','household','portfolios','accounts','import','prices','taxrules']],
   ['App',['share','install','backup','data']],
 ];
 function setSummary(k){const L=look();const T=tblOpt();const O=curOpt();
@@ -2337,14 +2421,17 @@ function setSummary(k){const L=look();const T=tblOpt();const O=curOpt();
     case 'currency':return 'Overview '+O.pages.overview+' · Holdings '+O.pages.holdings+' · Insights '+O.pages.analysis;
     case 'updown':return (S.settings.updown==='cvd'?'Blue / red':'Green / red')+' with ▲ ▼ arrows';
     case 'arrange':return 'Move, hide and add cards on each page';
-    case 'expl':return 'Explanation texts '+(UI.expl==='off'?'hidden':'shown')+' · amounts '+(UI.privStart?'hidden':'shown')+' at start';
+    case 'household':return S.portfolios.some(p=>p.id==='pf_family')?'Set up: '+S.portfolios.map(p=>p.name).join(', '):'Track your and your partner\'s savings together';
+    case 'expl':return 'Calm mode '+(UI.calm?'on':'off')+' · explanation texts '+(UI.expl==='off'?'hidden':'shown')+' · amounts '+(UI.privStart?'hidden':'shown')+' at start';
     case 'portfolios':return S.portfolios.map(p=>p.name).join(', ');
     case 'accounts':return S.accounts.length+' accounts: '+S.accounts.map(a=>a.name).join(', ');
     case 'import':return 'Nordnet, Kraken or any CSV file';
     case 'prices':return (S.settings.tdKey?'Twelve Data key saved':'No Twelve Data key')+' · '+(S.settings.helper?'price helper on':'no price helper');
     case 'share':return 'Send the app to family and friends';
     case 'install':return IS_STANDALONE?'Installed on this phone':'Home screen on iPhone or Android';
-    case 'backup':return Store.cloud?'Saved to your account and this device':'Saved on this device';
+    case 'backup':return 'Last backup '+(UI.lastBackup?dateLabel(Math.floor(UI.lastBackup/864e5),true):'never');
+    case 'taxrules':{const r=taxRules();const ys=Object.keys(r.skj).map(Number).sort();return 'Shares '+nf2.format(r.base*r.factor*100)+' % · crypto '+nf0.format(r.crypto*100)+' % · skjerming up to '+(ys.length?ys[ys.length-1]:'—');}
+    case 'check':{const n=dataIssues().length;return n?n+' thing'+(n>1?'s':'')+' to look at':'Everything looks right';}
     case 'data':return 'Load the example or delete everything';}return '';}
 function settingsSections(){/* cut the full settings page into its titled parts */
   const html=settingsAllHTML();const parts={};const re=/<h2 class="sec">([^<]+)<\/h2>/g;let m,last=null,lastEnd=0;
@@ -2392,12 +2479,13 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-sse
 const PAGE_NAMES={overview:'Overview',holdings:'Holdings',analysis:'Insights'};
 const PAGE_SUB={holdings:['sub','positions'],analysis:['asub','performance']}; /* the view on each page that can be arranged */
 const CARD_LIB={
-  hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},kpis:{t:'Key figures',p:'overview'},same:{t:'Same money, same days',p:'overview'},
-  compare:{t:'Compare with (benchmarks)',p:'overview'},cum:{t:'Cumulative return table',p:'overview'},ann:{t:'Annualised return table',p:'overview'},
-  alloc:{t:'Allocation',p:'overview'},movers:{t:"Today's movers",p:'overview'},
+  hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},same:{t:'Same money, same days',p:'overview'},
+  compare:{t:'Compare with & return tables',p:'overview'},alloc:{t:'Allocation',p:'overview'},movers:{t:"Today's movers",p:'overview'},kpis:{t:'Key figures',p:'overview'},
   hsum:{t:'Holdings summary',p:'holdings'},positions:{t:'Positions table',p:'holdings'},closed:{t:'Closed positions',p:'holdings'},
-  monthly:{t:'Monthly returns',p:'analysis'},fxeffect:{t:'Currency effect',p:'analysis'},added:{t:'Money added per year',p:'analysis'},updates:{t:'Your updates',p:'analysis'},
+  monthly:{t:'Monthly returns',p:'analysis'},divs:{t:'Dividends',p:'analysis'},freedom:{t:'Freedom number',p:'analysis'},costs:{t:'Costs',p:'analysis'},fxeffect:{t:'Currency effect',p:'analysis'},added:{t:'Money added per year',p:'analysis'},updates:{t:'Your updates',p:'analysis'},
 };
+/* the return tables now live inside the Compare card: older saved Overview layouts are reset once */
+if(UI.layout&&UI.layout.overview&&UI.layout.overview.some(c=>c.id==='cum'||c.id==='ann')){delete UI.layout.overview;saveUI();}
 const pageCards=pg=>Object.keys(CARD_LIB).filter(k=>CARD_LIB[k].p===pg);
 function layoutOf(pg){const saved=((UI.layout||{})[pg]||[]).filter(c=>CARD_LIB[c.id]);const ids=new Set(saved.map(c=>c.id));
   const out=saved.map(c=>({id:c.id,hidden:!!c.hidden}));for(const id of pageCards(pg))if(!ids.has(id))out.push({id,hidden:false});return out;}
@@ -2453,12 +2541,394 @@ function arrangeSheet(pg){
 document.addEventListener('click',e=>{const g=e.target.closest('[data-arrange]');if(g){arrangeSheet(g.dataset.arrange);return;}
   const r=e.target.closest('[data-act="resetlayouts"]');if(r){UI.layout={};UI.csize={};saveUI();softRender();toast('All pages reset');}});
 
+/* ================= backups, data check, tax, dividends, rebalancing, savings vs plan, intraday, activity search ================= */
+
+/* ---------- 1) backups ---------- */
+const DAYMS=864e5;
+function backupJSON(){return JSON.stringify({app:'lacag',v:2,saved:new Date().toISOString(),data:S},null,1);}
+function markBackup(){UI.lastBackup=Date.now();delete UI.backupSnooze;saveUI();}
+async function backupToFile(){const name='lacag-backup-'+localToday()+'.json';const txt=backupJSON();
+  try{if(navigator.canShare){const f=new File([txt],name,{type:'application/json'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Lacag backup'});markBackup();toast('Backup saved');softRender();return;}}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  await saveFile(name,txt,'application/json');markBackup();softRender();}
+function backupDue(){if(S.demo||!S.txs.length||UI.backupRemind===false)return false;const now=Date.now();
+  if(UI.backupSnooze&&now<UI.backupSnooze)return false;return !UI.lastBackup||now-UI.lastBackup>30*DAYMS;}
+function backupBanner(){const last=UI.lastBackup?Math.floor((Date.now()-UI.lastBackup)/DAYMS):null;
+  return `<div class="banner keep backup-banner"><div style="flex:1"><b>Time for a backup</b><div class="small">${last==null?'You have never saved a backup.':`Last backup ${last} days ago.`} Your data lives only on this phone.</div>
+   <div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="backupfile">${iconSm('save')} Back up now</button><button class="btn sm" data-act="backuplater">Later</button></div></div></div>`;}
+function backupSettingsHTML(){const last=UI.lastBackup?dateLabel(Math.floor(UI.lastBackup/DAYMS),true):'never';
+  return `<div class="card stack"><div class="note keep">Your data is saved ${Store.cloud?'in your Claude account and ':''}on this phone. Deleting the home-screen app or clearing Safari's data deletes it. A backup file in iCloud Drive (Files) keeps it safe.</div>
+   <div class="row-between"><div><div class="k">Last backup</div><div class="num">${esc(last)}</div></div><button class="btn primary sm" data-act="backupfile">${iconSm('save')} Back up now</button></div>
+   <div class="hint">On iPhone, choose <b>Save to Files</b> → iCloud Drive in the share sheet.</div>
+   <div class="look-row"><span class="lbl2">Monthly reminder</span><div class="seg" role="group"><button data-bkrem="1" aria-pressed="${UI.backupRemind!==false}">On</button><button data-bkrem="0" aria-pressed="${UI.backupRemind===false}">Off</button></div></div>
+   <h3 class="h3">Restore</h3>
+   <label class="btn sm" style="align-self:flex-start">${iconSm('import')} Restore from a backup file<input type="file" id="restoreFile" accept=".json,application/json" hidden></label>
+   <div class="hint">Or paste backup text:</div>
+   <div class="field"><textarea id="importBox" placeholder="Paste the backup text here"></textarea></div>
+   <div class="btns"><button class="btn sm" data-act="restore">Restore and replace</button><button class="btn sm" data-act="copybackup">Copy backup as text</button></div><div class="err" id="importErr"></div></div>`;}
+document.addEventListener('change',e=>{if(e.target.id!=='restoreFile')return;const f=e.target.files&&e.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{const box=$('#importBox');if(box){box.value=String(rd.result||'');toast('Backup loaded: tap Restore and replace (twice) to finish');box.scrollIntoView({block:'center'});}};rd.readAsText(f);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-bkrem]');if(b){UI.backupRemind=b.dataset.bkrem==='1';saveUI();softRender();}});
+
+/* ---------- 2) data check ---------- */
+function lastPriceDate(a){let best=null;const h=C.hist[histKey(a)];if(h&&h.s&&h.s.length)best=h.s[h.s.length-1][0];
+  for(const p of S.prices)if(p.assetId===a.id&&(!best||p.date>best))best=p.date;const lv=C.live[a.id];if(lv&&lv.date&&(!best||lv.date>best))best=lv.date;
+  for(const t of S.txs)if(t.assetId===a.id&&(t.type==='buy'||t.type==='sell')&&(!best||t.date>best))best=t.date;return best;}
+function workdaysSince(d){let n=0;for(let x=dn(d)+1;x<=dn(localToday());x++){const w=new Date(x*DAYMS).getUTCDay();if(w!==0&&w!==6)n++;}return n;}
+function dataIssues(){const out=[];const M=compute();if(!M)return out;
+  for(const h of M.holdings.filter(h=>h.qty>0)){const d=lastPriceDate(h.a);const lim=h.a.cls==='crypto'?2:4;
+    if(!d)out.push({k:'price',a:h.a,t:`${h.a.symbol}: no price at all`,s:'Add a price under Holdings → '+h.a.symbol});
+    else if(h.a.cls==='crypto'?(dn(localToday())-dn(d)>lim):workdaysSince(d)>lim)out.push({k:'price',a:h.a,t:`${h.a.symbol}: last price ${dateLabel(dn(d),true)}`,s:C.err[h.a.id]||'Live prices may not be working for this one'});}
+  for(const t of S.txs){if(t.type!=='buy'&&t.type!=='sell')continue;const a=assetById(t.assetId);if(!a)continue;
+    if(a.currency!=='NOK'&&!(t.fx>0))out.push({k:'fx',t:`${a.symbol} ${t.type} ${dateLabel(dn(t.date),true)}: no exchange rate`,s:'Open the trade and add the NOK rate',tx:t.id});}
+  const seen=new Map();for(const t of S.txs){if(t.type!=='buy'&&t.type!=='sell'&&t.type!=='dividend')continue;const k=[t.date,t.type,t.assetId,t.accountId,t.qty,t.price,t.amount].join('|');if(seen.has(k))seen.get(k).push(t);else seen.set(k,[t]);}
+  for(const list of seen.values())if(list.length>1){const t=list[0];const a=assetById(t.assetId);out.push({k:'dup',t:`${list.length}× the same ${t.type} of ${a?a.symbol:'?'} on ${dateLabel(dn(t.date),true)}`,s:'Possible duplicate. Open Activity to check',tx:t.id});}
+  const q={};for(const t of S.txs.slice().sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:(TYPE_ORDER[x.type]||0)-(TYPE_ORDER[y.type]||0))){
+    if(!t.assetId)continue;const k=t.assetId+'|'+t.accountId;if(t.type==='buy')q[k]=(q[k]||0)+t.qty;else if(t.type==='split'&&t.ratio>0)q[k]=(q[k]||0)*t.ratio;
+    else if(t.type==='sell'){q[k]=(q[k]||0)-t.qty;if(q[k]<-1e-6){const a=assetById(t.assetId);out.push({k:'neg',t:`${a?a.symbol:'?'}: sold more than you held on ${dateLabel(dn(t.date),true)}`,s:'A buy may be missing from your imports',tx:t.id});q[k]=0;}}}
+  const R=S.recon||{};for(const h of M.holdings.filter(h=>h.qty>0||R[h.a.id]!=null)){const r=R[h.a.id];if(r==null||r==='')continue;if(Math.abs(+r-h.qty)>Math.max(1e-6,h.qty*1e-6))out.push({k:'recon',a:h.a,t:`${h.a.symbol}: Lacag ${qtyFmt(h.qty)}, broker ${qtyFmt(+r)}`,s:'Difference '+qtyFmt(h.qty-r)+'. A trade may be missing or doubled'});}
+  return out;}
+function checkSettingsHTML(){const M=compute();const iss=dataIssues();const R=S.recon||{};
+  const icon={price:'refresh',fx:'cash',dup:'table',neg:'sell',recon:'updown'};
+  return `<div class="card stack">${iss.length?`<div class="note keep"><b>${iss.length} thing${iss.length>1?'s':''} to look at</b></div>
+   <div class="list" style="background:var(--surface2)">${iss.map(x=>`<${x.tx?`button data-tx="${x.tx}"`:x.a?`button data-asset="${x.a.id}"`:'div'} class="item"><span class="chk-ic warn">${iconSm(icon[x.k]||'eye',16)}</span><div class="mid"><div class="t1 wrap">${esc(x.t)}</div><div class="t2 wrap">${esc(x.s)}</div></div></${x.tx||x.a?'button':'div'}>`).join('')}</div>`
+   :`<div class="ok-line"><span class="chk-ic">✓</span> Everything looks right: prices are fresh, trades have exchange rates, no duplicates found.</div>`}</div>
+   ${M&&M.holdings.some(h=>h.qty>0)?`<h2 class="sec">Compare with your broker</h2><div class="card stack"><div class="hint">Type how many units Nordnet or Kraken says you hold. Lacag flags any difference.</div>
+    ${M.holdings.filter(h=>h.qty>0).map(h=>`<div class="row-between recon-row"><div><div class="t1">${esc(h.a.symbol)}</div><div class="small muted">Lacag: <span class="num">${qtyFmt(h.qty)}</span></div></div><input class="fx-in num" inputmode="decimal" data-recon="${h.a.id}" placeholder="at broker" value="${R[h.a.id]!=null?inputNum(R[h.a.id],6):''}"></div>`).join('')}
+    <div><button class="btn sm primary" data-act="saverecon">Check</button></div></div>`:''}`;}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="saverecon"]'))return;S.recon=S.recon||{};
+  $$('[data-recon]').forEach(i=>{const v=parseNum(i.value);if(i.value.trim()===''){delete S.recon[i.dataset.recon];}else if(isFinite(v)&&v>=0)S.recon[i.dataset.recon]=v;});
+  if(S.demo){lsSet('lq_state',S);}else Store.save();softRender();toast(dataIssues().some(x=>x.k==='recon')?'Differences found':'All match');});
+
+/* ---------- 3) + 4) tax (Norway) ---------- */
+/* Shares/funds: gains & dividends × 1.72 × 22 % = 37.84 %. Crypto: 22 %. Lots matched FIFO, as the Tax Administration requires.
+   Skjermingsrente (published each January): 2023 3.2 %, 2024 3.9 %, 2025 3.6 %. The current year uses last year's rate as an estimate. */
+const NOTAX={get share(){return TAX.shares;},get crypto(){return taxRules().crypto;},get skj(){return taxRules().skj;}};
+/* a year without a published rate uses the latest known rate (marked as an estimate); years before the table use 0 */
+function skjYears(){return Object.keys(NOTAX.skj).map(Number).filter(y=>isFinite(y)).sort((a,b)=>a-b);}
+const skjRate=y=>{const t=NOTAX.skj;if(t[y]!=null)return +t[y];const ys=skjYears();if(!ys.length||y<ys[0])return 0;return +t[ys[ys.length-1]];};
+const skjEstimate=y=>NOTAX.skj[y]==null&&skjYears().length&&y>skjYears()[0];
+function taxKind(t,a){const acc=accById(t.accountId);if(a&&a.cls==='crypto')return 'crypto';if(acc&&acc.kind==='ask')return 'ask';if(acc&&acc.kind==='ips')return 'ips';return 'share';}
+function txFx(t,a){if(!a||a.currency==='NOK')return 1;return t.fx>0?t.fx:fxForDate(a.currency,t.date);}
+/* one pass through all trades: FIFO lots per asset and tax group, realised gains per sale, yearly skjerming, dividends */
+function taxModel(){if(taxModel.v===VERSION&&taxModel.m)return taxModel.m;
+  const lots={},sales=[],divs=[],skjLog={};const today=localToday();const ty=+today.slice(0,4);
+  const txs=S.txs.filter(t=>t.assetId).slice().sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:(TYPE_ORDER[x.type]||0)-(TYPE_ORDER[y.type]||0));
+  const firstY=txs.length?+txs[0].date.slice(0,4):ty;let ti=0;
+  const yearEnd=y=>{for(const k in lots){if(!k.endsWith('|share'))continue;const r=skjRate(y);if(!r)continue;for(const L of lots[k])if(L.q>1e-12){const add=(L.cost+L.sk)*r;L.sk+=add;skjLog[y]=(skjLog[y]||0)+add;L.skY=L.skY||{};L.skY[y]=(L.skY[y]||0)+add;}}};
+  for(let y=firstY;y<=ty;y++){
+    for(;ti<txs.length&&+txs[ti].date.slice(0,4)===y;ti++){const t=txs[ti];const a=assetById(t.assetId);if(!a)continue;const g=taxKind(t,a);const key=a.id+'|'+g;const L=lots[key]=lots[key]||[];
+      if(t.type==='buy'){const fx=txFx(t,a);L.push({q:t.qty,cost:t.qty*t.price*fx+(t.fee||0),sk:0,date:t.date});}
+      else if(t.type==='split'&&t.ratio>0){for(const l of L)l.q*=t.ratio;}
+      else if(t.type==='sell'){const fx=txFx(t,a);let left=t.qty,cost=0,sk=0;const proceeds=t.qty*t.price*fx-(t.fee||0);
+        while(left>1e-12&&L.length){const l=L[0];const take=Math.min(left,l.q);const part=take/l.q;cost+=l.cost*part;sk+=l.sk*part;l.cost-=l.cost*part;l.sk-=l.sk*part;l.q-=take;left-=take;if(l.q<=1e-12)L.shift();}
+        const gain=proceeds-cost;const skUsed=g==='share'&&gain>0?Math.min(gain,sk):0;
+        sales.push({y,date:t.date,a,g,qty:t.qty,proceeds,cost,gain,skUsed,short:left>1e-9,acc:accById(t.accountId)});}
+      else if(t.type==='dividend'){divs.push({y,date:t.date,a,g,amount:t.amount||0});}}
+    if(y<ty)yearEnd(y);}
+  /* dividends this year use that year's skjerming on the same holding (first), shown as an estimate */
+  const m={lots,sales,divs,skjLog,ty};taxModel.v=VERSION;taxModel.m=m;return m;}
+function taxYear(y){const T=taxModel();const by={share:{gain:0,loss:0,sk:0,divGross:0,divWh:0},crypto:{gain:0,loss:0},ask:{gain:0,loss:0}};
+  for(const s of T.sales.filter(s=>s.y===y)){const b=by[s.g==='ips'?'ask':s.g];if(!b)continue;if(s.gain>=0)b.gain+=s.gain;else b.loss+=s.gain;if(s.g==='share')b.sk+=s.skUsed;}
+  for(const d of T.divs.filter(d=>d.y===y&&d.g==='share')){if(d.amount>=0)by.share.divGross+=d.amount;else by.share.divWh+=-d.amount;}
+  const sh=by.share;const skDiv=Math.min(sh.divGross,(T.skjLog[y]||0)*0);/* dividend skjerming kept at 0: needs per-share data from the broker */
+  const net=sh.gain+sh.loss-sh.sk;const shareTax=net*NOTAX.share;const divTax=Math.max(0,(sh.divGross-skDiv)*NOTAX.share-sh.divWh);
+  const cr=by.crypto;const crNet=cr.gain+cr.loss;
+  return {y,share:Object.assign({},sh,{net,tax:shareTax,divTax}),crypto:Object.assign({},cr,{net:crNet,tax:crNet*NOTAX.crypto}),ask:by.ask,sales:T.sales.filter(s=>s.y===y)};}
+function askInnskudd(){if(S.askIn!=null&&S.askIn!=='')return {v:+S.askIn,src:'you'};const ids=S.accounts.filter(a=>a.kind==='ask').map(a=>a.id);let v=0;
+  const tracks=S.accounts.some(a=>a.kind==='ask'&&a.tracksCash);
+  for(const t of S.txs){if(!ids.includes(t.accountId)&&!ids.includes(t.toAccountId))continue;
+    if(tracks){if(t.type==='deposit'&&ids.includes(t.accountId))v+=t.amount;else if(t.type==='withdraw'&&ids.includes(t.accountId))v-=t.amount;else if(t.type==='transfer'){if(ids.includes(t.toAccountId)&&!ids.includes(t.accountId))v+=t.amount;if(ids.includes(t.accountId)&&!ids.includes(t.toAccountId))v-=t.amount;}}
+    else{const a=assetById(t.assetId);if(!a)continue;const fx=txFx(t,a);if(t.type==='buy')v+=t.qty*t.price*fx+(t.fee||0);}}
+  return {v,src:tracks?'cash':'buys'};}
+function sellTodayHTML(M){const T=taxModel();const groups={share:{v:0,cost:0,sk:0},crypto:{v:0,cost:0},ask:{v:0,cost:0}};
+  for(const k in T.lots){const [aid,g]=k.split('|');const h=M.holdings.find(x=>x.a.id===aid);if(!h)continue;const gg=g==='ips'?null:groups[g];if(!gg)continue;
+    const q=T.lots[k].reduce((s,l)=>s+l.q,0);if(q<=1e-12)continue;const price=h.qty>0?h.value/h.qty:0;gg.v+=q*price;gg.cost+=T.lots[k].reduce((s,l)=>s+l.cost,0);if(g==='share')gg.sk+=T.lots[k].reduce((s,l)=>s+l.sk,0);}
+  const sh=groups.share,cr=groups.crypto,as=groups.ask;
+  const shGain=sh.v-sh.cost;const shTax=Math.max(0,shGain-sh.sk)*NOTAX.share+(shGain<0?shGain*NOTAX.share:0);
+  const crGain=cr.v-cr.cost;const crTax=crGain*NOTAX.crypto;
+  const inn=askInnskudd();const asTaxable=Math.max(0,as.v-inn.v);const asTax=asTaxable*NOTAX.share;
+  const cash=M.cash;const before=sh.v+cr.v+as.v+cash;const after=before-shTax-crTax-asTax;
+  const row=(n,v,g,tax,extra='')=>v>0?`<div class="tx-row"><div><div class="t1">${n}</div><div class="small muted">Value ${F(conv(M,v))} · gain <span class="${cl(g)}">${F(conv(M,g),{sign:true})}</span>${extra}</div></div><div class="num ${tax<0?'':''}">${tax>=0?'Tax '+F(conv(M,tax)):'Tax saved '+F(conv(M,-tax))}</div></div>`:'';
+  return `<div class="card stack"><div class="sumgrid"><div><div class="k">Worth now</div><div class="v">${F(conv(M,before))}</div></div><div><div class="k">After tax if sold today</div><div class="v">${F(conv(M,after))}</div></div></div>
+   ${row('Aksjekonto · shares',sh.v,shGain,shTax,sh.sk>0?' · skjerming '+F(conv(M,sh.sk)):'')}${row('Crypto',cr.v,crGain,crTax)}
+   ${as.v>0?`<div class="tx-row"><div><div class="t1">ASK</div><div class="small muted">Value ${F(conv(M,as.v))} · tax-free to take out <b class="amber-v">${F(conv(M,Math.min(as.v,inn.v)))}</b></div></div><div class="num">${asTax>0?'Tax '+F(conv(M,asTax)):'No tax'}</div></div>`:''}
+   ${cash>0?`<div class="tx-row"><div><div class="t1">Cash</div></div><div class="num">${F(conv(M,cash))}</div></div>`:''}
+   <div class="hint">ASK: you can take out what you put in (${inn.src==='you'?'your figure':inn.src==='cash'?'from your deposits':'estimated from your buys'}: ${F(conv(M,inn.v))}) without tax. Set the exact figure from Nordnet below.</div>
+   <div class="row-between"><input class="fx-in num" style="width:150px" inputmode="decimal" id="askIn" placeholder="ASK innskudd" value="${S.askIn!=null&&S.askIn!==''?inputNum(+S.askIn,0):''}"><button class="btn sm" data-act="saveaskin">Save</button></div></div>`;}
+function viewTax(v,M,head){const T=taxModel();const years=[...new Set([T.ty,...T.sales.map(s=>s.y),...T.divs.map(d=>d.y)])].sort((a,b)=>b-a);
+  const y=years.includes(+UI.taxY)?+UI.taxY:years[0];const R=taxYear(y);const sh=R.share,cr=R.crypto;const est=skjEstimate(y);
+  const line=(k,val,cls='')=>`<div class="tx-row"><span>${k}</span><span class="num ${cls}">${val}</span></div>`;
+  v.innerHTML=`${head}
+  <div data-card="sellnow"><h2 class="sec">If you sold everything today</h2>${sellTodayHTML(M)}</div>
+  <div class="row-between" style="margin-top:22px"><h2 class="sec" style="margin:0">Tax report</h2><select class="mini" id="taxY">${years.map(x=>`<option ${x===y?'selected':''}>${x}</option>`).join('')}</select></div>
+  <div class="card stack" style="margin-top:10px"><div class="sub-h" style="margin:0">Aksjekonto · shares and funds</div>
+   ${line('Gains',F(sh.gain,{sign:true}),cl(sh.gain))}${line('Losses',F(sh.loss,{sign:true}),cl(sh.loss))}${sh.sk>0?line('Skjerming used'+(est?' (estimate)':''),F(sh.sk)):''}
+   ${line('Taxable result',F(sh.net,{sign:true}),cl(sh.net))}${line((sh.net>=0?'Tax ':'Tax reduction ')+nf2.format(NOTAX.share*100)+' %',F(Math.abs(sh.tax)))}
+   ${sh.divGross||sh.divWh?`${line('Dividends received',F(sh.divGross))}${sh.divWh?line('Foreign tax already paid',F(sh.divWh)):''}${line('Norwegian tax on dividends',F(sh.divTax))}`:''}</div>
+  <div class="card stack" style="margin-top:10px"><div class="sub-h" style="margin:0">Crypto · ${nf2.format(NOTAX.crypto*100).replace(/,00$/,'')} %</div>
+   ${line('Gains',F(cr.gain,{sign:true}),cl(cr.gain))}${line('Losses',F(cr.loss,{sign:true}),cl(cr.loss))}${line('Net',F(cr.net,{sign:true}),cl(cr.net))}${line((cr.net>=0?'Tax ':'Tax reduction ')+nf2.format(NOTAX.crypto*100).replace(/,00$/,'')+' %',F(Math.abs(cr.tax)))}
+   <div class="hint">Kraken doesn't report to Skatteetaten. Enter these in your tax return under virtual currency (RF-1159).</div></div>
+  <h2 class="sec">Sales in ${y} · ${R.sales.length}</h2>
+  ${R.sales.length?`<div class="list">${R.sales.map(s=>`<div class="item" style="cursor:default">${badge(s.a)}<div class="mid"><div class="t1">${esc(s.a.symbol)} · ${qtyFmt(s.qty)}</div><div class="t2">${dateLabel(dn(s.date),true)} · ${s.g==='ask'?'ASK (no tax now)':s.g==='crypto'?'Crypto':s.g==='ips'?'IPS':'Aksjekonto'} · cost ${F(s.cost)}</div></div><div class="end"><div class="t1 ${cl(s.gain)}">${F(s.gain,{sign:true})}</div><div class="t2">sold ${F(s.proceeds)}</div></div></div>`).join('')}</div>
+   <div class="btns" style="margin-top:10px"><button class="btn sm" data-act="taxcsv">${iconSm('save')} Save ${y} sales as CSV</button></div>`:'<div class="card muted">No sales this year.</div>'}
+  <div class="note" style="margin-top:12px">Estimates in NOK using first-in-first-out, as Norwegian rules require. Nordnet's yearly tax report and your pre-filled tax return are what count. Use this to check them and for crypto.${est?' Skjerming for '+y+' uses last year\'s rate until the new one is published in January.':''} Not tax advice.</div>`;}
+document.addEventListener('change',e=>{if(e.target.id==='taxY'){UI.taxY=e.target.value;saveUI();softRender();}});
+async function taxCSV(){const y=+(UI.taxY||taxModel().ty);const R=taxYear(y);const rows=[['Date','Ticker','Name','Account','Quantity','Sold for (NOK)','Cost (NOK)','Gain (NOK)','Skjerming used (NOK)']];
+  for(const s of R.sales)rows.push([s.date,s.a.symbol,s.a.name||'',s.g==='ask'?'ASK':s.g==='crypto'?'Crypto':s.g==='ips'?'IPS':'Aksjekonto',s.qty,s.proceeds.toFixed(2),s.cost.toFixed(2),s.gain.toFixed(2),s.skUsed.toFixed(2)]);
+  await saveFile(`lacag-sales-${y}.csv`,rows.map(r=>r.map(c=>/[;"\n]/.test(String(c))?'"'+String(c).replace(/"/g,'""')+'"':c).join(';')).join('\n'),'text/csv');}
+
+/* ---------- 5) dividends ---------- */
+function dividendsCardHTML(M){const ds=S.txs.filter(t=>t.type==='dividend'&&t.assetId&&M.txs.includes(t));if(!ds.length)return '';
+  const byY=new Map(),byA=new Map();for(const t of ds){const y=+t.date.slice(0,4);const a=assetById(t.assetId);if(!a)continue;const r=byY.get(y)||{g:0,w:0};const s=byA.get(a.id)||{a,g:0,w:0};
+    if(t.amount>=0){r.g+=t.amount;s.g+=t.amount;}else{r.w+=-t.amount;s.w+=-t.amount;}byY.set(y,r);byA.set(a.id,s);}
+  const ys=[...byY.entries()].sort((a,b)=>a[0]-b[0]).slice(-8);const mx=Math.max(1,...ys.map(x=>x[1].g));
+  const k=conv(M,1);
+  return `<div class="card"><div class="bars">${ys.map(([y,r])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${r.g/mx*100}%"></div></div><span class="val">${F(r.g*k)}</span></div>`).join('')}</div>
+   <div class="list" style="margin-top:12px;background:var(--surface2)">${[...byA.values()].sort((a,b)=>b.g-a.g).map(s=>`<div class="item" style="cursor:default">${badge(s.a)}<div class="mid"><div class="t1">${esc(s.a.symbol)}</div><div class="t2">${s.w?'Tax withheld '+F(s.w*k):'No tax withheld'}</div></div><div class="end"><div class="t1">${F((s.g-s.w)*k)}</div><div class="t2">net of ${F(s.g*k)}</div></div></div>`).join('')}</div>
+   <div class="small muted expl" style="margin-top:8px">Dividends as booked in NOK. US shares usually have 15 % tax withheld at source, which counts against your Norwegian tax.</div></div>`;}
+
+/* ---------- 6) rebalancing inside the buying plan ---------- */
+function rebalanceHTML(M){if(!M)return '';const open=M.holdings.filter(h=>h.qty>0);if(!open.length)return '';const tg=S.targets||{};const amount=(S.buyPlan&&S.buyPlan.amount)||0;
+  const tot=open.reduce((s,h)=>s+h.value,0);const sumT=open.reduce((s,h)=>s+(+tg[h.a.id]||0),0);
+  let plan=[];if(sumT>0&&amount>0){const after=tot+amount;const want=open.map(h=>({h,need:Math.max(0,after*(+tg[h.a.id]||0)/sumT-h.value)}));const needT=want.reduce((s,x)=>s+x.need,0)||1;plan=want.map(x=>({h:x.h,buy:amount*x.need/needT}));}
+  return `<h2 class="sec">Target mix</h2><div class="card stack"><div class="hint">Set the share you want of each holding. Lacag splits your next ${S.buyPlan&&S.buyPlan.freq==='quarter'?'quarterly':'monthly'} amount so you move toward it, without selling.</div>
+   <div class="rb-grid"><span class="rb-h">Holding</span><span class="rb-h">Now</span><span class="rb-h">Target %</span><span class="rb-h">Buy next</span>
+   ${open.sort((a,b)=>b.value-a.value).map(h=>{const p=plan.find(x=>x.h===h);return `<span class="t1">${esc(h.a.symbol)}</span><span class="num muted">${nf1.format(h.value/tot*100)} %</span><input class="fx-in num rb-in" inputmode="decimal" data-target="${h.a.id}" value="${tg[h.a.id]!=null?inputNum(+tg[h.a.id],1):''}" placeholder="0"><span class="num amber-v">${p&&p.buy>=1?kr(p.buy):'—'}</span>`;}).join('')}</div>
+   <div class="row-between"><span class="small ${Math.abs(sumT-100)<0.05||!sumT?'muted':'amber-v'}">Targets add up to ${nf1.format(sumT)} %${sumT&&Math.abs(sumT-100)>=0.05?' (they are scaled to 100 %)':''}</span><button class="btn sm primary" data-act="savetargets">Save targets</button></div></div>`;}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="savetargets"]'))return;const tg={};$$('[data-target]').forEach(i=>{const v=parseNum(i.value);if(isFinite(v)&&v>0)tg[i.dataset.target]=v;});S.targets=tg;if(S.demo){lsSet('lq_state',S);}else Store.save();softRender();toast('Targets saved');});
+
+/* ---------- 7) budget vs what actually reached your accounts ---------- */
+function savingsVsPlanHTML(){const M=compute();if(!M)return '';const b=B();const now=localToday().slice(0,7);const rows=[];
+  for(let k=11;k>=0;k--){const ym=shiftYM(now,-k);const m=+ym.slice(5);const plan=budgetMonth(m).saved;const from=dn(ym+'-01'),to=dn(shiftYM(ym,1)+'-01');const act=contributions(M,from,to);rows.push({ym,plan,act});}
+  if(!rows.some(r=>r.act>0))return '';const mx=Math.max(1,...rows.map(r=>Math.max(r.plan,r.act)));const sp=rows.reduce((s,r)=>s+r.plan,0),sa=rows.reduce((s,r)=>s+r.act,0);
+  return `<h2 class="sec">Planned vs invested</h2><div class="card"><div class="sumgrid" style="margin-bottom:10px"><div><div class="k">Planned (12 mo)</div><div class="v">${bkr(sp)}</div></div><div><div class="k">Reached your accounts</div><div class="v">${bkr(sa)}</div></div></div>
+   <div class="pva">${rows.map(r=>`<div class="pva-r"><span class="num muted small">${MON[+r.ym.slice(5)-1]}</span><div class="pva-t"><div class="pva-p" style="width:${r.plan/mx*100}%"></div><div class="pva-a" style="width:${r.act/mx*100}%"></div></div><span class="num small">${bkr(r.act)}</span></div>`).join('')}</div>
+   ${sp?'':'<div class="hint" style="margin-top:8px">Add your monthly saving (e.g. Sparing) to the Savings group above to compare plan and reality.</div>'}<div class="legend-line small muted" style="margin-top:8px"><span class="lk" style="background:var(--muted)"></span>Planned savings in your budget <span class="lk" style="background:var(--accent)"></span>Money added to your portfolio</div></div>`;}
+
+/* ---------- 8) 1D line through the day for stocks and WEBN ---------- */
+async function fetchIntraday(a){const it=C.intra[a.id];if(it&&Date.now()-it.t<15*60000)return;
+  if(useHelper(a)){const sym=yahooSym(a);if(!sym)return;const j=await getJSON(helperUrl()+'/?symbol='+encodeURIComponent(sym)+'&range=1d&interval=15m',20000);
+    if(j&&Array.isArray(j.points)&&j.points.length)C.intra[a.id]={t:Date.now(),q:j.currency||a.currency,s:j.points};return;}
+  if(!S.settings.tdKey)return;const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'15min',outputsize:'40',timezone:'UTC',order:'ASC'});
+  const s=(j.values||[]).map(v=>[Date.parse(v.datetime.replace(' ','T')+'Z'),+v.close]).filter(x=>x[1]>0&&isFinite(x[0]));if(s.length)C.intra[a.id]={t:Date.now(),q:(j.meta&&j.meta.currency)||a.currency,s};}
+async function loadIntraday(){if(NET.blocked||loadIntraday.busy)return;loadIntraday.busy=true;
+  try{const act=S.assets.filter(a=>a.cls!=='crypto'&&S.txs.some(t=>t.assetId===a.id));const M=compute();const held=new Set(M?M.holdings.filter(h=>h.qty>0).map(h=>h.a.id):[]);
+    for(const a of act.filter(a=>held.has(a.id))){try{await fetchIntraday(a);}catch(e){}if(UI.range==='1D')softRender();}saveCache();}finally{loadIntraday.busy=false;}}
+document.addEventListener('click',e=>{const r=e.target.closest('[data-range="1D"]');if(r)setTimeout(loadIntraday,50);});
+
+/* ---------- 10) Activity: search and filter ---------- */
+const ACT_F={q:'',type:'all',year:''};
+function activityFilterHTML(M){const years=[...new Set(M.txs.map(t=>t.date.slice(0,4)))].sort().reverse();
+  return `<div class="act-filter"><input id="actQ" type="search" placeholder="Search ticker, name or account" value="${esc(ACT_F.q)}" autocomplete="off">
+   <div class="row-between" style="gap:8px;margin-top:8px"><div class="seg" role="group">${[['all','All'],['trade','Trades'],['dividend','Dividends'],['cash','Cash']].map(([k,l])=>`<button data-actf="${k}" aria-pressed="${ACT_F.type===k}">${l}</button>`).join('')}</div>
+   <select class="mini" id="actY"><option value="">All years</option>${years.map(y=>`<option ${ACT_F.year===y?'selected':''}>${y}</option>`).join('')}</select></div></div>`;}
+function activityMatch(t){if(ACT_F.year&&!t.date.startsWith(ACT_F.year))return false;
+  const ty=ACT_F.type;if(ty==='trade'&&!['buy','sell','split'].includes(t.type))return false;if(ty==='dividend'&&t.type!=='dividend')return false;if(ty==='cash'&&!['deposit','withdraw','interest','balance','transfer'].includes(t.type))return false;
+  const q=ACT_F.q.trim().toLowerCase();if(!q)return true;const a=t.assetId&&assetById(t.assetId);const acc=accById(t.accountId);
+  return [a&&a.symbol,a&&a.name,acc&&acc.name,t.type,t.date].some(x=>x&&String(x).toLowerCase().includes(q));}
+function activityListHTML(M){const list=M.txs.filter(activityMatch).slice().reverse();if(!list.length)return '<div class="card muted" style="margin-top:12px">Nothing matches.</div>';
+  const groups=new Map();for(const t of list){const k=t.date.slice(0,7);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(t);}
+  return `<div class="small muted" style="margin:12px 2px 0">${list.length} of ${M.txs.length} entries</div>`+[...groups.entries()].slice(0,60).map(([k,l])=>`<div class="month-h">${MON[+k.slice(5)-1]} ${k.slice(0,4)}</div><div class="list">${l.map(txLine).join('')}</div>`).join('');}
+function refreshActivityList(){const M=compute();const box=$('#actList');if(M&&box)box.innerHTML=activityListHTML(M);}
+document.addEventListener('input',e=>{if(e.target.id==='actQ'){ACT_F.q=e.target.value;refreshActivityList();}});
+document.addEventListener('change',e=>{if(e.target.id==='actY'){ACT_F.year=e.target.value;refreshActivityList();}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-actf]');if(!b)return;ACT_F.type=b.dataset.actf;$$('[data-actf]').forEach(x=>x.setAttribute('aria-pressed',x===b));refreshActivityList();});
+
+/* backup reminder on Overview, and 1D intraday after each update */
+{const _r=render;render=function(){_r();const v=$('#view');if(v&&UI.tab==='overview'&&backupDue()&&!v.querySelector('.backup-banner')){const bar=v.querySelector('.page-bar');const h=backupBanner();if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);}};}
+{const _rf=refresh;refresh=async function(f){await _rf(f);if(UI.range==='1D')loadIntraday();};}
+
+/* ---------- Settings → Tax rules ---------- */
+function taxRulesHTML(){const r=taxRules();const ys=Object.keys(r.skj).map(Number).sort((a,b)=>b-a);const cy=+localToday().slice(0,4);const pc=v=>inputNum(v*100,2);
+  return `<div class="card stack"><div class="note keep">Lacag uses these for the Tax view, "If you sold everything today" and the Retirement plan. Check them each January on <b>skatteetaten.no</b>.</div>
+   <div class="grid2"><div class="field"><label for="trBase">Tax on general income</label><input id="trBase" inputmode="decimal" value="${pc(r.base)}"><div class="hint">%, today 22</div></div>
+    <div class="field"><label for="trFactor">Factor for shares and funds</label><input id="trFactor" inputmode="decimal" value="${inputNum(r.factor,2)}"><div class="hint">oppjusteringsfaktor, today 1.72</div></div></div>
+   <div class="tb-ex"><span class="muted small">Shares, funds and dividends</span><span class="num">${nf2.format(r.base*r.factor*100)} %</span></div>
+   <div class="field"><label for="trCrypto">Tax on crypto gains</label><input id="trCrypto" inputmode="decimal" value="${pc(r.crypto)}"><div class="hint">%, today 22</div></div>
+   <h3 class="h3">Skjermingsrente per year</h3>
+   <div class="hint">Published by Skatteetaten in January for the year before. Years without a rate use the latest one and are marked "estimate".</div>
+   <div class="skj-list">${ys.map(y=>`<div class="row-between"><span class="num">${y}</span><input class="fx-in num" inputmode="decimal" data-skj="${y}" value="${pc(r.skj[y])}"><span class="muted small">%</span></div>`).join('')}
+    <div class="row-between"><input class="fx-in num" inputmode="numeric" id="skjNewY" placeholder="${ys.length?ys[0]+1:cy-1}"><input class="fx-in num" inputmode="decimal" id="skjNewR" placeholder="rate"><span class="muted small">%</span></div></div>
+   <div class="btns"><button class="btn primary sm" data-act="savetaxrules">Save tax rules</button><button class="btn sm" data-act="resettaxrules">Reset to defaults</button></div><div class="err" id="trErr"></div></div>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="savetaxrules"],[data-act="resettaxrules"]');if(!b)return;
+  if(b.dataset.act==='resettaxrules'){if(!armed(b,'Tap again to reset'))return;delete S.taxRules;}
+  else{const err=$('#trErr');err.textContent='';const n=id=>parseNum(fv(id).value);const base=n('trBase'),factor=n('trFactor'),crypto=n('trCrypto');
+    if(!(base>0&&base<60)||!(factor>=1&&factor<3)||!(crypto>=0&&crypto<60)){err.textContent='Check the numbers: tax in %, factor like 1.72.';return;}
+    const skj={};$$('[data-skj]').forEach(i=>{const v=parseNum(i.value);if(i.value.trim()!==''&&isFinite(v)&&v>=0&&v<20)skj[i.dataset.skj]=v/100;});
+    const ny=parseInt(fv('skjNewY').value,10),nr=parseNum(fv('skjNewR').value);if(ny>1990&&ny<2100&&isFinite(nr)&&nr>=0&&nr<20)skj[ny]=nr/100;
+    S.taxRules={base:base/100,factor,crypto:crypto/100,skj};}
+  if(S.demo){lsSet('lq_state',S);}else Store.save();VERSION++;softRender();toast('Tax rules saved');});
+
+/* ================= freedom, calm mode, what-if, emergency fund, household, costs, concentration, diary, watchlist,
+   monthly review, text size, full-screen chart, collapsible cards, small touches ================= */
+const pctTxt=v=>nf1.format(v*100)+' %';
+function savePlan(){if(S.demo){VERSION++;lsSet('lq_state',S);}else Store.save();}
+/* average monthly spending and saving from the Budget, and what actually reached the portfolio */
+function avgSpend(){let s=0;for(let m=1;m<=12;m++)s+=budgetMonth(m).spent;return s/12;}
+function avgPlannedSave(){let s=0;for(let m=1;m<=12;m++)s+=budgetMonth(m).saved;return s/12;}
+function avgActualSave(M){const now=localToday().slice(0,7);let s=0;for(let k=1;k<=12;k++){const ym=shiftYM(now,-k);s+=contributions(M,dn(ym+'-01'),dn(shiftYM(ym,1)+'-01'));}return s/12;}
+function monthlySaving(M){const a=M?avgActualSave(M):0;return a>0?{v:a,src:'what you actually added the last 12 months'}:{v:avgPlannedSave(),src:'your budget'};}
+const realR=()=>{const r=+((S.plan&&S.plan.realReturn)||0.04);return isFinite(r)?r:0.04;};
+function monthsTo(start,target,save,r){const rm=Math.pow(1+r,1/12)-1;let v=start;for(let i=0;i<=720;i++){if(v>=target)return i;v=v*(1+rm)+save;}return null;}
+function futureValue(start,save,r,years){const rm=Math.pow(1+r,1/12)-1;let v=start;for(let i=0;i<Math.round(years*12);i++)v=v*(1+rm)+save;return v;}
+function ageNow(){const by=S.plan&&S.plan.birthYear;return by?(+localToday().slice(0,4))-by:null;}
+
+/* ---------- 1) freedom number ---------- */
+function freedomData(M){const spend=avgSpend();if(!(spend>0)||!M)return null;const target=spend*12*25;const now=M.total;const sv=monthlySaving(M);
+  const mo=monthsTo(now,target,sv.v,realR());const d=new Date();if(mo!=null)d.setMonth(d.getMonth()+mo);
+  return {spend,target,now,p:Math.min(1,now/target),months:now/spend,save:sv,mo,year:mo!=null?d.getFullYear():null,age:mo!=null&&ageNow()!=null?ageNow()+Math.round(mo/12):null};}
+function freedomHTML(M,compact){const f=freedomData(M);if(!f)return `<div class="card muted">Add your spending to the Budget to see your freedom number.</div>`;
+  return `<div class="card stack"><div class="row-between"><div><div class="k">Freedom number</div><div class="v big3">${F(conv(M,f.target))}</div></div><div style="text-align:right"><div class="k">You have</div><div class="v">${F(conv(M,f.now))}</div></div></div>
+   <div class="prog"><span style="width:${f.p*100}%"></span></div>
+   <div class="row-between small"><span class="amber-v">${pctTxt(f.p)} there</span><span>${f.year?`Around <b>${f.year}</b>${f.age?' (age '+f.age+')':''}`:'More than 60 years away at this pace'}</span></div>
+   <div class="sumgrid"><div><div class="k">Your money covers</div><div class="v">${f.months>=24?nf1.format(f.months/12)+' years':nf0.format(f.months)+' months'}</div><div class="small muted">of today's spending</div></div>
+    <div><div class="k">Saving a month</div><div class="v">${F(conv(M,f.save.v))}</div><div class="small muted">${esc(f.save.src)}</div></div></div>
+   ${compact?'':`<div class="hint">25 × your yearly spending (${F(conv(M,f.spend*12))}): the amount where taking out 4 % a year has historically lasted 30+ years. Growth assumed ${pctTxt(realR())} a year after inflation (Plan → Retirement).</div>`}</div>`;}
+
+/* ---------- 3) what-if and 4) emergency fund ---------- */
+function emergencyHTML(M){const spend=avgSpend();if(!(spend>0))return '';const cash=M?M.cash:0;const m=cash/spend;const st=m<3?['Build more','Aim for at least 3 months of spending in cash.']:m<6?['Okay','3–6 months is a common target.']:['Safe','More than 6 months: extra cash could be invested.'];
+  return `<div class="card stack"><div class="row-between"><div><div class="k">Emergency fund</div><div class="v">${F(conv(M,cash))}</div></div><span class="pill flat ef-st">${st[0]}</span></div>
+   <div class="ef-bar"><span style="width:${Math.min(1,m/9)*100}%"></span><i style="left:${3/9*100}%"></i><i style="left:${6/9*100}%"></i></div>
+   <div class="row-between small muted"><span>${nf1.format(m)} months of spending</span><span>3 · 6 months</span></div><div class="hint">${st[1]} Spending: ${F(conv(M,spend))} a month from your Budget.</div></div>`;}
+function whatIfHTML(M){if(!M)return '';const sv=monthlySaving(M);const age=ageNow();const ret=(S.plan&&S.plan.retireAge)||67;const yrs=age!=null?Math.max(1,ret-age):20;
+  return `<div class="card stack" id="wiCard" data-yrs="${yrs}"><div class="field"><label for="wiExtra">Save more each month: <b class="amber-v" id="wiExtraV">0 kr</b></label><input type="range" id="wiExtra" min="0" max="20000" step="500" value="0"></div>
+   <div class="sumgrid"><div><div class="k">${age!=null?'At '+ret:'In '+yrs+' years'}, as now</div><div class="v" id="wiBase"></div></div><div><div class="k">With the extra</div><div class="v" id="wiMore"></div></div></div>
+   <div class="small" id="wiFree"></div>
+   <div class="field" style="margin-top:6px"><label for="wiCrash">If markets fall: <b class="amber-v" id="wiCrashV">30 %</b></label><input type="range" id="wiCrash" min="5" max="60" step="5" value="30"></div>
+   <div class="sumgrid"><div><div class="k">You would lose</div><div class="v" id="wiLoss"></div></div><div><div class="k">Typical recovery</div><div class="v" id="wiRec"></div></div></div>
+   <div class="hint">Saving now: ${F(conv(M,sv.v))} a month (${esc(sv.src)}). Growth ${pctTxt(realR())} a year after inflation. Crashes like 2008 (−50 %) and 2020 (−34 %) recovered; staying invested is what counts.</div></div>`;}
+function updateWhatIf(){const c=$('#wiCard');if(!c)return;const M=compute();if(!M)return;const yrs=+c.dataset.yrs;const sv=monthlySaving(M).v;const ex=+$('#wiExtra').value,cr=+$('#wiCrash').value/100;
+  $('#wiExtraV').textContent=kr(ex);$('#wiCrashV').textContent=nf0.format(cr*100)+' %';
+  const b=futureValue(M.total,sv,realR(),yrs),m=futureValue(M.total,sv+ex,realR(),yrs);$('#wiBase').textContent=F(conv(M,b));$('#wiMore').textContent=F(conv(M,m));
+  const f=freedomData(M);if(f){const m2=monthsTo(M.total,f.target,sv+ex,realR());$('#wiFree').innerHTML=ex&&f.mo!=null&&m2!=null?`Freedom number <b>${Math.max(0,Math.round((f.mo-m2)/12*10)/10)} years sooner</b> with the extra.`:'';}
+  const loss=M.invested*cr;$('#wiLoss').textContent=F(conv(M,loss));const yrsRec=Math.log(1/(1-cr))/Math.log(1+Math.max(0.01,realR()+0.02));$('#wiRec').textContent='≈ '+nf1.format(yrsRec)+' years';}
+document.addEventListener('input',e=>{if(e.target.id==='wiExtra'||e.target.id==='wiCrash')updateWhatIf();});
+function viewFreedom(v,M,head){v.innerHTML=`${head}<h2 class="sec">Freedom number</h2>${freedomHTML(M)}<h2 class="sec">Emergency fund</h2>${emergencyHTML(M)||'<div class="card muted">Add your spending to the Budget first.</div>'}<h2 class="sec">What if…</h2>${whatIfHTML(M)}`;updateWhatIf();}
+
+/* ---------- 2) calm mode ---------- */
+function calmOn(){return !!UI.calm;}
+{const _r=render;render=function(){if(calmOn()){if(['1D','1W'].includes(UI.range))UI.range='1M';if(['1D','1W'].includes(UI.prange))UI.prange='1M';if(['1D','1W'].includes(UI.drange))UI.drange='1M';if(UI.krange==='1W')UI.krange='1M';}_r();};}
+
+/* ---------- 5) household ---------- */
+const OWNERS={me:'Me',partner:'Partner',shared:'Shared'};
+function partnerName(){return (S.household&&S.household.partner)||'Partner';}
+function householdHTML(){const accs=S.accounts;const pn=partnerName();
+  return `<div class="card stack"><div class="note keep">Track your wife's savings next to yours. Give each account an owner, then create the household portfolios: <b>Nabad</b> (yours and shared), <b>${esc(pn)}</b> and <b>Family</b> (everything). Switch between them with the portfolio button at the top.</div>
+   <div class="field"><label for="hhName">Partner's name</label><input id="hhName" value="${esc(S.household&&S.household.partner||'')}" placeholder="e.g. her first name"></div>
+   <div class="list" style="background:var(--surface2)">${accs.map(a=>`<div class="item" style="cursor:default"><div class="mid"><div class="t1">${esc(a.name)}</div><div class="t2">${esc(ACCOUNT_KINDS[a.kind]||'')}</div></div><select class="mini" data-owner="${a.id}">${Object.entries(OWNERS).map(([k,l])=>`<option value="${k}" ${(a.owner||'me')===k?'selected':''}>${k==='partner'?esc(pn):l}</option>`).join('')}</select></div>`).join('')}</div>
+   <div class="hint">Add her accounts first under Settings → Accounts (e.g. "${esc(pn)} ASK"), import her trades into them, then set the owner here.</div>
+   <div class="btns"><button class="btn primary sm" data-act="household">Create household portfolios</button></div></div>`;}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="household"]'))return;S.household=Object.assign({},S.household,{partner:fv('hhName').value.trim()});
+  $$('[data-owner]').forEach(s=>{const a=accById(s.dataset.owner);if(a)a.owner=s.value;});const pn=partnerName();
+  const mine=S.accounts.filter(a=>(a.owner||'me')!=='partner').map(a=>a.id),hers=S.accounts.filter(a=>a.owner==='partner').map(a=>a.id),all=S.accounts.map(a=>a.id);
+  const up=(id,name,ids)=>{let p=S.portfolios.find(x=>x.id===id);if(!p){p={id,name,accountIds:[]};S.portfolios.push(p);}p.name=name;p.accountIds=ids;};
+  const main=S.portfolios.find(p=>p.id==='nabad')||S.portfolios[0];if(main&&hers.length)main.accountIds=mine;
+  up('pf_partner',pn,hers);up('pf_family','Family',all);savePlan();softRender();toast('Household portfolios ready');});
+
+/* ---------- 6) costs ---------- */
+function costsHTML(M){const open=M.holdings.filter(h=>h.qty>0);const fxFee=+(S.fxFee||0)/100;const r=realR();
+  const funds=open.filter(h=>+h.a.ter>0);const fundVal=funds.reduce((s,h)=>s+h.value,0);const ter=fundVal?funds.reduce((s,h)=>s+h.value*h.a.ter/100,0)/fundVal:0;
+  const yearly=funds.reduce((s,h)=>s+h.value*h.a.ter/100,0);const drag=fundVal?fundVal*(Math.pow(1+r,10)-Math.pow(1+r-ter,10)):0;
+  const byY=new Map();for(const t of M.txs){if(t.type!=='buy'&&t.type!=='sell')continue;const a=assetById(t.assetId);if(!a)continue;const y=t.date.slice(0,4);const o=byY.get(y)||{fee:0,fx:0};o.fee+=t.fee||0;if(a.currency!=='NOK'&&fxFee)o.fx+=t.qty*t.price*(t.fx||1)*fxFee;byY.set(y,o);}
+  const ys=[...byY.entries()].sort((a,b)=>b[0]-a[0]).slice(0,4);const noTer=open.filter(h=>h.a.cls==='etf'&&!(+h.a.ter>0));
+  return `<div class="card stack"><div class="sumgrid"><div><div class="k">Fund fees a year</div><div class="v">${F(conv(M,yearly))}</div><div class="small muted">${ter?'average '+nf2.format(ter*100)+' %':'add fees to your funds'}</div></div><div><div class="k">Fund fees over 10 years</div><div class="v">${F(conv(M,drag))}</div><div class="small muted">incl. lost growth</div></div></div>
+   ${ys.length?`<div class="rb-grid" style="grid-template-columns:auto 1fr 1fr 1fr"><span class="rb-h">Year</span><span class="rb-h num">Brokerage</span><span class="rb-h num">Currency</span><span class="rb-h num">Total</span>${ys.map(([y,o])=>`<span class="num">${y}</span><span class="num">${F(conv(M,o.fee))}</span><span class="num">${fxFee?F(conv(M,o.fx)):'—'}</span><span class="num">${F(conv(M,o.fee+o.fx))}</span>`).join('')}</div>`:''}
+   ${noTer.length?`<div class="hint">Add the yearly fee (TER) for ${noTer.map(h=>esc(h.a.symbol)).join(', ')}: tap it in Holdings → Details.</div>`:''}
+   <div class="row-between"><span class="small">Currency exchange fee at your broker</span><span><input class="fx-in num" style="width:70px" inputmode="decimal" id="fxFeeIn" value="${S.fxFee!=null?inputNum(+S.fxFee,2):''}" placeholder="%"> <button class="btn sm" data-act="savefxfee">Save</button></span></div>
+   <div class="hint">Check your broker's price list for the exchange fee on USD and EUR trades.</div></div>`;}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="savefxfee"]'))return;const v=parseNum($('#fxFeeIn').value);S.fxFee=isFinite(v)&&v>=0&&v<5?v:null;savePlan();softRender();toast('Saved');});
+
+/* ---------- 7) concentration ---------- */
+const concLimit=()=>+(UI.concLimit||15);
+function concentration(M){if(!M)return [];const open=M.holdings.filter(h=>h.qty>0);const tot=open.reduce((s,h)=>s+h.value,0);if(!tot)return [];
+  return open.filter(h=>h.a.cls!=='etf'&&h.value/tot*100>concLimit()).map(h=>({h,p:h.value/tot}));}
+{const _di=dataIssues;dataIssues=function(){const out=_di();for(const c of concentration(compute()))out.push({k:'conc',a:c.h.a,t:`${c.h.a.symbol} is ${pctTxt(c.p)} of your investments`,s:`Over your ${concLimit()} % limit for one stock or crypto. Not wrong, but a big bet.`});return out;};}
+{const _c=checkSettingsHTML;checkSettingsHTML=function(){return `<div class="card stack" style="margin-bottom:12px"><div class="row-between"><span class="small">Warn when one stock or crypto is over</span><span><input class="fx-in num" style="width:60px" inputmode="decimal" id="concIn" value="${concLimit()}"> % <button class="btn sm" data-act="saveconc">Save</button></span></div></div>`+_c();};}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="saveconc"]'))return;const v=parseNum($('#concIn').value);UI.concLimit=isFinite(v)&&v>=1&&v<=100?v:15;saveUI();softRender();});
+
+/* ---------- 8) investment diary ---------- */
+{const _tl=txLine;txLine=function(t){const h=_tl(t);if(!t.note||!h)return h;return h.replace('</div></div><div class="end">',`</div><div class="t2 diary">“${esc(t.note)}”</div></div><div class="end">`);};}
+
+/* ---------- 9) watchlist ---------- */
+C.wlive=C.wlive||{};
+function viewWatch(v,M,head){const W=S.watch||[];
+  v.innerHTML=`${head}<h2 class="sec">Watchlist</h2>
+  ${W.length?`<div class="list">${W.map(w=>{const lv=C.wlive[w.id];const p=lv&&lv.price;const hit=p&&w.below&&p<=w.below;const dist=p&&w.below?p/w.below-1:null;
+    return `<div class="item ${hit?'wl-hit':''}" style="cursor:default"><span class="badge" style="background:var(--surface2);color:var(--fg)">${esc(w.symbol.slice(0,4))}</span><div class="mid"><div class="t1">${esc(w.name||w.symbol)}</div><div class="t2">${w.below?'Buy below '+money(w.below,w.cur):'No target'}${dist!=null&&!hit?' · '+nf1.format(dist*100)+' % above':''}${lv&&lv.err?' · '+esc(lv.err):''}</div></div>
+     <div class="end"><div class="t1">${p?money(p,lv.cur||w.cur):'—'}</div><div class="t2">${hit?'<span class="pill flat amber-v">At your price</span>':lv&&lv.t?timeLabel(lv.t):''}</div></div><button class="pm" data-wdel="${w.id}" aria-label="Remove">✕</button></div>`;}).join('')}</div>`:'<div class="card muted">Nothing on your watchlist yet.</div>'}
+  <h2 class="sec">Add to watchlist</h2><form class="card form" id="wForm"><div class="grid2"><div class="field"><label for="wSym">Ticker</label><input id="wSym" autocapitalize="characters" placeholder="AAPL or WEBN:XETR"></div><div class="field"><label for="wName">Name (optional)</label><input id="wName"></div></div>
+   <div class="grid2"><div class="field"><label for="wCur">Currency</label><select id="wCur">${CCYS.map(c=>`<option ${c==='USD'?'selected':''}>${c}</option>`).join('')}</select></div><div class="field"><label for="wBelow">Buy below (price)</label><input id="wBelow" inputmode="decimal" placeholder="optional"></div></div>
+   <button class="btn primary sm" type="submit" style="align-self:flex-start">${iconSm('plus')} Add</button></form>
+  <div class="hint" style="margin-top:8px">Prices update when you open the app. A ticker at or below your price is highlighted here. Phones can't get alerts from a home-screen web app.</div>`;
+  if(W.some(w=>!C.wlive[w.id]||Date.now()-C.wlive[w.id].t>15*60000))refreshWatch();}
+async function watchPrice(w){const a={symbol:w.symbol,dataSymbol:w.symbol,cls:'stock',currency:w.cur};
+  if(helperUrl()&&(/:/.test(w.symbol)||!S.settings.tdKey)){const sym=yahooSym(a);const j=await helperGet(sym,'5d');return {price:+j.price,cur:j.currency||w.cur};}
+  if(!S.settings.tdKey)throw new Error('Needs a Twelve Data key or price helper');const j=await td('price',tdSym(w.symbol));return {price:+j.price,cur:w.cur};}
+async function refreshWatch(){if(NET.blocked||refreshWatch.busy)return;refreshWatch.busy=true;try{for(const w of S.watch||[]){const o=C.wlive[w.id];if(o&&Date.now()-o.t<15*60000)continue;
+  try{const r=await watchPrice(w);C.wlive[w.id]={t:Date.now(),price:r.price,cur:r.cur};}catch(e){C.wlive[w.id]={t:Date.now(),err:String(e.message||e).slice(0,60)};}
+  if(UI.tab==='holdings'&&UI.sub==='watch')softRender();}saveCache();}finally{refreshWatch.busy=false;}}
+document.addEventListener('submit',e=>{if(e.target.id!=='wForm')return;e.preventDefault();const sym=fv('wSym').value.trim().toUpperCase();if(!sym){toast('Type a ticker');return;}
+  const below=parseNum(fv('wBelow').value);S.watch=S.watch||[];S.watch.push({id:uid(),symbol:sym,name:fv('wName').value.trim(),cur:fv('wCur').value,below:isFinite(below)&&below>0?below:null});savePlan();softRender();});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-wdel]');if(!b)return;S.watch=(S.watch||[]).filter(w=>w.id!==b.dataset.wdel);delete C.wlive[b.dataset.wdel];savePlan();softRender();});
+
+/* ---------- 10) monthly review ---------- */
+function lastMonthYM(){return shiftYM(localToday().slice(0,7),-1);}
+function reviewData(ym){const M=compute();if(!M)return null;const Z=series(M,UI.ccy);const s=dn(ym+'-01'),e=Math.min(dn(shiftYM(ym,1)+'-01')-1,M.today);
+  const bi=Math.max(-1,s-1-M.d0),ei=e-M.d0;if(ei<0||e<M.firstDay)return null;const st=statsIdx(M,Z,bi,ei);
+  const bmId=UI.bms[0];const b=bmId?bmCompare(M,Z,bmId,bi,ei):null;const bm=b&&!b.missing?{name:(BENCHMARKS.find(x=>x.id===bmId)||{}).name,twr:b.twr}:null;
+  const mv=M.holdings.map(h=>{let g=(h.AV[ei]||0)-(bi>=0?h.AV[bi]||0:0);for(let i=Math.max(0,bi+1);i<=ei;i++){g+=-(h.ACF[i]||0)+(h.ADIV[i]||0);}return {a:h.a,g};}).filter(x=>Math.abs(x.g)>0.5).sort((x,y)=>y.g-x.g);
+  const plan=budgetMonth(+ym.slice(5)).saved;const added=contributions(M,s,e+1);
+  return {ym,st,bm,start:bi>=0?Z.V[bi]:0,end:Z.V[ei],mv,plan,added,M};}
+function reviewSheet(ym){const R=reviewData(ym||lastMonthYM());UI.reviewSeen=localToday().slice(0,7);saveUI();if(!R){toast('No data for that month yet');return;}
+  const {st,M}=R;const name=MON[+R.ym.slice(5)-1]+' '+R.ym.slice(0,4);const top=R.mv.slice(0,3),bot=R.mv.slice(-3).reverse().filter(x=>x.g<0&&!top.includes(x));
+  openSheet('Your '+name,`<div class="card stack"><div class="sumgrid"><div><div class="k">Value at month end</div><div class="v">${F(R.end)}</div></div><div><div class="k">Return</div><div class="v ${cl(st.twr)}">${pct(st.twr)}</div></div>
+    <div><div class="k">Gain / loss</div><div class="v ${cl(st.gain)}">${F(st.gain,{sign:true})}</div></div><div><div class="k">${R.bm?esc(R.bm.name):'Index'}</div><div class="v ${R.bm?cl(R.bm.twr):''}">${R.bm?pct(R.bm.twr):'—'}</div></div></div>
+    ${R.bm?`<div class="small">${st.twr>=R.bm.twr?'You beat the index this month.':'The index did better this month.'}</div>`:''}</div>
+   <h3 class="h3">Saving</h3><div class="card"><div class="sumgrid"><div><div class="k">Added to your portfolio</div><div class="v">${F(conv(M,R.added))}</div></div><div><div class="k">Planned in Budget</div><div class="v">${bkr(R.plan)}</div></div></div>
+    <div class="small" style="margin-top:6px">${R.plan?(R.added>=R.plan*0.95?'On plan. Well done.':'Below plan by '+bkr(R.plan-R.added)+'.'):'Set your monthly saving in the Budget to compare.'}</div></div>
+   ${top.length?`<h3 class="h3">Biggest movers</h3><div class="list">${[...top,...bot].map(x=>`<div class="item" style="cursor:default">${badge(x.a)}<div class="mid"><div class="t1">${esc(x.a.symbol)}</div></div><div class="end"><div class="t1 ${cl(x.g)}">${F(conv(M,x.g),{sign:true})}</div></div></div>`).join('')}</div>`:''}
+   ${st.div?`<div class="small" style="margin-top:10px">Dividends: ${F(st.div)}</div>`:''}`);}
+function reviewDue(){if(S.demo||!S.txs.length)return false;const cur=localToday().slice(0,7);return UI.reviewSeen!==cur&&+localToday().slice(8)<=10&&!!reviewData(lastMonthYM());}
+
+/* ---------- 11) text size, 2) calm attribute ---------- */
+const TEXT_SIZES=[['s','Small',0.92],['m','Normal',1],['l','Large',1.12],['xl','Extra large',1.25]];
+{const _al=applyLook;applyLook=function(){_al();const L=look();const z=(TEXT_SIZES.find(x=>x[0]===L.size)||TEXT_SIZES[1])[2];document.documentElement.style.setProperty('--zoom',String(z));document.documentElement.dataset.calm=UI.calm?'on':'off';};}
+{const _ls=lookSettingsHTML;lookSettingsHTML=function(){const L=look();return _ls().replace('<div><button class="btn sm" data-lkreset="1">',`<div class="look-row"><span class="lbl2">Text size</span><div class="seg" role="group">${TEXT_SIZES.map(([k,l])=>`<button data-lksize="${k}" aria-pressed="${(L.size||'m')===k}">${l}</button>`).join('')}</div></div><div><button class="btn sm" data-lkreset="1">`);};}
+{const _ex=explSettingsHTML;explSettingsHTML=function(){return _ex().replace('<div class="card stack">',`<div class="card stack"><div class="look-row"><span class="lbl2">Calm mode</span><div class="seg" role="group"><button data-calmset="0" aria-pressed="${!UI.calm}">Off</button><button data-calmset="1" aria-pressed="${!!UI.calm}">On</button></div></div><div class="hint">Hides daily ups and downs (1D and 1W, Today's movers, today's change) so you see monthly and yearly results. Checking less often usually means trading less, and doing better.</div>`);};}
+document.addEventListener('click',e=>{const s=e.target.closest('[data-lksize]');if(s){setLook({size:s.dataset.lksize});softRender();return;}
+  const c=e.target.closest("[data-calmset]");if(c){UI.calm=c.dataset.calmset==="1";saveUI();applyLook();softRender();return;}});
+
+/* ---------- 12) full-screen chart, 13) collapsible cards, 14) small touches, banners ---------- */
+const LAND=window.matchMedia?matchMedia('(orientation: landscape) and (max-height: 500px)'):{matches:false,addEventListener(){}};
+const landFs=()=>LAND.matches&&!document.body.classList.contains('landfs-off');
+try{LAND.addEventListener('change',()=>{document.body.classList.remove('landfs-off');if(UI.tab==='overview')softRender();});}catch(e){}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="chartfs"]'))return;if(landFs()&&!document.body.classList.contains('chart-fs'))document.body.classList.add('landfs-off');else document.body.classList.toggle('chart-fs');softRender();});
+function collapseCards(v){UI.collapsed=UI.collapsed||{};v.querySelectorAll('[data-card]').forEach(card=>{const id=card.dataset.card;
+  const t=card.querySelector(':scope > h2.sec, :scope > .row-between > h2.sec, :scope > .sub-h, :scope > .row-between > .sub-h, :scope > .month-h');if(!t)return;
+  t.classList.add('ctitle');t.setAttribute('role','button');t.dataset.collapse=id;card.classList.toggle('collapsed',!!UI.collapsed[id]);});}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-collapse]');if(!t||e.target.closest('button,select,input'))return;const id=t.dataset.collapse;UI.collapsed=UI.collapsed||{};UI.collapsed[id]=!UI.collapsed[id];saveUI();const card=t.closest('[data-card]');if(card)card.classList.toggle('collapsed',UI.collapsed[id]);});
+let LAST_TAB=null,LAST_TOTAL=null;
+function countUp(el,from,to,fmt){const t0=performance.now(),d=650;const step=now=>{const k=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1&&el.isConnected)requestAnimationFrame(step);};requestAnimationFrame(step);}
+{const _r=render;render=function(){_r();const v=$('#view');if(!v)return;document.body.dataset.page=UI.tab;
+  if(LAST_TAB!==UI.tab){v.classList.remove('fade-in');void v.offsetWidth;v.classList.add('fade-in');LAST_TAB=UI.tab;}
+  collapseCards(v);
+  if(UI.tab==='overview'){const M=compute();
+    if(M&&!PRIV()){const tot=conv(M,M.total);const el=$('#heroVal');if(el&&LAST_TOTAL!=null&&Math.abs(LAST_TOTAL-tot)>0.5)countUp(el,LAST_TOTAL,tot,x=>F(x));LAST_TOTAL=tot;}
+    const chartTop=v.querySelector('[data-card="chart"] .row-between');if(chartTop&&!chartTop.querySelector('[data-act="chartfs"]'))chartTop.insertAdjacentHTML('beforeend',`<button class="gear-btn fs-btn" data-act="chartfs" aria-label="${document.body.classList.contains('chart-fs')||landFs()?'Close full screen':'Full screen chart'}">${document.body.classList.contains('chart-fs')||landFs()?ICON.close:'⤢'}</button>`);
+    const al=v.querySelector('[data-card="alloc"] .card');const cc=concentration(M);if(al&&cc.length)al.insertAdjacentHTML('beforeend',`<div class="conc-note">${cc.map(c=>`<b>${esc(c.h.a.symbol)}</b> is ${pctTxt(c.p)} of your investments`).join(' · ')} (limit ${concLimit()} %)</div>`);
+    if(reviewDue()&&!v.querySelector('.review-banner')){const bar=v.querySelector('.page-bar');const nm=MON[+lastMonthYM().slice(5)-1];const h=`<div class="banner keep review-banner"><div style="flex:1"><b>Your ${nm} review is ready</b><div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="review">Open</button><button class="btn sm" data-act="reviewlater">Dismiss</button></div></div></div>`;if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);}}
+  else document.body.classList.remove('chart-fs');
+  if(UI.tab==='analysis'){const up=v.querySelector('[data-card="updates"] > h2.sec');if(up&&!v.querySelector('[data-act="review"]'))up.insertAdjacentHTML('afterend',`<button class="btn sm" data-act="review" style="margin:-4px 0 10px">${iconSm('table')} ${MON[+lastMonthYM().slice(5)-1]} review</button>`);}};}
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="review"]')){reviewSheet();return;}if(e.target.closest('[data-act="reviewlater"]')){UI.reviewSeen=localToday().slice(0,7);saveUI();softRender();}});
+{const _rf=refresh;refresh=async function(f){await _rf(f);if((S.watch||[]).length)refreshWatch();};}
+
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
-  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-act]');if(!el)return;
+  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-krange],[data-act]');if(!el||el===document.documentElement||el===document.body)return; /* page-level marks are not buttons */
   const d=el.dataset;
   if(d.tab){UI.tab=d.tab;firstView(d.tab);if(d.psub)UI.psub=d.psub;saveUI();closeSheet();render();window.scrollTo(0,0);return;}
-  for(const k of ['range','mode','alloc','hsort','sub','asub','psub','brk'])if(d[k]){UI[k]=d[k];saveUI();softRender();return;}
+  for(const k of ['range','mode','alloc','hsort','sub','asub','psub','brk','krange'])if(d[k]){UI[k]=d[k];saveUI();softRender();return;}
   if(d.bm){const i=UI.bms.indexOf(d.bm);if(i>=0)UI.bms.splice(i,1);else UI.bms.push(d.bm);saveUI();softRender();if(!NET.blocked)fetchBenchmarks();return;}
   if(d.updown){S.settings.updown=d.updown;applyUpdown();if(S.demo){lsSet('lq_state',S);VERSION++;}else Store.save();softRender();return;}
   if(d.pmenu){posMenu(d.pmenu);return;}
@@ -2486,6 +2956,10 @@ document.addEventListener('click',async e=>{
     case 'goal':if(S.demo){toast('Start with your own data to add goals');return;}goalSheet(null);return;
     case 'event':if(S.demo){toast('Start with your own data to add events');return;}eventSheet(null);return;
     case 'ask':runAsk();return;
+    case 'backupfile':backupToFile();return;
+    case 'backuplater':UI.backupSnooze=Date.now()+7*DAYMS;saveUI();softRender();return;
+    case 'taxcsv':taxCSV();return;
+    case 'saveaskin':{const v=$('#askIn').value.trim();S.askIn=v===''?null:parseNum(v);if(S.demo){lsSet('lq_state',S);}else Store.save();softRender();toast('Saved');return;}
     case 'chartcfg':chartCfgSheet();return;
     case 'events':UI.events=!UI.events;saveUI();softRender();return;
     case 'priv':UI.priv=!UI.priv;saveUI();softRender();toast(UI.priv?'Amounts hidden':'Amounts shown');return;
@@ -2498,8 +2972,8 @@ document.addEventListener('click',async e=>{
     case 'testhelper':{let u=$('#helperUrl').value.trim();if(!u){toast('Paste your helper address first');return;}if(!/^https?:\/\//i.test(u))u='https://'+u;const keep=S.settings.helper;S.settings.helper=u;
       try{const j=await helperGet('WEBN.DE','5d');toast(j.price>0?`Works: WEBN ${money(j.price,j.currency||'EUR')}`:'Connected, but no WEBN price yet');}catch(e){toast('Helper problem: '+String(e.message||e).slice(0,80));}finally{S.settings.helper=keep;}return;}
     case 'savefx':{for(const c of CCYS){if(c==='NOK')continue;const f=$('#fx_'+c);if(!f)continue;const x=parseNum(f.value);if(x>0)S.fx[c]=x;}if(S.demo){lsSet('lq_state',S);VERSION++;}else Store.save();toast('Rates saved');softRender();return;}
-    case 'copybackup':{const txt=JSON.stringify({app:'lacag',v:2,data:S});try{await navigator.clipboard.writeText(txt);toast('Backup copied');}catch(err){const box=$('#importBox');box.value=txt;box.select();toast('Select all and copy the text');}return;}
-    case 'savebackup':await saveFile('lacag-backup-'+localToday()+'.json',JSON.stringify({app:'lacag',v:2,data:S},null,1),'application/json');return;
+    case 'copybackup':{const txt=JSON.stringify({app:'lacag',v:2,data:S});try{await navigator.clipboard.writeText(txt);markBackup();toast('Backup copied');}catch(err){const box=$('#importBox');box.value=txt;box.select();toast('Select all and copy the text');}return;}
+    case 'savebackup':markBackup();await saveFile('lacag-backup-'+localToday()+'.json',JSON.stringify({app:'lacag',v:2,data:S},null,1),'application/json');return;
     case 'restore':{const err=$('#importErr');err.textContent='';let j;try{j=JSON.parse($('#importBox').value);}catch(x){err.textContent='That text isn\'t a backup. Copy the whole backup and try again.';return;}
       const data=migrate(j&&j.data?j.data:j);if(!data||!Array.isArray(data.txs)){err.textContent='No transactions found in that backup.';return;}
       if(!armed(el,`Replace with ${data.txs.length} entries? Tap again`))return;S=Object.assign(data,{demo:false});UI.pid=(S.portfolios[0]||{}).id||'nabad';saveUI();Store.save();render();toast('Backup restored');refresh(false);return;}
@@ -2536,7 +3010,7 @@ function boot(){
   for(const a of S.assets||[])if(a.symbol==='WEBN'&&(!a.dataSymbol||a.dataSymbol==='WEBN')){a.dataSymbol='WEBN:XETR';if(C.err)delete C.err[a.id];} // WEBN prices come from Xetra
   for(const a of S.accounts||[])if(/^KLP Likviditet$/i.test(a.broker||''))a.broker=''; // that was only an example
   if(UI.pid!=='__all'&&!S.portfolios.some(p=>p.id===UI.pid))UI.pid=(S.portfolios[0]||{}).id;
-  if(!CCYS.includes(UI.ccy))UI.ccy='NOK';if(!['class','account','currency'].includes(UI.alloc))UI.alloc='class';if(!['performance','breakdown'].includes(UI.asub))UI.asub='performance';UI.bms=(UI.bms||[]).filter(id=>BENCHMARKS.some(b=>b.id===id));if(!RANGES.includes(UI.prange))UI.prange='MAX';
+  if(!CCYS.includes(UI.ccy))UI.ccy='NOK';if(!['class','account','currency'].includes(UI.alloc))UI.alloc='class';if(!['performance','breakdown','tax'].includes(UI.asub))UI.asub='performance';UI.bms=(UI.bms||[]).filter(id=>BENCHMARKS.some(b=>b.id===id));if(!RANGES.includes(UI.prange))UI.prange='MAX';
   if(UI.privStart)UI.priv=true;
   const sp=UI.startPage||'overview';if(sp!=='last'){UI.tab=sp;firstView(sp);}
   applyUpdown();VERSION++;render();
@@ -2544,7 +3018,7 @@ function boot(){
   setInterval(()=>{if(!document.hidden&&!NET.blocked)refresh(false);},15*60000);
   let lastDay=localToday();setInterval(()=>{if(localToday()!==lastDay){lastDay=localToday();VERSION++;render();}},60000);
 }
-window.__lacag={compute:()=>compute(),series:(c)=>series(compute(),c||'NOK'),stats:(k,c)=>{const M=compute();return stats(M,series(M,c||'NOK'),k);},project:()=>project(compute()),get S(){return S;},set S(v){S=v;VERSION++;render();},C,bmCompare,startImport,importSheet};
+window.__lacag={taxYear:y=>taxYear(y),dataIssues:()=>dataIssues(),compute:()=>compute(),series:(c)=>series(compute(),c||'NOK'),stats:(k,c)=>{const M=compute();return stats(M,series(M,c||'NOK'),k);},project:()=>project(compute()),get S(){return S;},set S(v){S=v;VERSION++;render();},C,bmCompare,startImport,importSheet};
 boot();
 
 })();
