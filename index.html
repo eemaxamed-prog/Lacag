@@ -515,6 +515,9 @@ body.chart-fs #mainChart{height:calc(100dvh - 190px)!important}
 .kgrid .kpi{border:0!important;box-shadow:none!important}
 table.rtab thead th{line-height:1.15;vertical-align:bottom}
 table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,640px)}@media (min-width:600px){table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:0}}
+.cbm-chips{margin-top:10px;gap:6px}.cbm-chips .tog{padding:5px 10px;font-size:12.5px}
+.sm-row{display:flex;align-items:center;gap:10px;padding:8px 0}.sm-row .mid{flex:1;min-width:0}.sm-row .t1{font-size:13.5px;font-weight:600}.sm-row .t2{font-size:12px;color:var(--muted)}
+.sm-row .end{text-align:right;white-space:nowrap}.sm-row .sw{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
 
 </style>
 <header class="top"><div class="top-in">
@@ -937,7 +940,7 @@ async function fetchTD(a){
 }
 async function fetchBenchmarks(){
   const first=firstTxDate();if(!first||!S.settings.tdKey)return;const start=ds(Math.min(dn(first)-10,TEN_YEARS_AGO()));
-  const want=[...new Set(UI.bms)];
+  const want=[...new Set([...(UI.bms||[]),...chartBms()])];
   for(const id of want){const b=BENCHMARKS.find(x=>x.id===id);if(!b)continue;const h=C.bm[id];
     if(h&&Date.now()-h.t<12*36e5&&h.from<=start)continue;
     let lastErr=null,ok=false;
@@ -1292,6 +1295,13 @@ function chartEvents(M,pts,pad){const lo=pts[pad]?pts[pad].x:Infinity,hi=pts[pts
     return {i,items:items.map(x=>Object.assign(x,{color:x.trade?'var(--accent)':'var(--fg)'})),color:tr.length?'var(--accent)':'var(--fg)',head:dateLabel(pts[i].x,true),label:syms.length?syms[0]+(syms.length>1?'+'+(syms.length-1):''):''};});}
 /* true when a period reaches back before your first data */
 function rangeShort(r,firstDay){if(r==='MAX'||r==='1D')return false;return rangeBase(r,dn(localToday()))<firstDay-1;}
+/* the main chart and the Return card each have their own index selection */
+function chartBms(){if(!Array.isArray(UI.chartBms))UI.chartBms=(UI.bms||[]).slice();return UI.chartBms.filter(id=>BENCHMARKS.some(b=>b.id===id));}
+/* "Same money, same days" for the Return card: since your first investment, for the indexes picked in that card */
+function sameMoneyHTML(M,Z){const bi=M.firstDay-1-M.d0,ei=M.N-1;if(ei<=Math.max(bi,0))return '';const st=statsIdx(M,Z,bi,ei);const yours=Z.V[ei]+st.div;
+  const rows=UI.bms.map(id=>({b:BENCHMARKS.find(x=>x.id===id),r:bmCompare(M,Z,id,bi,ei)})).filter(x=>x.b&&x.r&&!x.r.missing);if(!rows.length)return '';
+  return `<div class="cmp-h">Same money, same days</div><div class="small muted expl" style="margin-bottom:4px">Your deposits and withdrawals, put into the index on the same days, since your first investment.</div>
+   ${rows.map(({b,r})=>{const d=yours-r.end;const alpha=st.twr-r.twr;return `<div class="sm-row"><span class="sw" style="background:${BM_COLOR[b.id]}"></span><div class="mid"><div class="t1">${esc(b.name)} would be ${F(r.end)}</div><div class="t2">Index ${pct(r.twr)} · you ${pct(st.twr)} · alpha <span class="${cl(alpha)}">${pct(alpha)}</span></div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}`;}
 function viewOverview(v){
   const M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
   const Z=series(M,UI.ccy);const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
@@ -1299,9 +1309,9 @@ function viewOverview(v){
   let pts,inv=null;
   if(ser.idx){const base=st.bi>=0?Z.IDX[st.bi]:1;pts=ser.idx.map(i=>({x:M.d0+i,v:perf?Z.IDX[i]/base-1:Z.V[i]}));if(!perf)inv=ser.idx.map(i=>({x:M.d0+i,v:Z.NET[i]}));}
   else pts=ser.pts;
-  const bms=key==='1D'?[]:UI.bms.map(id=>({b:BENCHMARKS.find(x=>x.id===id),r:bmCompare(M,Z,id,st.bi,st.ei)})).filter(x=>x.b);
+  const bms=key==='1D'?[]:chartBms().map(id=>({b:BENCHMARKS.find(x=>x.id===id),r:bmCompare(M,Z,id,st.bi,st.ei)})).filter(x=>x.b);
   const cashPct=M.total?M.cash/M.total:0;
-  const compare=bms.filter(x=>x.r&&!x.r.missing);const yours=Z.V[st.ei]+st.div;
+  const compare=bms.filter(x=>x.r&&!x.r.missing);
   v.innerHTML=`${demoBanner()}
   <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button></div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
@@ -1310,12 +1320,12 @@ function viewOverview(v){
   <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${CLS_LINE[k][2]?'repeating-linear-gradient(90deg,'+CLS_LINE[k][1]+' 0 4px,transparent 4px 6px)':CLS_LINE[k][1]}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${BM_COLOR[x.b.id]}"></span>${esc(x.b.name)}`).join('')}`}</div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}">${r}</button>`).join('')}</div>
+  ${perf&&key!=='1D'?`<div class="chips cbm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-cbm="${b.id}" aria-pressed="${chartBms().includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>`:''}
 </section>
-  ${compare.length?`<div data-card="same"><div class="sub-h">Same money, same days</div><div class="note small">If every krone you put in and took out had gone into the index on the same days:</div>
-   <div class="list" style="margin-top:8px">${compare.map(({b,r})=>{const d=yours-r.end;const alpha=st.twr-r.twr;return `<div class="item" style="cursor:default"><span class="badge" style="background:${BM_COLOR[b.id]}">${esc(b.sym)}</span><div class="mid"><div class="t1 wrap">${esc(b.name)} would be ${F(r.end)}</div><div class="t2 wrap">Index ${pct(r.twr)} · alpha <span class="${cl(alpha)}">${pct(alpha)}</span></div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}</div></div>`:''}
   <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
   <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
   ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
+  ${sameMoneyHTML(M,Z)}
   <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
   <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
@@ -1338,8 +1348,9 @@ function viewOverview(v){
   const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
   const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
   let series_;const pf=pfOpt();
-  if(perf){series_=[];for(const k of pf.sel){const Zs=k==='all'?Z:classZ(M,UI.ccy,k);if(!Zs)continue;const b0=st.bi>=0?Zs.IDX[st.bi]:1;
-      series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:Zs.IDX[i]/b0-1})),color:CLS_LINE[k][1],dash:series_.length?CLS_LINE[k][2]:null,label:k==='all'?portfolio().name:CLS_LINE[k][0],fmt:'pct',width:series_.length?1.9:2.2,noDiff:series_.length>0});}
+  if(perf){series_=[];for(const k of pf.sel){const Zs=k==='all'?Z:classZ(M,UI.ccy,k);if(!Zs)continue;let fi=0;while(fi<M.N&&!(Zs.V[fi]>0))fi++;const bb=Math.max(st.bi,fi-1);const b0=bb>=0?Zs.IDX[bb]:1;
+      const held=i=>Zs.V[i]>0||(i>0&&Zs.V[i-1]>0);
+      series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:held(i)?Zs.IDX[i]/b0-1:NaN})),color:CLS_LINE[k][1],dash:series_.length?CLS_LINE[k][2]:null,label:k==='all'?portfolio().name:CLS_LINE[k][0],fmt:'pct',width:series_.length?1.9:2.2,noDiff:series_.length>0});}
     if(!series_.length)series_.push({pts,color:'var(--accent)',label:portfolio().name,fmt:'pct'});}
   else series_=[{pts,color:up?'var(--up)':'var(--down)',label:'Investments',fmt:'money'}];
   if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
@@ -2479,7 +2490,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-sse
 const PAGE_NAMES={overview:'Overview',holdings:'Holdings',analysis:'Insights'};
 const PAGE_SUB={holdings:['sub','positions'],analysis:['asub','performance']}; /* the view on each page that can be arranged */
 const CARD_LIB={
-  hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},same:{t:'Same money, same days',p:'overview'},
+  hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},
   compare:{t:'Compare with & return tables',p:'overview'},alloc:{t:'Allocation',p:'overview'},movers:{t:"Today's movers",p:'overview'},kpis:{t:'Key figures',p:'overview'},
   hsum:{t:'Holdings summary',p:'holdings'},positions:{t:'Positions table',p:'holdings'},closed:{t:'Closed positions',p:'holdings'},
   monthly:{t:'Monthly returns',p:'analysis'},divs:{t:'Dividends',p:'analysis'},freedom:{t:'Freedom number',p:'analysis'},costs:{t:'Costs',p:'analysis'},fxeffect:{t:'Currency effect',p:'analysis'},added:{t:'Money added per year',p:'analysis'},updates:{t:'Your updates',p:'analysis'},
@@ -2925,10 +2936,11 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-act="review"]')
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
-  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-krange],[data-act]');if(!el||el===document.documentElement||el===document.body)return; /* page-level marks are not buttons */
+  const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-krange],[data-cbm],[data-act]');if(!el||el===document.documentElement||el===document.body)return; /* page-level marks are not buttons */
   const d=el.dataset;
   if(d.tab){UI.tab=d.tab;firstView(d.tab);if(d.psub)UI.psub=d.psub;saveUI();closeSheet();render();window.scrollTo(0,0);return;}
   for(const k of ['range','mode','alloc','hsort','sub','asub','psub','brk','krange'])if(d[k]){UI[k]=d[k];saveUI();softRender();return;}
+  if(d.cbm){const L=chartBms();const i=L.indexOf(d.cbm);if(i>=0)L.splice(i,1);else L.push(d.cbm);UI.chartBms=L;saveUI();softRender();if(!NET.blocked)fetchBenchmarks();return;}
   if(d.bm){const i=UI.bms.indexOf(d.bm);if(i>=0)UI.bms.splice(i,1);else UI.bms.push(d.bm);saveUI();softRender();if(!NET.blocked)fetchBenchmarks();return;}
   if(d.updown){S.settings.updown=d.updown;applyUpdown();if(S.demo){lsSet('lq_state',S);VERSION++;}else Store.save();softRender();return;}
   if(d.pmenu){posMenu(d.pmenu);return;}
