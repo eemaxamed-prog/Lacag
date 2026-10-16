@@ -565,6 +565,25 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .hero-val{flex-wrap:wrap;row-gap:4px}
 .hero-val .big{white-space:nowrap;flex:0 0 auto}
 .hero-val .avg-row{margin-left:auto}
+/* Performance card */
+:root{--pc-idx:#5B606B}
+:root[data-look="day"]{--pc-idx:#B9BEC8}
+.pc-pers{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px 0 8px;padding-bottom:2px}
+.pc-pers::-webkit-scrollbar{display:none}
+.pc-per{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;min-height:32px}
+.pc-per[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+.pc-type select{background:var(--surface2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px}
+.pc-legend{margin:2px 0 6px;gap:8px;flex-wrap:wrap}
+.pc-wrap{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.pc-svg{width:100%;height:200px;display:block}
+.pc-tip{position:absolute;top:0;min-width:180px;pointer-events:none;z-index:5}
+.pb{margin-top:14px}
+.pb-h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px}
+.pb-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;font-size:14px}
+.pb-v{display:flex;gap:10px;align-items:baseline;white-space:nowrap}
+.pb-total{margin-top:10px;padding-top:6px}
+.kranges{flex-wrap:wrap}
+.pc-per.nodata{opacity:.4}
 
 </style>
 <header class="top"><div class="top-in">
@@ -1364,6 +1383,9 @@ function viewOverview(v){
   const bms=key==='1D'?[]:chartBms().map(id=>({b:BENCHMARKS.find(x=>x.id===id),r:bmCompare(M,Z,id,st.bi,st.ei)})).filter(x=>x.b);
   const cashPct=M.total?M.cash/M.total:0;
   const compare=bms.filter(x=>x.r&&!x.r.missing);
+  const open=M.holdings.filter(h=>h.qty>0);const pe=open.reduce((s,h)=>s+h.priceEffect,0),fe=open.reduce((s,h)=>s+h.fxEffect,0);
+  const forCost=open.filter(h=>h.a.currency!=='NOK').reduce((s,h)=>s+h.cost,0)||open.reduce((s,h)=>s+h.cost,0)||1;const absT=Math.abs(pe)+Math.abs(fe)||1;
+  const fxRows=open.filter(h=>h.a.currency!=='NOK').map(h=>{const c=h.cost||1;return `<div class="item" style="cursor:default">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.symbol)}</div><div class="t2">${h.a.currency}/NOK ${nf2.format(h.avgFx)} → ${nf2.format(h.fxNow)}</div></div><div class="end"><div class="t1 ${cl(h.priceEffect)}">${kr(h.priceEffect,{sign:true})} <span class="small">${pct(h.priceEffect/c)}</span></div><div class="t2 ${cl(h.fxEffect)}">${kr(h.fxEffect,{sign:true})} FX · ${pct(h.fxEffect/c)}</div></div></div>`;}).join('');
   v.innerHTML=`${demoBanner()}
   <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
@@ -1374,16 +1396,14 @@ function viewOverview(v){
   <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}">${r}</button>`).join('')}</div>
   ${perf&&key!=='1D'?`<div class="chips cbm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-cbm="${b.id}" aria-pressed="${chartBms().includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>`:''}
 </section>
-  <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
-  <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
-  ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
-  ${sameMoneyHTML(M,Z)}
-  <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
-  <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
+  <div data-card="fxeffect"><h2 class="sec">Currency effect</h2>
+  <div class="card"><div class="note">You buy USD and EUR assets with kroner, so your result is the price move plus the krone move. This splits your unrealised gain into the two.</div>
+   <div class="split"><span style="width:${Math.abs(pe)/absT*100}%;background:var(--c1)"></span><span style="width:${Math.abs(fe)/absT*100}%;background:var(--c2)"></span></div>
+   <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div><div class="small ${cl(pe)}">${pct(pe/forCost)}</div></div><div><div class="k"><span class="dotk" style="background:var(--c2)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div><div class="small ${cl(fe)}">${pct(fe/forCost)}</div></div></div>
+   <div class="small muted expl" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
+  ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}</div>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
   <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div></div>
-  ${concCardHTML(M)}
-  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
 `;
   const host=$('#mainChart');const up=perf?pts[pts.length-1].v>=0:st.gain>=0;
   const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
@@ -1490,46 +1510,28 @@ function reportCards(M,Z){
   <div class="small muted expl" style="margin:8px 2px">Returns are TTWROR. Weeks run Monday to Sunday.</div>`;}
 function viewAnalysis(v){
   const M=compute();const sub=UI.asub==='breakdown'?'breakdown':UI.asub==='tax'?'tax':'performance';
-  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('asub',[['performance','Returns'],['breakdown','Breakdown'],['tax','Tax']],sub)}${ccySelect()}</div>`;
+  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('asub',[['performance','Performance'],['breakdown','Breakdown'],['tax','Tax']],sub)}${ccySelect()}</div>`;
   if(!M){v.innerHTML=head+emptyState();return;}
   if(sub==='breakdown')return viewBreakdown(v,M,head);
   if(sub==='tax')return viewTax(v,M,head);
   const Z=series(M,UI.ccy);const per=UI.rper==='quarter'?'quarter':'month';const view=UI.rview==='bars'?'bars':'grid';
-  const map=periodReturns(M,Z,per);const years=[...new Set([...map.keys()].map(k=>Math.floor(k/(per==='quarter'?4:12))))].sort((a,b)=>b-a);
-  const gmap=periodGains(M,Z,per);
-  const grid=per==='quarter'?heatTable(years,['Q1','Q2','Q3','Q4'],(y,q)=>{const x=map.get(y*4+q);return x==null?null:x-1;},true,(y,q)=>gmap.get(y*4+q)??null,'hmq'):heatTable(years,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gmap.get(y*12+m)??null,'hmm');
-  const open=M.holdings.filter(h=>h.qty>0);const pe=open.reduce((s,h)=>s+h.priceEffect,0),fe=open.reduce((s,h)=>s+h.fxEffect,0);
-  const forCost=open.filter(h=>h.a.currency!=='NOK').reduce((s,h)=>s+h.cost,0)||open.reduce((s,h)=>s+h.cost,0)||1;const absT=Math.abs(pe)+Math.abs(fe)||1;
-  const fxRows=open.filter(h=>h.a.currency!=='NOK').map(h=>{const c=h.cost||1;return `<div class="item" style="cursor:default">${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.symbol)}</div><div class="t2">${h.a.currency}/NOK ${nf2.format(h.avgFx)} → ${nf2.format(h.fxNow)}</div></div><div class="end"><div class="t1 ${cl(h.priceEffect)}">${kr(h.priceEffect,{sign:true})} <span class="small">${pct(h.priceEffect/c)}</span></div><div class="t2 ${cl(h.fxEffect)}">${kr(h.fxEffect,{sign:true})} FX · ${pct(h.fxEffect/c)}</div></div></div>`;}).join('');
   const contrib=new Map();for(let i=0;i<M.N;i++){if(Z.CF[i]){const y=yearOf(M.d0+i);contrib.set(y,(contrib.get(y)||0)+Z.CF[i]);}}
   const cy=[...contrib.entries()].sort((a,b)=>a[0]-b[0]);const cmax=Math.max(1,...cy.map(x=>Math.abs(x[1])));
   v.innerHTML=`${head}
-  <div data-card="monthly"><div class="row-between" style="margin-top:22px"><h2 class="sec" style="margin:0">${per==='quarter'?'Quarterly':'Monthly'} returns</h2><div class="btns">${seg('rper',[['month','Month'],['quarter','Quarter']],per)}${seg('rview',[['grid','Grid'],['bars','Columns']],view)}</div></div>
-  <div class="card" style="margin-top:10px">${view==='bars'?returnsBars(map,per):grid}<div class="small muted expl" style="margin-top:8px">TTWROR per ${per} in ${UI.ccy}. Deposits don't count as gains. Tap a number to see it in money.</div></div></div>
-  <div data-card="fxeffect"><h2 class="sec">Currency effect</h2>
-  <div class="card"><div class="note">You buy USD and EUR assets with kroner, so your result is the price move plus the krone move. This splits your unrealised gain into the two.</div>
-   <div class="split"><span style="width:${Math.abs(pe)/absT*100}%;background:var(--c1)"></span><span style="width:${Math.abs(fe)/absT*100}%;background:var(--c2)"></span></div>
-   <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div><div class="small ${cl(pe)}">${pct(pe/forCost)}</div></div><div><div class="k"><span class="dotk" style="background:var(--c2)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div><div class="small ${cl(fe)}">${pct(fe/forCost)}</div></div></div>
-   <div class="small muted expl" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
-  ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}</div>
+  ${perfCardHTML(M,Z)}
+  ${kfCardHTML(M,Z)}
+  <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
+  <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
+  ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
+  ${sameMoneyHTML(M,Z)}
+  <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
+  <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
+  ${concCardHTML(M)}
   <div data-card="added"><h2 class="sec">Money added per year</h2><div class="card"><div class="bars">${cy.map(([y,val])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${Math.abs(val)/cmax*100}%;${val<0?'background:var(--c6)':''}"></div></div><span class="val">${F(val,{sign:true})}</span></div>`).join('')||'<span class="muted">Nothing added yet</span>'}</div></div></div>
   ${(()=>{const d=dividendsCardHTML(M);return d?`<div data-card="divs"><h2 class="sec">Dividends</h2>${d}</div>`:'';})()}
-  <div data-card="freedom"><h2 class="sec">Freedom number</h2>${freedomHTML(M,true)}</div>
   <div data-card="costs"><h2 class="sec">Costs</h2>${costsHTML(M)}</div>
-  <div data-card="updates"><h2 class="sec">Your updates</h2>${reportCards(M,Z)}</div>
-  ${(()=>{const kk=RANGES.includes(UI.krange)&&UI.krange!=='1D'?UI.krange:'1Y';const ks=stats(M,Z,kk);
-   return `<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div><span class="small muted">${esc(RANGE_WORD[kk])}</span></div>
-   <div class="ranges kranges" role="group" aria-label="Key figures period">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-krange="${r}" aria-pressed="${r===kk}" class="${rangeShort(r,M.firstDay)?'nodata':''}">${r}</button>`).join('')}</div>
-   <div class="kgrid">
-    ${kpi('Time-weighted return',pct(ks.twr),cl(ks.twr),'TTWROR · deposits removed')}
-    ${kpi('Money-weighted p.a.',ks.irr!=null?pct(ks.irr):'—',ks.irr!=null?cl(ks.irr):'',ks.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
-    ${kpi('Gain / loss',F(ks.gain,{sign:true}),cl(ks.gain),'After fees, incl. dividends')}
-    ${kpi('Avg. annual return',ks.annual!=null?pct(ks.annual):'—',ks.annual!=null?cl(ks.annual):'',ks.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
-    ${kpi('Money added',F(ks.cf,{sign:true}),'','Bought minus sold')}
-    ${kpi('Dividends',F(ks.div),'','Received')}
-    ${kpi('Max drawdown',pct(ks.mdd),ks.mdd<0?'down':'','Worst fall from a peak')}
-    ${kpi('Volatility p.a.',ks.vol!=null?pct(ks.vol,{sign:false}):'—','','Size of daily swings')}
-   </div></section>`;})()}`;
+  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
+`;
   const wrap=$('#rbWrap');if(wrap){wrap.scrollLeft=wrap.scrollWidth;wrap.onclick=e=>{const r=e.target.closest('[data-rbar]');if(!r)return;const [l,val]=r.dataset.rbar.split('|');$('#rbRead').innerHTML=`${esc(l)} · <span class="${cl(+val)}">${pct(+val)}</span>`;};}
 }
 
@@ -1569,7 +1571,7 @@ function project(M,o={}){
 }
 function viewPlan(v){
   const M=compute();const sub=UI.psub;
-  const head=`${demoBanner()}<div style="margin-top:14px;overflow-x:auto">${seg('psub',[['budget','Budget'],['goals','Goals'],['retire','Retirement'],['buy','Buying plan'],['free','Freedom']],sub)}</div>`;
+  const head=`${demoBanner()}<div style="margin-top:14px;overflow-x:auto">${seg('psub',[['budget','Budget'],['goals','Goals'],['retire','Retirement'],['buy','Buying plan'],['free','FIRE']],sub)}</div>`;
   if(sub==='budget'){viewBudget(v,head);v.insertAdjacentHTML('beforeend',savingsVsPlanHTML());return;}
   if(sub==='free')return viewFreedom(v,M,head);
   if(sub==='retire')return viewRetire(v,M,head);if(sub==='buy')return viewBuyPlan(v,M,head);
@@ -2847,7 +2849,7 @@ function freedomData(M){const spend=avgSpend();if(!(spend>0)||!M)return null;con
   const mo=monthsTo(now,target,sv.v,realR());const d=new Date();if(mo!=null)d.setMonth(d.getMonth()+mo);
   return {spend,target,now,p:Math.min(1,now/target),months:now/spend,save:sv,mo,year:mo!=null?d.getFullYear():null,age:mo!=null&&ageNow()!=null?ageNow()+Math.round(mo/12):null};}
 function freedomHTML(M,compact){const f=freedomData(M);if(!f)return `<div class="card muted">Add your spending to the Budget to see your freedom number.</div>`;
-  return `<div class="card stack"><div class="row-between"><div><div class="k">Freedom number</div><div class="v big3">${F(conv(M,f.target))}</div></div><div style="text-align:right"><div class="k">You have</div><div class="v">${F(conv(M,f.now))}</div></div></div>
+  return `<div class="card stack"><div class="row-between"><div><div class="k">FIRE number</div><div class="v big3">${F(conv(M,f.target))}</div></div><div style="text-align:right"><div class="k">You have</div><div class="v">${F(conv(M,f.now))}</div></div></div>
    <div class="prog"><span style="width:${f.p*100}%"></span></div>
    <div class="row-between small"><span class="amber-v">${pctTxt(f.p)} there</span><span>${f.year?`Around <b>${f.year}</b>${f.age?' (age '+f.age+')':''}`:'More than 60 years away at this pace'}</span></div>
    <div class="sumgrid"><div><div class="k">Your money covers</div><div class="v">${f.months>=24?nf1.format(f.months/12)+' years':nf0.format(f.months)+' months'}</div><div class="small muted">of today's spending</div></div>
@@ -2872,7 +2874,7 @@ function updateWhatIf(){const c=$('#wiCard');if(!c)return;const M=compute();if(!
   const f=freedomData(M);if(f){const m2=monthsTo(M.total,f.target,sv+ex,realR());$('#wiFree').innerHTML=ex&&f.mo!=null&&m2!=null?`Freedom number <b>${Math.max(0,Math.round((f.mo-m2)/12*10)/10)} years sooner</b> with the extra.`:'';}
   const loss=M.invested*cr;$('#wiLoss').textContent=F(conv(M,loss));const yrsRec=Math.log(1/(1-cr))/Math.log(1+Math.max(0.01,realR()+0.02));$('#wiRec').textContent='≈ '+nf1.format(yrsRec)+' years';}
 document.addEventListener('input',e=>{if(e.target.id==='wiExtra'||e.target.id==='wiCrash')updateWhatIf();});
-function viewFreedom(v,M,head){v.innerHTML=`${head}<h2 class="sec">Freedom number</h2>${freedomHTML(M)}<h2 class="sec">Emergency fund</h2>${emergencyHTML(M)||'<div class="card muted">Add your spending to the Budget first.</div>'}<h2 class="sec">What if…</h2>${whatIfHTML(M)}`;updateWhatIf();}
+function viewFreedom(v,M,head){v.innerHTML=`${head}<h2 class="sec">FIRE number</h2>${freedomHTML(M)}<h2 class="sec">Emergency fund</h2>${emergencyHTML(M)||'<div class="card muted">Add your spending to the Budget first.</div>'}<h2 class="sec">What if…</h2>${whatIfHTML(M)}`;updateWhatIf();}
 
 /* ---------- 2) calm mode ---------- */
 function calmOn(){return !!UI.calm;}
@@ -3172,6 +3174,112 @@ document.addEventListener('change',e=>{if(e.target.id==='shIdx'){UI.shareCard=Ob
 
 {const _r=render;render=function(){_r();if(UI.tab!=='overview')return;const hero=$('[data-card="hero"]');if(!hero)return;const eye=hero.querySelector('.hero-val .eye-btn'),ey=hero.querySelector('#heroEy');
   if(eye&&ey&&!hero.querySelector('.hero-top')){const top=document.createElement('div');top.className='hero-top';ey.parentNode.insertBefore(top,ey);top.appendChild(ey);top.appendChild(eye);}};}
+
+/* ================= Insights → Performance: getquin-style performance card + merged Key figures card ================= */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const pcIdx=()=>(UI.bms&&UI.bms[0])||'URTH';
+const pcIdxName=()=>(BENCHMARKS.find(b=>b.id===pcIdx())||{}).name||'Index';
+function pcState(M){const years=[];for(let y=yearOf(M.firstDay);y<=yearOf(M.today);y++)years.push(y);let per=UI.pcPer;if(per!=='all'&&!years.includes(+per))per='all';
+  return {years:years.slice().reverse(),per,type:['bar','heat','line'].includes(UI.pcType)?UI.pcType:'bar'};}
+/* one window (from = day before start, to = last day) → stats, index, costs */
+function pcWin(M,Z,from,to){if(to<M.firstDay||to<=from)return null;const f=Math.max(from,M.firstDay-1);const bi=Math.max(-1,f-M.d0),ei=Math.min(M.N-1,to-M.d0);if(ei<=bi)return null;
+  const st=statsIdx(M,Z,bi,ei);let fees=0;const fs=ds(f),ts=ds(to);for(const t of M.txs)if((t.type==='buy'||t.type==='sell')&&t.date>fs&&t.date<=ts)fees+=t.fee||0;
+  return {from:f,to,bi,ei,st,idx:idxRet(pcIdx(),f,to,UI.ccy),fees};}
+function pcSlots(M,Z,st){const out=[];const T=M.today;
+  if(st.per==='all'){for(const y of st.years.slice().reverse()){const w=pcWin(M,Z,dn(y+'-01-01')-1,Math.min(dn((y+1)+'-01-01')-1,T));out.push({label:String(y),title:String(y),w});}}
+  else{const y=+st.per;for(let m=1;m<=12;m++){const s=dn(`${y}-${pad(m)}-01`);const e=Math.min((m===12?dn((y+1)+'-01-01'):dn(`${y}-${pad(m+1)}-01`))-1,T);out.push({label:MONS[m-1],title:`${MONTHS[m-1]}, ${y}`,w:s<=T?pcWin(M,Z,s-1,e):null});}}
+  return out;}
+let PC_SLOTS=[];
+function pcBarsSVG(slots){const W=360,H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
+  const vals=slots.flatMap(s=>s.w?[s.w.st.twr,s.w.idx]:[]).filter(v=>v!=null&&isFinite(v));let hi=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi-lo<0.002){hi+=0.001;lo-=0.001;}const pad_=(hi-lo)*0.06;hi+=hi>0?pad_:0;lo-=lo<0?pad_:0;
+  const y=v=>pt+(hi-v)/(hi-lo)*(H-pt-pb);mid=y(0);
+  let svg=`<svg class="pc-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Performance per period">`;
+  svg+=`<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)" stroke-dasharray="2 3"/>`;const mine=[];slots.forEach((s,i)=>{const cx=sw*i+sw/2;svg+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(s.label)}</text>`;if(!s.w)return;
+    const iv=s.w.idx;if(iv!=null&&isFinite(iv)){const yy=y(iv);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="var(--pc-idx)"/>`;}
+    const v=s.w.st.twr;mine.push(v);const yy=y(v);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="${v>=0?'var(--up)':'var(--down)'}" opacity=".95"/>`;});
+  const avg=mine.length?Math.pow(mine.reduce((p,v)=>p*(1+v),1),1/mine.length)-1:null;if(avg!=null)svg+=`<line x1="0" x2="${W}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
+  svg+=`<line class="pc-cur" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="var(--fg)" opacity="0" stroke-width="1"/></svg>`;return {svg,avg};}
+function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</div><div class="tr sub"><span class="tl">No data</span></div>`;const w=s.w;
+  return `<div class="th">${esc(s.title)}</div>
+   <div class="tr"><span class="sw" style="background:${w.st.twr>=0?'var(--up)':'var(--down)'}"></span><span class="tl">Performance</span><span class="tv ${cl(w.st.twr)}">${pct(w.st.twr)}</span></div>
+   <div class="tr"><span class="sw"></span><span class="tl">Gain / loss</span><span class="tv ${cl(w.st.gain)}">${F(w.st.gain,{sign:true})}</span></div>
+   <div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName())}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>
+   <div class="tr"><span class="sw"></span><span class="tl">Transaction costs</span><span class="tv">${F(conv(compute(),w.fees))}</span></div>`;}
+/* breakdown of the chosen period, like getquin */
+function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts=ds(w.to);const k=conv(M,1);
+  let realised=0;try{for(const s of taxModel().sales)if(s.date>fs&&s.date<=ts)realised+=s.gain;}catch(e){}realised*=k;
+  let taxes=0;try{for(const s of taxModel().sales)if(s.date>fs&&s.date<=ts){const r=s.g==='share'?NOTAX.share:s.g==='crypto'?NOTAX.crypto:0;taxes+=Math.max(0,s.gain-(s.skUsed||0))*r;}}catch(e){}taxes*=k;
+  let ongoing=0;for(const h of M.holdings){const ter=+h.a.ter;if(!(ter>0))continue;for(let i=Math.max(0,w.bi+1);i<=w.ei;i++)ongoing+=(h.AV[i]||0)*ter/100/365;}ongoing*=k;
+  const inv=Z.NET[w.ei];const priceGain=st.gain-st.div-realised;const pc=v=>inv>0?`<span class="${cl(v)} small">${pct(v/inv)}</span>`:'';
+  const row=(l,info,v,p,cls='')=>`<div class="pb-row"><span>${l}${info?' '+infoBtn(info):''}</span><span class="pb-v">${p||''}<span class="num ${cls}">${v}</span></span></div>`;
+  return `<div class="pb"><div class="pb-h">Capital</div>${row('Invested capital','pbInv',F(inv))}
+   <div class="pb-h">Performance breakdown</div>${row('Price gain','pbPrice',F(priceGain,{sign:true}),pc(priceGain),cl(priceGain))}${row('Dividends','pbDiv',F(st.div,{sign:true}),pc(st.div),cl(st.div))}${row('Realised gain','pbReal',F(realised,{sign:true}),pc(realised),cl(realised))}
+   <div class="pb-h">Costs</div>${row('Transaction costs','',F(-w.fees*k,{sign:true}))}${row('Taxes (estimated)','pbTax',F(-taxes,{sign:true}))}${row('Ongoing costs','pbOngoing',F(-ongoing,{sign:true}))}
+   <div class="pb-total">${row('<b>Total return</b>','',F(st.gain,{sign:true}),'',cl(st.gain))}${row('<b>Internal rate of return</b>','pbIrr',st.irr!=null?pct(st.irr):'—','',st.irr!=null?cl(st.irr):'')}${row('<b>True time-weighted return</b>','pbTwr',pct(st.twr),'',cl(st.twr))}</div></div>`;}
+Object.assign(INFO,{pbInv:'Money you have put in minus what you have taken out, up to the end of the period.',pbPrice:'Change in the value of what you hold, after costs, not counting dividends and gains already taken by selling.',
+  pbDiv:'Dividends received in the period (after foreign tax).',pbReal:'Gains or losses locked in by selling during the period (first-in-first-out).',pbTax:'Estimated Norwegian tax on gains realised by selling in the period, after skjerming. Uses your tax rules in Settings.',pbOngoing:'Estimated yearly fund fees (TER) charged inside your funds during the period. Add each fund\'s TER under Holdings → Details.',
+  pbIrr:'Money-weighted return per year: counts when you added money. Shown for periods of a year or more.',pbTwr:'Time-weighted return: your investments\' performance with deposits and withdrawals removed, so it can be compared with an index.'});
+function perfCardHTML(M,Z){const st=pcState(M);const slots=pcSlots(M,Z,st);PC_SLOTS=slots;let body='',avg=null;
+  if(st.type==='bar'){const b=pcBarsSVG(slots);avg=b.avg;body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
+  else if(st.type==='heat'){const map=periodReturns(M,Z,'month'),gm=periodGains(M,Z,'month');const ys=st.per==='all'?st.years:[+st.per];
+    body=heatTable(ys,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gm.get(y*12+m)??null,'pch');const ok=slots.filter(s=>s.w).map(s=>s.w.st.twr);avg=ok.length?Math.pow(ok.reduce((p,v)=>p*(1+v),1),1/ok.length)-1:null;}
+  else{body=`<div class="chart" id="pcLine" style="height:200px"></div>`;}
+  const win=st.per==='all'?pcWin(M,Z,M.firstDay-1,M.today):pcWin(M,Z,dn(st.per+'-01-01')-1,Math.min(dn((+st.per+1)+'-01-01')-1,M.today));
+  const types=[['bar','Bar chart'],['heat','Heatmap'],['line','Line chart']];
+  return `<section class="card pc-card" data-card="perf"><div class="row-between"><div class="sub-h" style="margin:0">Performance</div>
+    <label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
+   <div class="pc-pers">${[['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
+   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You <span class="lk" style="background:var(--pc-idx);margin-left:8px"></span> ${esc(pcIdxName())}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn('avgBars')}</span>`:''}</div>
+   ${body}${pcBreakdown(M,Z,win)}</section>`;}
+/* interactions: tap or slide a finger over the bars */
+function pcShow(e){const wrap=$('#pcWrap');if(!wrap||!PC_SLOTS.length)return;const r=wrap.getBoundingClientRect();const x=Math.max(0,Math.min(r.width-1,e.clientX-r.left));const i=Math.floor(x/r.width*PC_SLOTS.length);
+  const tip=$('#pcTip');tip.innerHTML=pcTipHTML(PC_SLOTS[i]);tip.hidden=false;const cx=(i+0.5)/PC_SLOTS.length*r.width;const tw=tip.offsetWidth;let left=cx>r.width/2?cx-tw-12:cx+12;tip.style.left=Math.max(0,Math.min(r.width-tw,left))+'px';
+  const cur=wrap.querySelector('.pc-cur');if(cur){const sx=(i+0.5)/PC_SLOTS.length*360;cur.setAttribute('x1',sx);cur.setAttribute('x2',sx);cur.setAttribute('opacity','.35');}}
+document.addEventListener('pointerdown',e=>{const w=e.target.closest('#pcWrap');if(w){pcShow(e);return;}const tip=$('#pcTip');if(tip&&!e.target.closest('#pcTip')){tip.hidden=true;const c=document.querySelector('#pcWrap .pc-cur');if(c)c.setAttribute('opacity','0');}});
+document.addEventListener('pointermove',e=>{if(e.target.closest('#pcWrap')&&(e.pointerType!=='mouse'||e.buttons||true))pcShow(e);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pcper]');if(b){UI.pcPer=b.dataset.pcper;saveUI();softRender();}});
+document.addEventListener('change',e=>{if(e.target.id==='pcType'){UI.pcType=e.target.value;saveUI();softRender();}});
+/* line chart: your cumulative return vs the index (dashed) */
+function mountPcLine(){const host=$('#pcLine');if(!host)return;const M=compute();if(!M)return;const Z=series(M,UI.ccy);const st=pcState(M);
+  const from=st.per==='all'?M.firstDay-1:Math.max(M.firstDay-1,dn(st.per+'-01-01')-1),to=st.per==='all'?M.today:Math.min(dn((+st.per+1)+'-01-01')-1,M.today);
+  const bi=Math.max(0,from-M.d0),ei=to-M.d0;if(ei<=bi){host.innerHTML='<div class="empty">No data for this period</div>';return;}const idxs=[];for(let i=bi;i<=ei;i++)idxs.push(i);const ix=downsample(idxs);
+  const b0=Z.IDX[bi];const series_=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/b0-1})),color:'var(--accent)',label:portfolio().name,fmt:'pct'}];
+  const b=bmSeries(M,pcIdx(),UI.ccy);if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx()],dash:'9 4',width:1.6,label:pcIdxName(),fmt:'pct'});
+  mountChart(host,{series:series_,kind:'pct',ccy:UI.ccy,diff:series_.length>1});}
+
+/* ---------- merged Key figures + Your updates ---------- */
+const KF_P=[['w','This week'],['m','This month'],['q','This quarter'],['y','YTD'],['1Y','1Y'],['3Y','3Y'],['5Y','5Y'],['MAX','Max']];
+function kfWindow(M,p,last){const t=M.today;const dow=(new Date(t*DAY).getUTCDay()+6)%7;const ws=t-dow;
+  if(p==='w')return last?[ws-8,ws-1,'Last week']:[ws-1,t,'This week'];
+  if(p==='m'){const ms=dn(ds(t).slice(0,7)+'-01');if(!last)return [ms-1,t,'This month'];const pm=addMonths(ms,-1);return [pm-1,ms-1,'Last month'];}
+  if(p==='q'){const qs=periodStart(t,'quarter');if(!last)return [qs-1,t,'This quarter'];const pq=addMonths(qs,-3);return [pq-1,qs-1,'Last quarter'];}
+  if(p==='y'){const y0=dn(yearOf(t)+'-01-01');if(!last)return [y0-1,t,'Year to date'];return [dn((yearOf(t)-1)+'-01-01')-1,y0-1,'Last year'];}
+  if(p==='MAX')return [M.firstDay-1,t,'Since you started'];return [rangeBase(p,t),t,'Past '+(RANGE_WORD[p]||p).replace(/^past /,'')];}
+function kfCardHTML(M,Z){const p=KF_P.some(x=>x[0]===UI.kfP)?UI.kfP:'m';const canLast=['w','m','q','y'].includes(p);const last=canLast&&!!UI.kfLast;const [from,to,label]=kfWindow(M,p,last);const w=pcWin(M,Z,from,to);
+  const head=`<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div>${canLast?`<div class="seg" role="group"><button data-kflast="0" aria-pressed="${!last}">This</button><button data-kflast="1" aria-pressed="${last}">Last</button></div>`:''}</div>
+   <div class="pc-pers" role="group" aria-label="Key figures period">${KF_P.map(([k,l])=>`<button class="pc-per ${['3Y','5Y'].includes(k)&&rangeShort(k,M.firstDay)?'nodata':''}" data-kfp="${k}" aria-pressed="${p===k}">${UI.kfLast&&['w','m','q'].includes(k)?l.replace('This','Last'):UI.kfLast&&k==='y'?'Last year':l}</button>`).join('')}</div>`;
+  if(!w)return head+`<div class="muted small" style="padding:8px 0">No data for this period.</div></section>`;const s=w.st;const alpha=w.idx!=null?s.twr-w.idx:null;
+  return head+`<div class="small muted" style="margin:2px 0 8px">${esc(label)} · ${dateLabel(Math.max(w.from+1,M.firstDay))} – ${dateLabel(w.to)}</div>
+   <div class="kgrid">
+    ${kpi('Return (TTWROR)',pct(s.twr),cl(s.twr),'Deposits removed')}
+    ${kpi('Gain / loss',F(s.gain,{sign:true}),cl(s.gain),'After fees, incl. dividends')}
+    ${kpi(esc(pcIdxName()),w.idx==null?'—':pct(w.idx),w.idx==null?'':cl(w.idx),alpha==null?'Index prices not loaded':'You vs index: '+pct(alpha))}
+    ${kpi('Money added',F(s.cf,{sign:true}),'','Bought minus sold')}
+    ${kpi('Dividends',F(s.div),'','Received')}
+    ${kpi('Money-weighted p.a.',s.irr!=null?pct(s.irr):'—',s.irr!=null?cl(s.irr):'','MWR · your timing counts')}
+    ${kpi('Max drawdown',pct(s.mdd),s.mdd<0?'down':'','Worst fall from a peak')}
+    ${kpi('Volatility p.a.',s.vol!=null?pct(s.vol,{sign:false}):'—','','Size of daily swings')}
+   </div><div class="btns" style="margin-top:10px"><button class="btn sm" data-act="review">${iconSm('table')} ${MON[+lastMonthYM().slice(5)-1]} review</button><button class="btn sm" data-act="sharecard">${iconSm('share')} Share card</button></div></section>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-kfp]');if(b){UI.kfP=b.dataset.kfp;saveUI();softRender();return;}const l=e.target.closest('[data-kflast]');if(l){UI.kfLast=l.dataset.kflast==='1';saveUI();softRender();}});
+
+/* ---------- new default layouts: Overview = Total value, Main chart, Currency effect, Allocation ---------- */
+for(const k of Object.keys(CARD_LIB))delete CARD_LIB[k];
+Object.assign(CARD_LIB,{hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},fxeffect:{t:'Currency effect',p:'overview'},alloc:{t:'Allocation',p:'overview'},
+  hsum:{t:'Holdings summary',p:'holdings'},positions:{t:'Positions table',p:'holdings'},closed:{t:'Closed positions',p:'holdings'},
+  perf:{t:'Performance',p:'analysis'},kpis:{t:'Key figures',p:'analysis'},compare:{t:'Compare with & return tables',p:'analysis'},conc:{t:'Concentration',p:'analysis'},
+  added:{t:'Money added per year',p:'analysis'},divs:{t:'Dividends',p:'analysis'},costs:{t:'Costs',p:'analysis'},movers:{t:"Today's movers",p:'analysis'}});
+if(!UI.migV3){UI.migV3=1;if(UI.layout){delete UI.layout.overview;delete UI.layout.analysis;}if(UI.asub==='performance'||!UI.asub)UI.asub='performance';saveUI();}
+{const _r=render;render=function(){_r();if(UI.tab==='analysis'&&$('#pcLine'))mountPcLine();};}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
