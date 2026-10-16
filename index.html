@@ -472,7 +472,7 @@ table.ytab tr.tot th,table.ytab tr.tot td{padding-top:12px}
 input[type="range"]{width:100%;accent-color:var(--accent)}
 /* calm mode: no daily ups and downs */
 :root[data-calm="on"] [data-range="1D"],:root[data-calm="on"] [data-range="1W"],:root[data-calm="on"] [data-prange="1D"],:root[data-calm="on"] [data-prange="1W"],
-:root[data-calm="on"] [data-arange="1D"],:root[data-calm="on"] [data-arange="1W"],:root[data-calm="on"] [data-card="movers"],:root[data-calm="on"] .today-cell{display:none!important}
+:root[data-calm="on"] [data-arange="1D"],:root[data-calm="on"] [data-arange="1W"],:root[data-calm="on"] .today-cell{display:none!important}
 /* text size */
 main,.top-in,.sheet .panel{zoom:var(--zoom,1)}
 /* diary, watchlist, concentration */
@@ -623,6 +623,19 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .seg.more-r{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
 .seg.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 15%);mask-image:linear-gradient(90deg,transparent,#000 15%)}
 .seg.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+
+/* Calm mode: Today's movers shows a short note instead of disappearing */
+.calm-note{display:none}
+:root[data-calm="on"] [data-card="movers"] > :not(h2):not(.calm-note){display:none!important}
+:root[data-calm="on"] [data-card="movers"] .calm-note{display:flex}
+.calm-note{align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
+/* Calm chip in the top bar (blue = on, outlined = off) */
+.calm-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 10px;font:inherit;font-size:13px;font-weight:600;background:transparent;color:var(--muted);border:1px solid var(--line);min-height:32px;white-space:nowrap}
+.calm-chip .moon{font-size:14px;line-height:1}
+.calm-chip.on{background:#1D2A3A;color:#9FD0FF;border-color:#2E4A66}
+:root[data-look="day"] .calm-chip.on{background:#DCEBFA;color:#0B4F8A;border-color:#A9CBEA}
+@media (max-width:380px){.calm-chip{padding:6px 8px}.calm-chip .ct{display:none}}
+@media (max-width:440px){.calm-chip{padding:6px 8px;min-width:32px;justify-content:center}.calm-chip .ct{display:none}}
 
 </style>
 <header class="top"><div class="top-in">
@@ -1440,7 +1453,7 @@ function viewOverview(v){
    <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div><div class="small ${cl(pe)}">${pct(pe/forCost)}</div></div><div><div class="k"><span class="dotk" style="background:var(--c2)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div><div class="small ${cl(fe)}">${pct(fe/forCost)}</div></div></div>
    <div class="small muted expl" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
   ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}</div>
-  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
+  <div data-card="movers"><h2 class="sec">Today's movers</h2><div class="card calm-note"><span class="small muted">Hidden because Calm mode is on.</span><button class="btn sm" data-sset-go="expl">Calm mode</button></div>${moversBlock(M)}</div>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
   <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div></div>
 `;
@@ -3368,6 +3381,15 @@ function vtabsFit(){document.querySelectorAll('#view .seg').forEach(s=>{if(!s.qu
   const upd=()=>{const over=s.scrollWidth>s.clientWidth+2;s.classList.toggle('more-r',over&&s.scrollLeft+s.clientWidth<s.scrollWidth-2);s.classList.toggle('more-l',over&&s.scrollLeft>2);};
   if(on&&s.scrollWidth>s.clientWidth+2){const l=on.offsetLeft-s.clientWidth/2+on.offsetWidth/2;s.scrollLeft=Math.max(0,l);}upd();if(!s._vt){s._vt=1;s.addEventListener('scroll',upd,{passive:true});}});}
 {const _r=render;render=function(){_r();vtabsFit();};}
+
+/* ================= Calm mode chip in the top bar: tap to turn on / off ================= */
+/* shown on every page while Calm mode is on; on Overview it is always there so you can switch it either way */
+function calmChip(){const st=$('#status');if(!st)return;let c=$('#calmChip');
+  if(!c){c=document.createElement('button');c.id='calmChip';c.className='calm-chip';c.dataset.act='calmtoggle';st.parentNode.insertBefore(c,st);}
+  const on=!!UI.calm;c.classList.toggle('on',on);c.hidden=!on&&UI.tab!=='overview';c.setAttribute('aria-pressed',String(on));
+  c.setAttribute('aria-label',on?'Calm mode is on. Tap to turn it off':'Calm mode is off. Tap to turn it on');c.innerHTML=`<span class="moon">☾</span><span class="ct">Calm</span>`;}
+{const _r=render;render=function(){_r();calmChip();};}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="calmtoggle"]'))return;UI.calm=!UI.calm;saveUI();applyLook();softRender();calmChip();toast(UI.calm?'Calm mode on · daily ups and downs hidden':'Calm mode off');});
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
