@@ -636,6 +636,8 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 :root[data-look="day"] .calm-chip.on{background:#DCEBFA;color:#0B4F8A;border-color:#A9CBEA}
 @media (max-width:380px){.calm-chip{padding:6px 8px}.calm-chip .ct{display:none}}
 @media (max-width:440px){.calm-chip{padding:6px 8px;min-width:32px;justify-content:center}.calm-chip .ct{display:none}}
+.upd-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:65;display:flex;align-items:center;gap:12px;background:var(--surface2);color:var(--fg);border:1px solid var(--accent);border-radius:14px;padding:8px 8px 8px 14px;font-size:14px;font-weight:600;box-shadow:0 6px 24px rgb(0 0 0 / .4);max-width:calc(100% - 24px);white-space:nowrap}
+.ver-line{margin:4px 2px 18px}
 
 </style>
 <header class="top"><div class="top-in">
@@ -657,6 +659,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
+const LACAG_BUILD="202610161322";
 "use strict";
 /* ================= utilities ================= */
 const DAY=864e5;
@@ -3390,6 +3393,17 @@ function calmChip(){const st=$('#status');if(!st)return;let c=$('#calmChip');
   c.setAttribute('aria-label',on?'Calm mode is on. Tap to turn it off':'Calm mode is off. Tap to turn it on');c.innerHTML=`<span class="moon">☾</span><span class="ct">Calm</span>`;}
 {const _r=render;render=function(){_r();calmChip();};}
 document.addEventListener('click',e=>{if(!e.target.closest('[data-act="calmtoggle"]'))return;UI.calm=!UI.calm;saveUI();applyLook();softRender();calmChip();toast(UI.calm?'Calm mode on · daily ups and downs hidden':'Calm mode off');});
+
+/* ================= updates: show the version and offer the newest one when GitHub has it ================= */
+const buildLabel=()=>{const b=LACAG_BUILD;const d=new Date(Date.UTC(+b.slice(0,4),+b.slice(4,6)-1,+b.slice(6,8),+b.slice(8,10),+b.slice(10,12)));const p2=n=>String(n).padStart(2,'0');return `${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;};
+async function checkUpdate(manual){if(!/^https?:/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.host)){if(manual)toast('Version '+buildLabel());return;}
+  try{const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});const t=await r.text();const m=t.match(/LACAG_BUILD="(\d{12})"/);
+    if(m&&m[1]>LACAG_BUILD){showUpdateBar();}else if(manual)toast('You have the newest version');}catch(e){if(manual)toast('Could not check right now');}}
+function showUpdateBar(){if($('#updBar'))return;const d=document.createElement('div');d.id='updBar';d.className='upd-bar';d.innerHTML=`<span>A new version of Lacag is ready</span><button class="btn sm primary" data-act="doupdate">Update</button>`;document.body.appendChild(d);}
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="doupdate"]')){location.replace(location.pathname+'?v='+Date.now());return;}if(e.target.closest('[data-act="checkupd"]'))checkUpdate(true);});
+setTimeout(()=>checkUpdate(false),3000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate(false);});
+/* version line at the bottom of Settings */
+{const _r=render;render=function(){_r();if(UI.tab!=='settings'||UI.sset)return;const v=$('#view');if(v&&!v.querySelector('.ver-line'))v.insertAdjacentHTML('beforeend',`<div class="ver-line small muted">Version ${buildLabel()} · <button class="linkbtn" data-act="checkupd">Check for update</button></div>`);};}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
