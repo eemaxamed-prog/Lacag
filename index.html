@@ -584,6 +584,11 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .pb-total{margin-top:10px;padding-top:6px}
 .kranges{flex-wrap:wrap}
 .pc-per.nodata{opacity:.4}
+.kf-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pc-bm select{max-width:140px;padding:5px 8px;font-size:12px}
+.pb-row>span:first-child{display:flex;align-items:center;gap:6px;min-width:0}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
+.ss-body .card{background:transparent;padding-left:0;padding-right:0;box-shadow:none;border:0}
 
 </style>
 <header class="top"><div class="top-in">
@@ -1008,7 +1013,7 @@ async function fetchTD(a){
 }
 async function fetchBenchmarks(){
   const first=firstTxDate();if(!first||!S.settings.tdKey)return;const start=ds(Math.min(dn(first)-10,TEN_YEARS_AGO()));
-  const want=[...new Set([...(UI.bms||[]),...chartBms()])];
+  const want=[...new Set([...(UI.bms||[]),...chartBms(),...Object.values(UI.cardBm||{})])];
   for(const id of want){const b=BENCHMARKS.find(x=>x.id===id);if(!b)continue;const h=C.bm[id];
     if(h&&Date.now()-h.t<12*36e5&&h.from<=start)continue;
     let lastErr=null,ok=false;
@@ -1263,7 +1268,7 @@ function viewCash(v,M,head){
   v.innerHTML=`${head}<div class="card sumgrid" style="margin-top:14px"><div><div class="k">Total cash</div><div class="v">${F(conv(M,tot))}</div></div><div><div class="k">Share of net worth</div><div class="v">${pct1(M.total?tot/M.total:0)}</div></div></div>
    ${rows.length?`<div class="list" style="margin-top:12px">${rows.map(c=>`<button class="item" data-cashacc="${c.acc.id}">${accBadge(c.acc)}<div class="mid"><div class="t1">${esc(c.acc.name)}</div><div class="t2">${esc(c.acc.broker||ACCOUNT_KINDS[c.acc.kind])} · interest/return ${money(c.interest,c.acc.currency,{sign:true})}</div></div><div class="end"><div class="t1">${money(c.balance,c.acc.currency)}</div></div></button>`).join('')}</div>`:'<div class="card muted" style="margin-top:12px">No cash recorded yet.</div>'}
    <div class="btns" style="margin-top:12px"><button class="btn sm" data-act="cash">${iconSm('cash')} Deposit, withdraw or update balance</button></div>
-   <div class="note" style="margin-top:12px">For a money market fund or a savings account, add the money you put in as <b>deposits</b> and now and then <b>update the balance</b> from your statement. The difference counts as your return. ${accs.length?'':'Turn on cash for an account in Settings → Accounts.'}</div>`;
+   <div class="note" style="margin-top:12px">For a money market fund or a savings account, add the money you put in as <b>deposits</b> and now and then <b>update the balance</b> from your statement. The difference counts as your return. ${accs.length?'':'Turn on cash for an account: <button class="linkbtn" data-sset-go="accounts">Accounts</button>.'}</div>`;
 }
 function txTitle(t){const a=t.assetId&&assetById(t.assetId);const acc=accById(t.accountId);
   switch(t.type){case 'buy':return 'Buy · '+a.symbol;case 'sell':return 'Sell · '+a.symbol;case 'split':return 'Split · '+a.symbol;case 'dividend':return (t.amount<0?'Withholding tax · ':'Dividend · ')+(a?a.symbol:'');case 'deposit':return 'Deposit · '+acc.name;case 'withdraw':return 'Withdrawal · '+acc.name;case 'interest':return (t.amount<0?'Fee · ':'Interest · ')+acc.name;case 'balance':return 'Balance update · '+acc.name;case 'transfer':return 'Transfer → '+((accById(t.toAccountId)||{}).name||'?');}return t.type;}
@@ -1522,7 +1527,7 @@ function viewAnalysis(v){
   ${kfCardHTML(M,Z)}
   <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
   <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
-  ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key (Settings → Live prices).':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
+  ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key. <button class="linkbtn" data-sset-go="prices">Live prices settings</button>':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
   ${sameMoneyHTML(M,Z)}
   <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
   <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
@@ -1810,7 +1815,7 @@ function pruneAssets(){S.assets=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.i
 function cashSheet(tx,accId){
   const isEdit=!!tx;const t=tx||{type:'deposit',accountId:accId||(S.accounts.find(a=>a.tracksCash)||{}).id,date:localToday()};
   const tracked=S.accounts.filter(a=>a.tracksCash);
-  if(!tracked.length&&!isEdit){openSheet('Cash','<div class="note">No account tracks cash yet. Open Settings → Accounts, pick an account (for example your savings account) and turn on <b>Track cash</b>.</div>');return;}
+  if(!tracked.length&&!isEdit){openSheet('Cash','<div class="note">No account tracks cash yet. Pick an account (for example your savings account) and turn on <b>Track cash</b>.</div><div class="btns" style="margin-top:10px"><button class="btn primary sm" data-sset-go="accounts">Open accounts</button></div>');return;}
   const types=[['deposit','Deposit'],['withdraw','Withdraw'],['balance','Set balance'],['interest','Interest / fee'],['transfer','Transfer']];
   const body=`<form class="form" id="cashForm" novalidate>${S.demo&&!isEdit?'<div class="banner" style="margin:0">Saving this clears the example portfolio.</div>':''}
    <div style="overflow-x:auto"><div class="seg">${types.map(([k,l])=>`<button type="button" data-ctype="${k}" aria-pressed="${t.type===k}">${l}</button>`).join('')}</div></div>
@@ -1915,7 +1920,7 @@ function portfolioSheet(id){
 function switchSheet(){
   const items=[...S.portfolios.map(p=>({id:p.id,name:p.name,sub:p.accountIds.length+' accounts'})),...(S.portfolios.length>1||S.accounts.length?[{id:'__all',name:'All accounts',sub:'Everything together'}]:[])];
   openSheet('Portfolios',`<div class="list">${items.map(p=>`<button class="item" data-pick="${p.id}"><span class="badge" style="background:${p.id===UI.pid?'var(--accent)':'var(--surface2)'};color:${p.id===UI.pid?'var(--accent-ink)':'var(--fg)'}">${esc(p.name.slice(0,3).toUpperCase())}</span><div class="mid"><div class="t1">${esc(p.name)}</div><div class="t2">${esc(p.sub)}</div></div>${p.id===UI.pid?'<span class="pill up">Open</span>':''}</button>`).join('')}</div>
-   <div class="btns" style="margin-top:12px"><button class="btn sm" data-editpf="__new">${iconSm('plus')} New portfolio</button><button class="btn sm" data-tab="settings">Manage accounts</button></div>`);}
+   <div class="btns" style="margin-top:12px"><button class="btn sm" data-editpf="__new">${iconSm('plus')} New portfolio</button><button class="btn sm" data-sset-go="accounts">Manage accounts</button></div>`);}
 function goalSheet(id){
   const isNew=!id;const g=isNew?{id:uid(),name:'',target:'',date:'',source:'portfolio',saved:'',spend:true}:S.goals.find(x=>x.id===id);if(!g)return;
   openSheet(isNew?'New goal':'Edit goal',`<form class="form" id="gForm"><div class="field"><label for="gN">Goal</label><input id="gN" value="${esc(g.name)}" placeholder="Home deposit"></div>
@@ -3045,7 +3050,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-act="saveconc2"
     $$('[data-conct]').forEach(i=>{const v=parseNum(i.value);c.type[i.dataset.conct]=isFinite(v)&&v>=0&&v<=100?v:0;});
     $$('[data-conca]').forEach(i=>{if(i.value.trim()==='')return;const v=parseNum(i.value);if(isFinite(v)&&v>=0&&v<=100)c.asset[i.dataset.conca]=v;});
     S.conc=c;if(S.demo){lsSet('lq_state',S);}else Store.save();softRender();toast('Limits saved');return;}
-  const g=e.target.closest('[data-sset-go]');if(g){UI.tab='settings';UI.sset=g.dataset.ssetGo;saveUI();render();}});
+});
 
 /* ---------- backup reminder frequency (default weekly) ---------- */
 const BK_OPTS=[[7,'Weekly'],[14,'Every 2 weeks'],[30,'Monthly'],[0,'Off']];
@@ -3177,15 +3182,19 @@ document.addEventListener('change',e=>{if(e.target.id==='shIdx'){UI.shareCard=Ob
 
 /* ================= Insights → Performance: getquin-style performance card + merged Key figures card ================= */
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const pcIdx=()=>(UI.bms&&UI.bms[0])||'URTH';
-const pcIdxName=()=>(BENCHMARKS.find(b=>b.id===pcIdx())||{}).name||'Index';
+/* each card keeps its own index, independent of Compare, the main chart and the other cards */
+let PC_CARD='perf';
+function cardBm(card){UI.cardBm=UI.cardBm||{};let id=UI.cardBm[card];if(!BENCHMARKS.some(b=>b.id===id)){id=(UI.bms&&UI.bms[0])||'URTH';UI.cardBm[card]=id;saveUI();}return id;}
+const pcIdx=(card=PC_CARD)=>cardBm(card);
+const pcIdxName=(card=PC_CARD)=>(BENCHMARKS.find(b=>b.id===pcIdx(card))||{}).name||'Index';
+const bmPick=card=>`<label class="pc-type pc-bm"><select data-cardbm="${card}" aria-label="Index for this card">${BENCHMARKS.map(b=>`<option value="${b.id}" ${pcIdx(card)===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select></label>`;
 function pcState(M){const years=[];for(let y=yearOf(M.firstDay);y<=yearOf(M.today);y++)years.push(y);let per=UI.pcPer;if(per!=='all'&&!years.includes(+per))per='all';
   return {years:years.slice().reverse(),per,type:['bar','heat','line'].includes(UI.pcType)?UI.pcType:'bar'};}
 /* one window (from = day before start, to = last day) → stats, index, costs */
-function pcWin(M,Z,from,to){if(to<M.firstDay||to<=from)return null;const f=Math.max(from,M.firstDay-1);const bi=Math.max(-1,f-M.d0),ei=Math.min(M.N-1,to-M.d0);if(ei<=bi)return null;
+function pcWin(M,Z,from,to,card=PC_CARD){if(to<M.firstDay||to<=from)return null;const f=Math.max(from,M.firstDay-1);const bi=Math.max(-1,f-M.d0),ei=Math.min(M.N-1,to-M.d0);if(ei<=bi)return null;
   const st=statsIdx(M,Z,bi,ei);let fees=0;const fs=ds(f),ts=ds(to);for(const t of M.txs)if((t.type==='buy'||t.type==='sell')&&t.date>fs&&t.date<=ts)fees+=t.fee||0;
-  return {from:f,to,bi,ei,st,idx:idxRet(pcIdx(),f,to,UI.ccy),fees};}
-function pcSlots(M,Z,st){const out=[];const T=M.today;
+  return {from:f,to,bi,ei,st,idx:idxRet(pcIdx(card),f,to,UI.ccy),fees};}
+function pcSlots(M,Z,st){PC_CARD='perf';const out=[];const T=M.today;
   if(st.per==='all'){for(const y of st.years.slice().reverse()){const w=pcWin(M,Z,dn(y+'-01-01')-1,Math.min(dn((y+1)+'-01-01')-1,T));out.push({label:String(y),title:String(y),w});}}
   else{const y=+st.per;for(let m=1;m<=12;m++){const s=dn(`${y}-${pad(m)}-01`);const e=Math.min((m===12?dn((y+1)+'-01-01'):dn(`${y}-${pad(m+1)}-01`))-1,T);out.push({label:MONS[m-1],title:`${MONTHS[m-1]}, ${y}`,w:s<=T?pcWin(M,Z,s-1,e):null});}}
   return out;}
@@ -3203,7 +3212,7 @@ function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</
   return `<div class="th">${esc(s.title)}</div>
    <div class="tr"><span class="sw" style="background:${w.st.twr>=0?'var(--up)':'var(--down)'}"></span><span class="tl">Performance</span><span class="tv ${cl(w.st.twr)}">${pct(w.st.twr)}</span></div>
    <div class="tr"><span class="sw"></span><span class="tl">Gain / loss</span><span class="tv ${cl(w.st.gain)}">${F(w.st.gain,{sign:true})}</span></div>
-   <div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName())}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>
+   <div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName('perf'))}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>
    <div class="tr"><span class="sw"></span><span class="tl">Transaction costs</span><span class="tv">${F(conv(compute(),w.fees))}</span></div>`;}
 /* breakdown of the chosen period, like getquin */
 function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts=ds(w.to);const k=conv(M,1);
@@ -3219,7 +3228,7 @@ function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts
 Object.assign(INFO,{pbInv:'Money you have put in minus what you have taken out, up to the end of the period.',pbPrice:'Change in the value of what you hold, after costs, not counting dividends and gains already taken by selling.',
   pbDiv:'Dividends received in the period (after foreign tax).',pbReal:'Gains or losses locked in by selling during the period (first-in-first-out).',pbTax:'Estimated Norwegian tax on gains realised by selling in the period, after skjerming. Uses your tax rules in Settings.',pbOngoing:'Estimated yearly fund fees (TER) charged inside your funds during the period. Add each fund\'s TER under Holdings → Details.',
   pbIrr:'Money-weighted return per year: counts when you added money. Shown for periods of a year or more.',pbTwr:'Time-weighted return: your investments\' performance with deposits and withdrawals removed, so it can be compared with an index.'});
-function perfCardHTML(M,Z){const st=pcState(M);const slots=pcSlots(M,Z,st);PC_SLOTS=slots;let body='',avg=null;
+function perfCardHTML(M,Z){PC_CARD='perf';const st=pcState(M);const slots=pcSlots(M,Z,st);PC_SLOTS=slots;let body='',avg=null;
   if(st.type==='bar'){const b=pcBarsSVG(slots);avg=b.avg;body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
   else if(st.type==='heat'){const map=periodReturns(M,Z,'month'),gm=periodGains(M,Z,'month');const ys=st.per==='all'?st.years:[+st.per];
     body=heatTable(ys,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gm.get(y*12+m)??null,'pch');const ok=slots.filter(s=>s.w).map(s=>s.w.st.twr);avg=ok.length?Math.pow(ok.reduce((p,v)=>p*(1+v),1),1/ok.length)-1:null;}
@@ -3229,7 +3238,7 @@ function perfCardHTML(M,Z){const st=pcState(M);const slots=pcSlots(M,Z,st);PC_SL
   return `<section class="card pc-card" data-card="perf"><div class="row-between"><div class="sub-h" style="margin:0">Performance</div>
     <label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
    <div class="pc-pers">${[['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
-   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You <span class="lk" style="background:var(--pc-idx);margin-left:8px"></span> ${esc(pcIdxName())}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn('avgBars')}</span>`:''}</div>
+   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You <span class="lk" style="background:var(--pc-idx);margin-left:8px"></span></span>${bmPick('perf')}${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn('avgBars')}</span>`:''}</div>
    ${body}${pcBreakdown(M,Z,win)}</section>`;}
 /* interactions: tap or slide a finger over the bars */
 function pcShow(e){const wrap=$('#pcWrap');if(!wrap||!PC_SLOTS.length)return;const r=wrap.getBoundingClientRect();const x=Math.max(0,Math.min(r.width-1,e.clientX-r.left));const i=Math.floor(x/r.width*PC_SLOTS.length);
@@ -3244,7 +3253,7 @@ function mountPcLine(){const host=$('#pcLine');if(!host)return;const M=compute()
   const from=st.per==='all'?M.firstDay-1:Math.max(M.firstDay-1,dn(st.per+'-01-01')-1),to=st.per==='all'?M.today:Math.min(dn((+st.per+1)+'-01-01')-1,M.today);
   const bi=Math.max(0,from-M.d0),ei=to-M.d0;if(ei<=bi){host.innerHTML='<div class="empty">No data for this period</div>';return;}const idxs=[];for(let i=bi;i<=ei;i++)idxs.push(i);const ix=downsample(idxs);
   const b0=Z.IDX[bi];const series_=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/b0-1})),color:'var(--accent)',label:portfolio().name,fmt:'pct'}];
-  const b=bmSeries(M,pcIdx(),UI.ccy);if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx()],dash:'9 4',width:1.6,label:pcIdxName(),fmt:'pct'});
+  const b=bmSeries(M,pcIdx('perf'),UI.ccy);if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx('perf')],dash:'9 4',width:1.6,label:pcIdxName('perf'),fmt:'pct'});
   mountChart(host,{series:series_,kind:'pct',ccy:UI.ccy,diff:series_.length>1});}
 
 /* ---------- merged Key figures + Your updates ---------- */
@@ -3255,15 +3264,15 @@ function kfWindow(M,p,last){const t=M.today;const dow=(new Date(t*DAY).getUTCDay
   if(p==='q'){const qs=periodStart(t,'quarter');if(!last)return [qs-1,t,'This quarter'];const pq=addMonths(qs,-3);return [pq-1,qs-1,'Last quarter'];}
   if(p==='y'){const y0=dn(yearOf(t)+'-01-01');if(!last)return [y0-1,t,'Year to date'];return [dn((yearOf(t)-1)+'-01-01')-1,y0-1,'Last year'];}
   if(p==='MAX')return [M.firstDay-1,t,'Since you started'];return [rangeBase(p,t),t,'Past '+(RANGE_WORD[p]||p).replace(/^past /,'')];}
-function kfCardHTML(M,Z){const p=KF_P.some(x=>x[0]===UI.kfP)?UI.kfP:'m';const canLast=['w','m','q','y'].includes(p);const last=canLast&&!!UI.kfLast;const [from,to,label]=kfWindow(M,p,last);const w=pcWin(M,Z,from,to);
-  const head=`<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div>${canLast?`<div class="seg" role="group"><button data-kflast="0" aria-pressed="${!last}">This</button><button data-kflast="1" aria-pressed="${last}">Last</button></div>`:''}</div>
+function kfCardHTML(M,Z){PC_CARD='kpis';const p=KF_P.some(x=>x[0]===UI.kfP)?UI.kfP:'m';const canLast=['w','m','q','y'].includes(p);const last=canLast&&!!UI.kfLast;const [from,to,label]=kfWindow(M,p,last);const w=pcWin(M,Z,from,to,'kpis');
+  const head=`<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div><div class="kf-tools">${bmPick('kpis')}${canLast?`<div class="seg" role="group"><button data-kflast="0" aria-pressed="${!last}">This</button><button data-kflast="1" aria-pressed="${last}">Last</button></div>`:''}</div></div>
    <div class="pc-pers" role="group" aria-label="Key figures period">${KF_P.map(([k,l])=>`<button class="pc-per ${['3Y','5Y'].includes(k)&&rangeShort(k,M.firstDay)?'nodata':''}" data-kfp="${k}" aria-pressed="${p===k}">${UI.kfLast&&['w','m','q'].includes(k)?l.replace('This','Last'):UI.kfLast&&k==='y'?'Last year':l}</button>`).join('')}</div>`;
   if(!w)return head+`<div class="muted small" style="padding:8px 0">No data for this period.</div></section>`;const s=w.st;const alpha=w.idx!=null?s.twr-w.idx:null;
   return head+`<div class="small muted" style="margin:2px 0 8px">${esc(label)} · ${dateLabel(Math.max(w.from+1,M.firstDay))} – ${dateLabel(w.to)}</div>
    <div class="kgrid">
     ${kpi('Return (TTWROR)',pct(s.twr),cl(s.twr),'Deposits removed')}
     ${kpi('Gain / loss',F(s.gain,{sign:true}),cl(s.gain),'After fees, incl. dividends')}
-    ${kpi(esc(pcIdxName()),w.idx==null?'—':pct(w.idx),w.idx==null?'':cl(w.idx),alpha==null?'Index prices not loaded':'You vs index: '+pct(alpha))}
+    ${kpi(esc(pcIdxName('kpis')),w.idx==null?'—':pct(w.idx),w.idx==null?'':cl(w.idx),alpha==null?'Index prices not loaded':'You vs index: '+pct(alpha))}
     ${kpi('Money added',F(s.cf,{sign:true}),'','Bought minus sold')}
     ${kpi('Dividends',F(s.div),'','Received')}
     ${kpi('Money-weighted p.a.',s.irr!=null?pct(s.irr):'—',s.irr!=null?cl(s.irr):'','MWR · your timing counts')}
@@ -3280,6 +3289,22 @@ Object.assign(CARD_LIB,{hero:{t:'Total value',p:'overview'},chart:{t:'Main chart
   added:{t:'Money added per year',p:'analysis'},divs:{t:'Dividends',p:'analysis'},costs:{t:'Costs',p:'analysis'},movers:{t:"Today's movers",p:'analysis'}});
 if(!UI.migV3){UI.migV3=1;if(UI.layout){delete UI.layout.overview;delete UI.layout.analysis;}if(UI.asub==='performance'||!UI.asub)UI.asub='performance';saveUI();}
 {const _r=render;render=function(){_r();if(UI.tab==='analysis'&&$('#pcLine'))mountPcLine();};}
+
+document.addEventListener('change',e=>{const c=e.target.dataset&&e.target.dataset.cardbm;if(!c)return;UI.cardBm=Object.assign({},UI.cardBm,{[c]:e.target.value});saveUI();softRender();if(!NET.blocked)fetchBenchmarks();});
+
+/* ================= settings shortcuts open in a small window on the current page (no jump to Settings) ================= */
+function setSheetBody(key){const sec=SET_SECTIONS[key];if(!sec)return '';if(sec.own)return sec.own();const parts=settingsSections();let body=sec.from.map(t=>parts[t]||'').join('');
+  if(sec.from.length===1)body=body.replace(/^<h2 class="sec">[^<]+<\/h2>/,'');return body;}
+function setSheet(key){const sec=SET_SECTIONS[key];if(!sec)return;
+  openSheet(sec.t,`<div class="ss-body" data-ssheet="${key}">${setSheetBody(key)}</div>`,s=>{const body=s.querySelector('.ss-body');let busy=false;
+    const redraw=()=>{if(busy||!document.body.contains(body))return;busy=true;setTimeout(()=>{busy=false;if(!document.body.contains(body))return;const y=body.closest('.panel').scrollTop;body.innerHTML=setSheetBody(key);body.closest('.panel').scrollTop=y;},60);};
+    /* refresh after a button or switch was used, never while typing in a field */
+    body.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.closest('[data-act="close"]'))redraw();});
+    body.addEventListener('change',e=>{if(e.target.matches('select,input[type="checkbox"],input[type="radio"],input[type="color"]'))redraw();});});}
+/* gear buttons and links in cards: data-sset-go="<section>" */
+document.addEventListener('click',e=>{const g=e.target.closest('[data-sset-go]');if(!g)return;e.preventDefault();e.stopImmediatePropagation();setSheet(g.dataset.ssetGo);},true);
+/* Tax view: tax rules gear next to the report title */
+{const _r=render;render=function(){_r();if(UI.tab!=='analysis'||UI.asub!=='tax')return;const sel=$('#taxY');if(sel&&!$('[data-sset-go="taxrules"]'))sel.insertAdjacentHTML('beforebegin',`<button class="gear-btn" data-sset-go="taxrules" aria-label="Tax rules" style="margin-left:auto;margin-right:8px">${iconSm('gear',16)}</button>`);};}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
