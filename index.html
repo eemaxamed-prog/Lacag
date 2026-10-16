@@ -589,6 +589,40 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .pb-row>span:first-child{display:flex;align-items:center;gap:6px;min-width:0}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
 .ss-body .card{background:transparent;padding-left:0;padding-right:0;box-shadow:none;border:0}
+.pc-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.pc-tools select{max-width:42vw}
+/* fit to screen: the tab bar scales with the rest; landscape phones use the full width */
+.tabs-in{zoom:var(--zoom,1)}
+@media (orientation:landscape) and (max-height:500px){
+  main,.top-in,.tabs-in{max-width:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .top-in{padding-top:6px;padding-bottom:6px}
+  .tab{flex-direction:row;gap:6px;padding:4px 0;font-size:12px}
+  .tab svg{width:18px;height:18px}
+  main{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+}
+/* index picker button */
+.bm-pick{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;font-weight:600;max-width:46vw;min-height:32px}
+.bm-pick-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bm-pick svg{flex:none;opacity:.7}
+.bmm-list .item{width:100%}
+.bmm-chk{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent-ink,#000)}
+.bmm-chk.on{background:var(--accent);border-color:var(--accent)}
+.cmp-card .row-between{gap:8px}
+/* view tabs (Holdings, Insights, Plan): solid orange for the open view, bright text for the others */
+.seg:has(>[data-sub]),.seg:has(>[data-asub]),.seg:has(>[data-psub]){padding:3px;border-radius:12px}
+.seg:has(>[data-sub]) button,.seg:has(>[data-asub]) button,.seg:has(>[data-psub]) button{font-size:15px;padding:7px 12px;color:#D5D7DC;font-weight:600}
+.seg:has(>[data-sub]) button[aria-pressed="true"],.seg:has(>[data-asub]) button[aria-pressed="true"],.seg:has(>[data-psub]) button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#000);font-weight:700;box-shadow:none}
+:root[data-look="day"] .seg:has(>[data-sub]) button,:root[data-look="day"] .seg:has(>[data-asub]) button,:root[data-look="day"] .seg:has(>[data-psub]) button{color:#2A2E36}
+:root[data-look="day"] .seg:has(>[data-sub]) button[aria-pressed="true"],:root[data-look="day"] .seg:has(>[data-asub]) button[aria-pressed="true"],:root[data-look="day"] .seg:has(>[data-psub]) button[aria-pressed="true"]{color:var(--accent-ink,#000)}
+.bm-more{color:var(--muted);font-weight:500}
+.seg:has(>[data-sub]),.seg:has(>[data-asub]),.seg:has(>[data-psub]){display:flex;width:max-content;max-width:100%}
+.seg:has(>[data-sub]) button,.seg:has(>[data-asub]) button,.seg:has(>[data-psub]) button{flex:1 0 auto;padding:7px 10px;font-size:14.5px}
+@media (max-width:380px){.seg:has(>[data-sub]) button,.seg:has(>[data-asub]) button,.seg:has(>[data-psub]) button{padding:7px 8px;font-size:13.5px}}
+.seg.more-r{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.seg.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 15%);mask-image:linear-gradient(90deg,transparent,#000 15%)}
+.seg.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 
 </style>
 <header class="top"><div class="top-in">
@@ -1395,11 +1429,10 @@ function viewOverview(v){
   <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
-  <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${key==='1D'?'':perf?`<button class="gear-btn" data-act="chartcfg" aria-label="Choose what the performance chart shows">${iconSm('gear',18)}</button>`:`<button class="tog ev-tog" data-act="events" aria-pressed="${!!UI.events}"><span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Events</button>`}</div>
+  <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${key==='1D'?'':perf?`<div class="pc-tools">${bmMulti('chart')}<button class="gear-btn" data-act="chartcfg" aria-label="Choose what the performance chart shows">${iconSm('gear',18)}</button></div>`:`<button class="tog ev-tog" data-act="events" aria-pressed="${!!UI.events}"><span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Events</button>`}</div>
   <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}">${r}</button>`).join('')}</div>
-  ${perf&&key!=='1D'?`<div class="chips cbm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-cbm="${b.id}" aria-pressed="${chartBms().includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>`:''}
 </section>
   <div data-card="fxeffect"><h2 class="sec">Currency effect</h2>
   <div class="card"><div class="note">You buy USD and EUR assets with kroner, so your result is the price move plus the krone move. This splits your unrealised gain into the two.</div>
@@ -1407,6 +1440,7 @@ function viewOverview(v){
    <div class="sumgrid"><div><div class="k"><span class="dotk" style="background:var(--c1)"></span>From prices</div><div class="v ${cl(pe)}">${kr(pe,{sign:true})}</div><div class="small ${cl(pe)}">${pct(pe/forCost)}</div></div><div><div class="k"><span class="dotk" style="background:var(--c2)"></span>From exchange rates</div><div class="v ${cl(fe)}">${kr(fe,{sign:true})}</div><div class="small ${cl(fe)}">${pct(fe/forCost)}</div></div></div>
    <div class="small muted expl" style="margin-top:6px">% of what you paid for your foreign holdings.</div></div>
   ${fxRows?`<div class="list" style="margin-top:10px">${fxRows}</div>`:''}</div>
+  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
   <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div></div>
 `;
@@ -1451,7 +1485,7 @@ function posPL(M,h,key){const bi=Math.max(-1,rangeBase(key,M.today)-M.d0),ei=M.N
   const pl=h.AV[ei]-Vb-f+div;const base=Vb+fin;return {pl,pct:base>0?pl/base:0};}
 function viewHoldings(v){
   const M=compute();const sub=UI.sub;
-  const head=`${demoBanner()}<div class="row-between" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity'],['watch','Watchlist']],sub)}<button class="btn sm primary" data-act="add">${iconSm('plus')} Add transaction</button></div>`;
+  const head=`${demoBanner()}<div class="vtabs-row" style="margin-top:14px">${seg('sub',[['positions','Positions'],['cash','Cash'],['activity','Activity'],['watch','Watchlist']],sub)}</div><div style="margin-top:10px"><button class="btn sm primary" data-act="add">${iconSm('plus')} Add transaction</button></div>`;
   if(sub==='watch')return viewWatch(v,M,head);
   if(!M){v.innerHTML=head+emptyState();return;}
   if(sub==='watch')return viewWatch(v,M,head);if(sub==='cash')return viewCash(v,M,head);if(sub==='activity')return viewActivity(v,M,head);
@@ -1525,8 +1559,7 @@ function viewAnalysis(v){
   v.innerHTML=`${head}
   ${perfCardHTML(M,Z)}
   ${kfCardHTML(M,Z)}
-  <section class="card cmp-card" data-card="compare"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>
-  <div class="chips cmp-chips">${BENCHMARKS.map(b=>`<button class="tog" data-bm="${b.id}" aria-pressed="${UI.bms.includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
+  <section class="card cmp-card" data-card="compare"><div class="row-between"><div class="sub-h" style="margin:0">Compare with · ${UI.ccy}</div>${bmMulti('cmp')}</div>
   ${UI.bms.length&&UI.bms.some(id=>!C.bm[id])?`<div class="small muted">${!S.settings.tdKey?'Index prices need your Twelve Data key. <button class="linkbtn" data-sset-go="prices">Live prices settings</button>':NET.blocked?'Index prices load when you open Lacag from your home screen.':'Loading index prices…'}</div>`:''}
   ${sameMoneyHTML(M,Z)}
   <div class="cmp-h">Cumulative return (%) <span class="muted expl">· tap a number for money</span></div>${retTable(M,Z,CUM_PERIODS,false)}
@@ -1535,7 +1568,6 @@ function viewAnalysis(v){
   <div data-card="added"><h2 class="sec">Money added per year</h2><div class="card"><div class="bars">${cy.map(([y,val])=>`<div class="bar-row"><span class="num muted">${y}</span><div class="track"><div class="fill" style="width:${Math.abs(val)/cmax*100}%;${val<0?'background:var(--c6)':''}"></div></div><span class="val">${F(val,{sign:true})}</span></div>`).join('')||'<span class="muted">Nothing added yet</span>'}</div></div></div>
   ${(()=>{const d=dividendsCardHTML(M);return d?`<div data-card="divs"><h2 class="sec">Dividends</h2>${d}</div>`:'';})()}
   <div data-card="costs"><h2 class="sec">Costs</h2>${costsHTML(M)}</div>
-  <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
 `;
   const wrap=$('#rbWrap');if(wrap){wrap.scrollLeft=wrap.scrollWidth;wrap.onclick=e=>{const r=e.target.closest('[data-rbar]');if(!r)return;const [l,val]=r.dataset.rbar.split('|');$('#rbRead').innerHTML=`${esc(l)} · <span class="${cl(+val)}">${pct(+val)}</span>`;};}
 }
@@ -3061,7 +3093,7 @@ backupDue=function(){if(S.demo||!S.txs.length)return false;const ev=backupEvery(
 document.addEventListener('click',e=>{const b=e.target.closest('[data-bkevery]');if(b){UI.backupEvery=+b.dataset.bkevery;saveUI();softRender();}});
 
 /* ---------- settings: search + new sections ---------- */
-const SET_KW={start:'open first page home start',look:'colour color colors theme night day dark light accent background font text size transparency card',tables:'numbers decimals dot comma compact average ø avg',
+const SET_KW={start:'open first page home start',look:'colour color colors theme night day dark light accent background font text size transparency card fit screen zoom landscape ipad',tables:'numbers decimals dot comma compact average ø avg',
   currency:'nok eur usd exchange rates kr symbol',updown:'green red blue colour blind arrows',arrange:'cards order move hide add layout',expl:'calm explanations hints privacy hide amounts',
   check:'problems duplicates missing prices broker',household:'wife partner family',portfolios:'portfolio',accounts:'ask aksjekonto kraken nordnet bank',import:'csv nordnet kraken file',
   prices:'twelve data key helper cloudflare live',taxrules:'skatt skjerming tax 22 37.84',conc:'concentration limits warning share',share:'friends family link install',install:'iphone android home screen',
@@ -3184,35 +3216,35 @@ document.addEventListener('change',e=>{if(e.target.id==='shIdx'){UI.shareCard=Ob
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 /* each card keeps its own index, independent of Compare, the main chart and the other cards */
 let PC_CARD='perf';
-function cardBm(card){UI.cardBm=UI.cardBm||{};let id=UI.cardBm[card];if(!BENCHMARKS.some(b=>b.id===id)){id=(UI.bms&&UI.bms[0])||'URTH';UI.cardBm[card]=id;saveUI();}return id;}
+function cardBm(card){UI.cardBm=UI.cardBm||{};let id=UI.cardBm[card];if(id==='none')return null;if(!BENCHMARKS.some(b=>b.id===id)){id=(UI.bms&&UI.bms[0])||'URTH';UI.cardBm[card]=id;saveUI();}return id;}
 const pcIdx=(card=PC_CARD)=>cardBm(card);
 const pcIdxName=(card=PC_CARD)=>(BENCHMARKS.find(b=>b.id===pcIdx(card))||{}).name||'Index';
-const bmPick=card=>`<label class="pc-type pc-bm"><select data-cardbm="${card}" aria-label="Index for this card">${BENCHMARKS.map(b=>`<option value="${b.id}" ${pcIdx(card)===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select></label>`;
+const bmPick=card=>`<label class="pc-type pc-bm"><select data-cardbm="${card}" aria-label="Index for this card"><option value="none" ${pcIdx(card)?'':'selected'}>No index</option>${BENCHMARKS.map(b=>`<option value="${b.id}" ${pcIdx(card)===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select></label>`;
 function pcState(M){const years=[];for(let y=yearOf(M.firstDay);y<=yearOf(M.today);y++)years.push(y);let per=UI.pcPer;if(per!=='all'&&!years.includes(+per))per='all';
   return {years:years.slice().reverse(),per,type:['bar','heat','line'].includes(UI.pcType)?UI.pcType:'bar'};}
 /* one window (from = day before start, to = last day) → stats, index, costs */
 function pcWin(M,Z,from,to,card=PC_CARD){if(to<M.firstDay||to<=from)return null;const f=Math.max(from,M.firstDay-1);const bi=Math.max(-1,f-M.d0),ei=Math.min(M.N-1,to-M.d0);if(ei<=bi)return null;
   const st=statsIdx(M,Z,bi,ei);let fees=0;const fs=ds(f),ts=ds(to);for(const t of M.txs)if((t.type==='buy'||t.type==='sell')&&t.date>fs&&t.date<=ts)fees+=t.fee||0;
-  return {from:f,to,bi,ei,st,idx:idxRet(pcIdx(card),f,to,UI.ccy),fees};}
+  return {from:f,to,bi,ei,st,idx:pcIdx(card)?idxRet(pcIdx(card),f,to,UI.ccy):null,fees};}
 function pcSlots(M,Z,st){PC_CARD='perf';const out=[];const T=M.today;
   if(st.per==='all'){for(const y of st.years.slice().reverse()){const w=pcWin(M,Z,dn(y+'-01-01')-1,Math.min(dn((y+1)+'-01-01')-1,T));out.push({label:String(y),title:String(y),w});}}
   else{const y=+st.per;for(let m=1;m<=12;m++){const s=dn(`${y}-${pad(m)}-01`);const e=Math.min((m===12?dn((y+1)+'-01-01'):dn(`${y}-${pad(m+1)}-01`))-1,T);out.push({label:MONS[m-1],title:`${MONTHS[m-1]}, ${y}`,w:s<=T?pcWin(M,Z,s-1,e):null});}}
   return out;}
 let PC_SLOTS=[];
-function pcBarsSVG(slots){const W=360,H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
+function pcBarsSVG(slots,avgIn){const W=360,H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
   const vals=slots.flatMap(s=>s.w?[s.w.st.twr,s.w.idx]:[]).filter(v=>v!=null&&isFinite(v));let hi=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi-lo<0.002){hi+=0.001;lo-=0.001;}const pad_=(hi-lo)*0.06;hi+=hi>0?pad_:0;lo-=lo<0?pad_:0;
   const y=v=>pt+(hi-v)/(hi-lo)*(H-pt-pb);mid=y(0);
   let svg=`<svg class="pc-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Performance per period">`;
   svg+=`<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)" stroke-dasharray="2 3"/>`;const mine=[];slots.forEach((s,i)=>{const cx=sw*i+sw/2;svg+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(s.label)}</text>`;if(!s.w)return;
     const iv=s.w.idx;if(iv!=null&&isFinite(iv)){const yy=y(iv);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="var(--pc-idx)"/>`;}
     const v=s.w.st.twr;mine.push(v);const yy=y(v);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="${v>=0?'var(--up)':'var(--down)'}" opacity=".95"/>`;});
-  const avg=mine.length?Math.pow(mine.reduce((p,v)=>p*(1+v),1),1/mine.length)-1:null;if(avg!=null)svg+=`<line x1="0" x2="${W}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
+  const avg=avgIn!==undefined?avgIn:(mine.length?Math.pow(mine.reduce((p,v)=>p*(1+v),1),1/mine.length)-1:null);if(avg!=null)svg+=`<line x1="0" x2="${W}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
   svg+=`<line class="pc-cur" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="var(--fg)" opacity="0" stroke-width="1"/></svg>`;return {svg,avg};}
 function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</div><div class="tr sub"><span class="tl">No data</span></div>`;const w=s.w;
   return `<div class="th">${esc(s.title)}</div>
    <div class="tr"><span class="sw" style="background:${w.st.twr>=0?'var(--up)':'var(--down)'}"></span><span class="tl">Performance</span><span class="tv ${cl(w.st.twr)}">${pct(w.st.twr)}</span></div>
    <div class="tr"><span class="sw"></span><span class="tl">Gain / loss</span><span class="tv ${cl(w.st.gain)}">${F(w.st.gain,{sign:true})}</span></div>
-   <div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName('perf'))}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>
+   ${pcIdx('perf')?`<div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName('perf'))}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>`:''}
    <div class="tr"><span class="sw"></span><span class="tl">Transaction costs</span><span class="tv">${F(conv(compute(),w.fees))}</span></div>`;}
 /* breakdown of the chosen period, like getquin */
 function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts=ds(w.to);const k=conv(M,1);
@@ -3227,22 +3259,24 @@ function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts
    <div class="pb-total">${row('<b>Total return</b>','',F(st.gain,{sign:true}),'',cl(st.gain))}${row('<b>Internal rate of return</b>','pbIrr',st.irr!=null?pct(st.irr):'—','',st.irr!=null?cl(st.irr):'')}${row('<b>True time-weighted return</b>','pbTwr',pct(st.twr),'',cl(st.twr))}</div></div>`;}
 Object.assign(INFO,{pbInv:'Money you have put in minus what you have taken out, up to the end of the period.',pbPrice:'Change in the value of what you hold, after costs, not counting dividends and gains already taken by selling.',
   pbDiv:'Dividends received in the period (after foreign tax).',pbReal:'Gains or losses locked in by selling during the period (first-in-first-out).',pbTax:'Estimated Norwegian tax on gains realised by selling in the period, after skjerming. Uses your tax rules in Settings.',pbOngoing:'Estimated yearly fund fees (TER) charged inside your funds during the period. Add each fund\'s TER under Holdings → Details.',
-  pbIrr:'Money-weighted return per year: counts when you added money. Shown for periods of a year or more.',pbTwr:'Time-weighted return: your investments\' performance with deposits and withdrawals removed, so it can be compared with an index.'});
+  avgPcAll:'Average yearly return since your first investment, counting your real number of days (a part year counts as a part year). This is the same Ø as in Total value.',avgPcYear:'Average monthly return in this year, counting only the days you were invested.',pbIrr:'Money-weighted return per year: counts when you added money. Shown for periods of a year or more.',pbTwr:'Time-weighted return: your investments\' performance with deposits and withdrawals removed, so it can be compared with an index.'});
 function perfCardHTML(M,Z){PC_CARD='perf';const st=pcState(M);const slots=pcSlots(M,Z,st);PC_SLOTS=slots;let body='',avg=null;
-  if(st.type==='bar'){const b=pcBarsSVG(slots);avg=b.avg;body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
-  else if(st.type==='heat'){const map=periodReturns(M,Z,'month'),gm=periodGains(M,Z,'month');const ys=st.per==='all'?st.years:[+st.per];
-    body=heatTable(ys,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gm.get(y*12+m)??null,'pch');const ok=slots.filter(s=>s.w).map(s=>s.w.st.twr);avg=ok.length?Math.pow(ok.reduce((p,v)=>p*(1+v),1),1/ok.length)-1:null;}
-  else{body=`<div class="chart" id="pcLine" style="height:200px"></div>`;}
   const win=st.per==='all'?pcWin(M,Z,M.firstDay-1,M.today):pcWin(M,Z,dn(st.per+'-01-01')-1,Math.min(dn((+st.per+1)+'-01-01')-1,M.today));
+  /* Ø: All time = yearly return over your real number of days (same as Total value); a year = monthly return over its real months */
+  if(win){const days=win.ei-Math.max(0,win.bi);avg=st.per==='all'?avgStartAnnual(M,Z):(days>0?Math.pow(1+win.st.twr,30.4375/days)-1:null);}
+  if(st.type==='bar'){const b=pcBarsSVG(slots,avg);body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
+  else if(st.type==='heat'){const map=periodReturns(M,Z,'month'),gm=periodGains(M,Z,'month');const ys=st.per==='all'?st.years:[+st.per];
+    body=heatTable(ys,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gm.get(y*12+m)??null,'pch');}
+  else{body=`<div class="chart" id="pcLine" style="height:200px"></div>`;}
   const types=[['bar','Bar chart'],['heat','Heatmap'],['line','Line chart']];
   return `<section class="card pc-card" data-card="perf"><div class="row-between"><div class="sub-h" style="margin:0">Performance</div>
-    <label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
+    <div class="pc-tools">${bmPick('perf')}<label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div></div>
    <div class="pc-pers">${[['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
-   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You <span class="lk" style="background:var(--pc-idx);margin-left:8px"></span></span>${bmPick('perf')}${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn('avgBars')}</span>`:''}</div>
+   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You${pcIdx('perf')?` <span class="lk" style="background:${st.type==='line'?BM_COLOR[pcIdx('perf')]:'var(--pc-idx)'};margin-left:8px"></span> ${esc(pcIdxName('perf'))}`:''}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn(st.per==='all'?'avgPcAll':'avgPcYear')}</span>`:''}</div>
    ${body}${pcBreakdown(M,Z,win)}</section>`;}
 /* interactions: tap or slide a finger over the bars */
 function pcShow(e){const wrap=$('#pcWrap');if(!wrap||!PC_SLOTS.length)return;const r=wrap.getBoundingClientRect();const x=Math.max(0,Math.min(r.width-1,e.clientX-r.left));const i=Math.floor(x/r.width*PC_SLOTS.length);
-  const tip=$('#pcTip');tip.innerHTML=pcTipHTML(PC_SLOTS[i]);tip.hidden=false;const cx=(i+0.5)/PC_SLOTS.length*r.width;const tw=tip.offsetWidth;let left=cx>r.width/2?cx-tw-12:cx+12;tip.style.left=Math.max(0,Math.min(r.width-tw,left))+'px';
+  const tip=$('#pcTip');tip.innerHTML=pcTipHTML(PC_SLOTS[i]);tip.hidden=false;const cx=(i+0.5)/PC_SLOTS.length*r.width;const z=r.width/(wrap.offsetWidth||r.width)||1;const W=r.width/z,cxx=cx/z;const tw=tip.offsetWidth;let left=cxx>W/2?cxx-tw-12:cxx+12;tip.style.left=Math.max(0,Math.min(W-tw,left))+'px';
   const cur=wrap.querySelector('.pc-cur');if(cur){const sx=(i+0.5)/PC_SLOTS.length*360;cur.setAttribute('x1',sx);cur.setAttribute('x2',sx);cur.setAttribute('opacity','.35');}}
 document.addEventListener('pointerdown',e=>{const w=e.target.closest('#pcWrap');if(w){pcShow(e);return;}const tip=$('#pcTip');if(tip&&!e.target.closest('#pcTip')){tip.hidden=true;const c=document.querySelector('#pcWrap .pc-cur');if(c)c.setAttribute('opacity','0');}});
 document.addEventListener('pointermove',e=>{if(e.target.closest('#pcWrap')&&(e.pointerType!=='mouse'||e.buttons||true))pcShow(e);});
@@ -3253,7 +3287,7 @@ function mountPcLine(){const host=$('#pcLine');if(!host)return;const M=compute()
   const from=st.per==='all'?M.firstDay-1:Math.max(M.firstDay-1,dn(st.per+'-01-01')-1),to=st.per==='all'?M.today:Math.min(dn((+st.per+1)+'-01-01')-1,M.today);
   const bi=Math.max(0,from-M.d0),ei=to-M.d0;if(ei<=bi){host.innerHTML='<div class="empty">No data for this period</div>';return;}const idxs=[];for(let i=bi;i<=ei;i++)idxs.push(i);const ix=downsample(idxs);
   const b0=Z.IDX[bi];const series_=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/b0-1})),color:'var(--accent)',label:portfolio().name,fmt:'pct'}];
-  const b=bmSeries(M,pcIdx('perf'),UI.ccy);if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx('perf')],dash:'9 4',width:1.6,label:pcIdxName('perf'),fmt:'pct'});
+  const b=pcIdx('perf')?bmSeries(M,pcIdx('perf'),UI.ccy):null;if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx('perf')],dash:'9 4',width:1.6,label:pcIdxName('perf'),fmt:'pct'});
   mountChart(host,{series:series_,kind:'pct',ccy:UI.ccy,diff:series_.length>1});}
 
 /* ---------- merged Key figures + Your updates ---------- */
@@ -3272,7 +3306,7 @@ function kfCardHTML(M,Z){PC_CARD='kpis';const p=KF_P.some(x=>x[0]===UI.kfP)?UI.k
    <div class="kgrid">
     ${kpi('Return (TTWROR)',pct(s.twr),cl(s.twr),'Deposits removed')}
     ${kpi('Gain / loss',F(s.gain,{sign:true}),cl(s.gain),'After fees, incl. dividends')}
-    ${kpi(esc(pcIdxName('kpis')),w.idx==null?'—':pct(w.idx),w.idx==null?'':cl(w.idx),alpha==null?'Index prices not loaded':'You vs index: '+pct(alpha))}
+    ${pcIdx('kpis')?kpi(esc(pcIdxName('kpis')),w.idx==null?'—':pct(w.idx),w.idx==null?'':cl(w.idx),alpha==null?'Index prices not loaded':'You vs index: '+pct(alpha)):kpi('Days',nf0.format(w.ei-Math.max(0,w.bi)),'','In this period')}
     ${kpi('Money added',F(s.cf,{sign:true}),'','Bought minus sold')}
     ${kpi('Dividends',F(s.div),'','Received')}
     ${kpi('Money-weighted p.a.',s.irr!=null?pct(s.irr):'—',s.irr!=null?cl(s.irr):'','MWR · your timing counts')}
@@ -3283,10 +3317,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-kfp]');if(
 
 /* ---------- new default layouts: Overview = Total value, Main chart, Currency effect, Allocation ---------- */
 for(const k of Object.keys(CARD_LIB))delete CARD_LIB[k];
-Object.assign(CARD_LIB,{hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},fxeffect:{t:'Currency effect',p:'overview'},alloc:{t:'Allocation',p:'overview'},
+Object.assign(CARD_LIB,{hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},alloc:{t:'Allocation',p:'overview'},movers:{t:"Today's movers",p:'overview'},fxeffect:{t:'Currency effect',p:'overview'},
   hsum:{t:'Holdings summary',p:'holdings'},positions:{t:'Positions table',p:'holdings'},closed:{t:'Closed positions',p:'holdings'},
   perf:{t:'Performance',p:'analysis'},kpis:{t:'Key figures',p:'analysis'},compare:{t:'Compare with & return tables',p:'analysis'},conc:{t:'Concentration',p:'analysis'},
-  added:{t:'Money added per year',p:'analysis'},divs:{t:'Dividends',p:'analysis'},costs:{t:'Costs',p:'analysis'},movers:{t:"Today's movers",p:'analysis'}});
+  added:{t:'Money added per year',p:'analysis'},divs:{t:'Dividends',p:'analysis'},costs:{t:'Costs',p:'analysis'}});
+if(!UI.migV4){UI.migV4=1;if(UI.layout){delete UI.layout.overview;delete UI.layout.analysis;}saveUI();}
 if(!UI.migV3){UI.migV3=1;if(UI.layout){delete UI.layout.overview;delete UI.layout.analysis;}if(UI.asub==='performance'||!UI.asub)UI.asub='performance';saveUI();}
 {const _r=render;render=function(){_r();if(UI.tab==='analysis'&&$('#pcLine'))mountPcLine();};}
 
@@ -3305,6 +3340,34 @@ function setSheet(key){const sec=SET_SECTIONS[key];if(!sec)return;
 document.addEventListener('click',e=>{const g=e.target.closest('[data-sset-go]');if(!g)return;e.preventDefault();e.stopImmediatePropagation();setSheet(g.dataset.ssetGo);},true);
 /* Tax view: tax rules gear next to the report title */
 {const _r=render;render=function(){_r();if(UI.tab!=='analysis'||UI.asub!=='tax')return;const sel=$('#taxY');if(sel&&!$('[data-sset-go="taxrules"]'))sel.insertAdjacentHTML('beforebegin',`<button class="gear-btn" data-sset-go="taxrules" aria-label="Tax rules" style="margin-left:auto;margin-right:8px">${iconSm('gear',16)}</button>`);};}
+
+/* ================= fit to screen: text and everything else scale with the screen (portrait, landscape, small and big) ================= */
+/* based on the short side of the screen, so turning the phone keeps the same size; 390 px (iPhone) = 100 % */
+function autoFit(){if(UI.autoFit===false)return 1;const s=Math.min(window.innerWidth,window.innerHeight);return Math.max(0.92,Math.min(1.3,s/390));}
+{const _al=applyLook;applyLook=function(){_al();const L=look();const z=(TEXT_SIZES.find(x=>x[0]===L.size)||TEXT_SIZES[1])[2];const f=autoFit();document.documentElement.style.setProperty('--zoom',String(+(z*f).toFixed(3)));document.documentElement.dataset.fit=f>1.01?'big':f<0.99?'small':'normal';};}
+{let t=null,last=autoFit();const on=()=>{clearTimeout(t);t=setTimeout(()=>{const f=autoFit();if(Math.abs(f-last)<0.005)return;last=f;applyLook();softRender();},150);};window.addEventListener('resize',on);window.addEventListener('orientationchange',on);}
+{const _ls=lookSettingsHTML;lookSettingsHTML=function(){return _ls().replace('<div><button class="btn sm" data-lkreset="1">',`<div class="look-row"><span class="lbl2">Fit to screen</span><div class="seg" role="group"><button data-autofit="1" aria-pressed="${UI.autoFit!==false}">Auto</button><button data-autofit="0" aria-pressed="${UI.autoFit===false}">Off</button></div></div><div class="hint">Auto makes text, buttons and charts a little bigger on big screens and iPad, and a little smaller on small phones. Your text size choice comes on top.</div><div><button class="btn sm" data-lkreset="1">`);};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-autofit]');if(!b)return;UI.autoFit=b.dataset.autofit==='1';saveUI();applyLook();softRender();});
+applyLook(); /* apply text size + fit at start (earlier wrappers only ran on later changes) */
+
+/* ================= index picker top right (several indexes): Main chart and Compare card ================= */
+const BMM={chart:{get:()=>chartBms(),set:L=>{UI.chartBms=L;},t:'Indexes in the chart'},cmp:{get:()=>UI.bms.slice(),set:L=>{UI.bms=L;},t:'Compare with'}};
+function bmMulti(k){const L=BMM[k].get().filter(id=>BENCHMARKS.some(b=>b.id===id));const first=BENCHMARKS.find(b=>b.id===L[0]);
+  const label=!L.length?'No index':esc(first.name)+(L.length>1?` <span class="bm-more">&amp; ${L.length-1} more</span>`:'');
+  return `<button class="bm-pick" data-bmmulti="${k}" aria-label="Choose indexes">${L.length?`<span class="lk" style="background:${BM_COLOR[L[0]]}"></span>`:''}<span class="bm-pick-t">${label}</span>${iconSm('down',14)}</button>`;}
+function bmMultiBody(k){const L=BMM[k].get();
+  return `<div class="list bmm-list"><button class="item" data-bmmset="${k}:none"><div class="mid"><div class="t1">No index</div></div><span class="bmm-chk ${L.length?'':'on'}">${L.length?'':'✓'}</span></button>
+   ${BENCHMARKS.map(b=>`<button class="item" data-bmmset="${k}:${b.id}"><span class="lk" style="background:${lkBg(BM_COLOR[b.id],BM_DASH[b.id])}"></span><div class="mid"><div class="t1">${esc(b.name)}</div></div><span class="bmm-chk ${L.includes(b.id)?'on':''}">${L.includes(b.id)?'✓':''}</span></button>`).join('')}</div>
+   <div class="hint" style="margin-top:8px">Tick one or more. Only this card changes.</div>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-bmmulti]');if(b){const k=b.dataset.bmmulti;openSheet(BMM[k].t,`<div id="bmmBody">${bmMultiBody(k)}</div>`);return;}
+  const s=e.target.closest('[data-bmmset]');if(!s)return;const [k,id]=s.dataset.bmmset.split(':');let L=BMM[k].get();
+  if(id==='none')L=[];else{const i=L.indexOf(id);if(i>=0)L.splice(i,1);else L.push(id);}
+  BMM[k].set(L);saveUI();const body=$('#bmmBody');if(body)body.innerHTML=bmMultiBody(k);softRender();if(!NET.blocked)fetchBenchmarks();});
+/* view tabs that don't fit: keep the open view in sight and fade the edge that has more */
+function vtabsFit(){document.querySelectorAll('#view .seg').forEach(s=>{if(!s.querySelector('[data-sub],[data-asub],[data-psub]'))return;const on=s.querySelector('[aria-pressed="true"]');
+  const upd=()=>{const over=s.scrollWidth>s.clientWidth+2;s.classList.toggle('more-r',over&&s.scrollLeft+s.clientWidth<s.scrollWidth-2);s.classList.toggle('more-l',over&&s.scrollLeft>2);};
+  if(on&&s.scrollWidth>s.clientWidth+2){const l=on.offsetLeft-s.clientWidth/2+on.offsetWidth/2;s.scrollLeft=Math.max(0,l);}upd();if(!s._vt){s._vt=1;s.addEventListener('scroll',upd,{passive:true});}});}
+{const _r=render;render=function(){_r();vtabsFit();};}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
