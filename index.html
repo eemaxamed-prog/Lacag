@@ -519,6 +519,53 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .sm-row{display:flex;align-items:center;gap:10px;padding:8px 0}.sm-row .mid{flex:1;min-width:0}.sm-row .t1{font-size:13.5px;font-weight:600}.sm-row .t2{font-size:12px;color:var(--muted)}
 .sm-row .end{text-align:right;white-space:nowrap}.sm-row .sw{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
 
+/* battery: no live blur behind the top and bottom bars */
+.top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:color-mix(in srgb,var(--bg) 97%,transparent)!important}
+.tabs{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:color-mix(in srgb,var(--surface) 98%,transparent)!important}
+
+/* brighter up/down colours (arrows ▲▼ always shown as well) */
+:root{--up:#1FE98A;--down:#FF4A4A}
+:root[data-updown="cvd"]{--up:#4DB4FF;--down:#FF4A4A}
+:root[data-look="day"]:not([data-updown="cvd"]){--up:#00A05A;--down:#E3262B}
+:root[data-look="day"][data-updown="cvd"]{--up:#0A7BE0;--down:#E3262B}
+/* Ø average + info boxes */
+.hero-val{flex-wrap:wrap}
+.avg-row{display:flex;gap:8px;margin-left:auto;align-items:center}
+.avg-chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-num);font-size:14px;background:var(--surface2);border-radius:9px;padding:5px 6px 5px 9px}
+.avg-chip .small{font-size:11px}
+.avg-ø{color:var(--muted);font-weight:600}
+.info-i{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--muted);background:none;color:var(--muted);font:700 11px/1 var(--f-body);display:inline-grid;place-items:center;padding:0;font-style:italic}
+.info-pop{position:absolute;z-index:90;background:var(--surface2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.4;box-shadow:0 10px 30px rgb(0 0 0 / .45)}
+.rb-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+/* concentration card */
+.conc-card .gear-btn{width:30px;height:30px}
+.cc-row{display:grid;grid-template-columns:52px minmax(0,1fr) 58px 62px;gap:8px;align-items:center;padding:5px 0;font-size:13px}
+.cc-sym{font-weight:700}.cc-p{text-align:right}.cc-l{text-align:right}
+.cc-bar{position:relative;height:8px;border-radius:4px;background:var(--surface2)}
+.cc-bar span{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--muted)}
+.cc-bar i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.6}
+.cc-row.over .cc-bar span{background:var(--amber)}.cc-row.over .cc-p,.cc-row.over .cc-sym{color:var(--amber)}
+/* settings search */
+.set-search{margin:6px 0 4px}.set-search input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 14px;font-size:16px;color:var(--fg)}
+.set-none{margin-top:12px}
+/* colour picker */
+.cp-sv{position:relative;height:200px;border-radius:12px;touch-action:none;cursor:crosshair}
+.cp-dot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgb(0 0 0 / .5);pointer-events:none}
+.cp-hue{position:relative;height:28px;margin-top:14px;border-radius:14px;touch-action:none;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.cp-knob{position:absolute;top:-3px;width:16px;height:34px;margin-left:-8px;border-radius:8px;border:3px solid #fff;box-shadow:0 0 0 1px rgb(0 0 0 / .5);pointer-events:none}
+.cp-prev{width:56px;height:36px;border-radius:10px;border:1px solid var(--line)}
+/* share card preview */
+.sh-prev img{width:100%;border-radius:14px;display:block;border:1px solid var(--line)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hero-top .eye-btn{width:30px;height:30px}
+.hero-val{flex-wrap:nowrap;align-items:center;gap:10px}
+.hero-val .big{min-width:0}
+.hero-val .avg-row{flex:0 0 auto}
+.hero-val .avg-chip{background:none;padding:0;font-size:13.5px;gap:4px}
+.hero-val{flex-wrap:wrap;row-gap:4px}
+.hero-val .big{white-space:nowrap;flex:0 0 auto}
+.hero-val .avg-row{margin-left:auto}
+
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -923,6 +970,8 @@ async function fetchHelper(a){const sym=yahooSym(a);if(!sym)throw new Error('Set
   if(need){const cs=cleanSpikes(j.series.filter(x=>x[1]>0),thr);C.hist[key]={t:Date.now(),from,q,src:'yahoo',clean:true,fixed:cs.fixed,s:cs.s.filter(x=>x[0]>=from)};}
   else{const s=C.hist[key].s;for(const [d,c] of j.series){const i=s.findIndex(x=>x[0]===d);if(i>=0)s[i][1]=c;else if(!s.length||d>s[s.length-1][0])s.push([d,c]);}const cs=cleanSpikes(s,thr);C.hist[key].s=cs.s;C.hist[key].fixed=(C.hist[key].fixed||0)+cs.fixed;}
   if(j.price>0)C.live[a.id]={date:localToday(),price:+j.price,q,t:Date.now(),src:'yahoo'};}
+/* while prices arrive one by one, redraw at most every ~0.4 s (less work, less battery) */
+let RS_T=null;function renderSoon(){if(RS_T)return;RS_T=setTimeout(()=>{RS_T=null;if(!document.hidden)softRender();},400);}
 let tdNext=0;
 async function td(endpoint,params){
   const wait=tdNext-Date.now();if(wait>0)await sleep(wait);tdNext=Date.now()+7800;
@@ -948,31 +997,34 @@ async function fetchBenchmarks(){
       const s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0);if(!s.length)throw new Error('No data');
       C.bm[id]={t:Date.now(),from:start,cur:(j.meta&&j.meta.currency)||b.cur,s};delete C.err['bm:'+id];ok=true;break;}catch(e){lastErr=e;}}
     if(!ok)C.err['bm:'+id]=b.id==='OSEBX'?'Not available on your Twelve Data plan':String((lastErr&&lastErr.message)||lastErr);
-    VERSION++;saveCache();render();}
+    VERSION++;saveCache();renderSoon();}
 }
 async function refresh(force){
   if(NET.busy)return;NET.busy=true;renderTop();
   if(force)for(const k in C.live)C.live[k].t=0;
   try{
     try{await fetchFx();NET.blocked=false;NET.lastOk=Date.now();}catch(e){NET.blocked=true;}
-    NET.checked=true;VERSION++;saveCache();render();
+    NET.checked=true;VERSION++;saveCache();renderSoon();
     if(!NET.blocked){
       const active=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));
-      for(const a of active.filter(a=>a.cls==='crypto')){try{await fetchCrypto(a);delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();render();}
+      for(const a of active.filter(a=>a.cls==='crypto')){try{await fetchCrypto(a);delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();renderSoon();}
       for(const a of active.filter(a=>a.cls!=='crypto')){
         if(!S.settings.tdKey&&!helperUrl()){C.err[a.id]='Add a Twelve Data key or a price helper in Settings → Live prices';continue;}
         try{if(useHelper(a)){try{await fetchHelper(a);}catch(e){if(!S.settings.tdKey||/:/.test(a.dataSymbol||''))throw e;await fetchTD(a);}}
           else{try{await fetchTD(a);}catch(e){if(helperUrl()&&/plan|not available|not found|invalid/i.test(String(e.message||e)))await fetchHelper(a);else throw e;}}
-          delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();render();}
+          delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();renderSoon();}
       await fetchBenchmarks();NET.lastOk=Date.now();}
-  }finally{NET.busy=false;VERSION++;saveCache();render();}
+  }finally{NET.busy=false;VERSION++;saveCache();renderSoon();}
 }
 
 /* ================= charts ================= */
 const PALETTE=['--c1','--c2','--c3','--c4','--c5','--c6','--c7','--c8'];
 function colorVar(a){if(a.symbol&&a.symbol.toUpperCase()==='BTC')return 'var(--btc)';const i=Math.max(0,S.assets.indexOf(a));return `var(${PALETTE[i%PALETTE.length]})`;}
 function accColor(acc){const i=Math.max(0,S.accounts.indexOf(acc));return `var(${PALETTE[(i+1)%PALETTE.length]})`;}
-const BM_COLOR={SPY:'var(--c4)',QQQ:'var(--c3)',URTH:'var(--c6)',ACWI:'var(--c7)'};
+/* benchmarks: clearly different colours (no red/green) and dashed, thinner lines so your own lines stand out */
+const BM_COLOR={SPY:'#4DA3FF',QQQ:'#FFE14D',URTH:'#F472D0',ACWI:'#B9C2CF'};
+const BM_DASH={SPY:'9 4',QQQ:'9 4',URTH:'9 4',ACWI:'9 4'};
+function lkBg(c,dash){if(!dash)return c;const p=dash.split(' ').map(Number);const on=Math.max(2,p[0]),off=Math.max(2,p[1]||3);return `repeating-linear-gradient(90deg,${c} 0 ${on}px,transparent ${on}px ${on+off}px)`;}
 function niceTicks(lo,hi,n=3){const span=hi-lo;if(span<=0)return [lo];const step0=span/n;const mag=Math.pow(10,Math.floor(Math.log10(step0)));const err=step0/mag;const step=(err>=7.5?10:err>=3.5?5:err>=1.5?2:1)*mag;const out=[];for(let v=Math.ceil(lo/step)*step;v<=hi+1e-9;v+=step)out.push(+v.toFixed(10));return out;}
 let chartSeq=0;
 function mountChart(host,cfg){
@@ -1266,7 +1318,7 @@ function retTable(M,Z,periods,annual){const wide=periods.length>5;const g=annual
     rows.push(`<tr class="bm"><th><span class="sw" style="background:${BM_COLOR[id]}"></span>${esc(b.name)}</th>${periods.map(([c])=>cell(bmPeriodRet(M,Z,id,c,annual),g?bmGain(id,c):null)).join('')}</tr>`);}
   return `<div class="hm-wrap"><table class="rtab${wide?' wide':''}" style="--tw:${96+periods.length*60}px"><thead><tr><th></th>${periods.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
 /* performance per asset type, same time-weighted method as the whole portfolio */
-const CLS_LINE={all:['All assets','var(--accent)'],stock:['Stocks','#C9A0FF'],etf:['ETFs & funds','#EDEDED'],crypto:['Crypto','#EDEDED','5 3']};
+const CLS_LINE={all:['All assets','var(--accent)'],stock:['Stocks','#C9A0FF','1 0'],etf:['ETFs & funds','#F2F2F2','2 3'],crypto:['Crypto','#4DE1FF','8 3 2 3']};
 function classZ(M,ccy,cls){M._cls=M._cls||{};const key=ccy+'|'+cls;if(M._cls[key])return M._cls[key];
   const N=M.N;const hs=M.holdings.filter(h=>(h.a.cls==='fund'?'etf':h.a.cls)===cls);if(!hs.length)return (M._cls[key]=null);
   const f=i=>ccy==='NOK'?1:M.fxAt(ccy,i);const V=new Float64Array(N),CF=new Float64Array(N),DIV=new Float64Array(N),IDX=new Float64Array(N);let prev=0,idx=1,any=false;
@@ -1313,11 +1365,11 @@ function viewOverview(v){
   const cashPct=M.total?M.cash/M.total:0;
   const compare=bms.filter(x=>x.r&&!x.r.missing);
   v.innerHTML=`${demoBanner()}
-  <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button></div>
+  <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${key==='1D'?'':perf?`<button class="gear-btn" data-act="chartcfg" aria-label="Choose what the performance chart shows">${iconSm('gear',18)}</button>`:`<button class="tog ev-tog" data-act="events" aria-pressed="${!!UI.events}"><span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Events</button>`}</div>
-  <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${CLS_LINE[k][2]?'repeating-linear-gradient(90deg,'+CLS_LINE[k][1]+' 0 4px,transparent 4px 6px)':CLS_LINE[k][1]}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${BM_COLOR[x.b.id]}"></span>${esc(x.b.name)}`).join('')}`}</div>
+  <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}">${r}</button>`).join('')}</div>
   ${perf&&key!=='1D'?`<div class="chips cbm-chips">${BENCHMARKS.map(b=>`<button class="tog" data-cbm="${b.id}" aria-pressed="${chartBms().includes(b.id)}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>`:''}
@@ -1330,31 +1382,20 @@ function viewOverview(v){
   <div class="cmp-h">Annualised return (%)</div>${retTable(M,Z,ANN_PERIODS,true)}</section>
   <div data-card="alloc"><h2 class="sec">Allocation</h2>
   <div class="card">${breakdownBlock(M,UI.alloc,'alloc',[['class','Type'],['account','Account'],['currency','Currency']])}</div></div>
+  ${concCardHTML(M)}
   <div data-card="movers"><h2 class="sec">Today's movers</h2>${moversBlock(M)}</div>
-  ${(()=>{const kk=RANGES.includes(UI.krange)&&UI.krange!=='1D'?UI.krange:'1Y';const ks=stats(M,Z,kk);
-   return `<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div><span class="small muted">${esc(RANGE_WORD[kk])}</span></div>
-   <div class="ranges kranges" role="group" aria-label="Key figures period">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-krange="${r}" aria-pressed="${r===kk}" class="${rangeShort(r,M.firstDay)?'nodata':''}">${r}</button>`).join('')}</div>
-   <div class="kgrid">
-    ${kpi('Time-weighted return',pct(ks.twr),cl(ks.twr),'TTWROR · deposits removed')}
-    ${kpi('Money-weighted p.a.',ks.irr!=null?pct(ks.irr):'—',ks.irr!=null?cl(ks.irr):'',ks.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
-    ${kpi('Gain / loss',F(ks.gain,{sign:true}),cl(ks.gain),'After fees, incl. dividends')}
-    ${kpi('Avg. annual return',ks.annual!=null?pct(ks.annual):'—',ks.annual!=null?cl(ks.annual):'',ks.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
-    ${kpi('Money added',F(ks.cf,{sign:true}),'','Bought minus sold')}
-    ${kpi('Dividends',F(ks.div),'','Received')}
-    ${kpi('Max drawdown',pct(ks.mdd),ks.mdd<0?'down':'','Worst fall from a peak')}
-    ${kpi('Volatility p.a.',ks.vol!=null?pct(ks.vol,{sign:false}):'—','','Size of daily swings')}
-   </div></section>`;})()}`;
+`;
   const host=$('#mainChart');const up=perf?pts[pts.length-1].v>=0:st.gain>=0;
   const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
   const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
   let series_;const pf=pfOpt();
   if(perf){series_=[];for(const k of pf.sel){const Zs=k==='all'?Z:classZ(M,UI.ccy,k);if(!Zs)continue;let fi=0;while(fi<M.N&&!(Zs.V[fi]>0))fi++;const bb=Math.max(st.bi,fi-1);const b0=bb>=0?Zs.IDX[bb]:1;
       const held=i=>Zs.V[i]>0||(i>0&&Zs.V[i-1]>0);
-      series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:held(i)?Zs.IDX[i]/b0-1:NaN})),color:CLS_LINE[k][1],dash:series_.length?CLS_LINE[k][2]:null,label:k==='all'?portfolio().name:CLS_LINE[k][0],fmt:'pct',width:series_.length?1.9:2.2,noDiff:series_.length>0});}
+      series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:held(i)?Zs.IDX[i]/b0-1:NaN})),color:CLS_LINE[k][1],dash:series_.length&&CLS_LINE[k][2]!=='1 0'?CLS_LINE[k][2]:null,label:k==='all'?portfolio().name:CLS_LINE[k][0],fmt:'pct',width:series_.length?1.9:2.2,noDiff:series_.length>0});}
     if(!series_.length)series_.push({pts,color:'var(--accent)',label:portfolio().name,fmt:'pct'});}
   else series_=[{pts,color:up?'var(--up)':'var(--down)',label:'Investments',fmt:'money'}];
   if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
-  if(perf)for(const {b,r} of compare){const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[b.id],width:1.8,label:b.name,fmt:'pct'});}
+  if(perf)for(const {b,r} of compare){const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[b.id],width:1.6,dash:BM_DASH[b.id],label:b.name,fmt:'pct'});}
   /* long periods that start before your first data: pad the start and dim it, so the chart shows the whole period */
   const pad=0; /* periods longer than your history: the chart starts at your first data; the period button is shown faded instead */
   const events=!perf&&UI.events&&ser.idx?chartEvents(M,series_[0].pts,pad):[];
@@ -1432,8 +1473,10 @@ function returnsBars(map,per){const keys=[...map.keys()].sort((a,b)=>a-b);if(!ke
   keys.forEach((k,j)=>{const v=vals[j];const bh=Math.max(1,Math.min(1,Math.abs(v)/mx)*(mid-pt));const x=gap+j*(bw+gap);const y=v>=0?mid-bh:mid;
     svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${v>=0?'var(--up)':'var(--down)'}" data-rbar="${esc(lab(k))}|${v}"/>`;
     const first=per==='quarter'?k%4===0:k%12===0;if(first||j===0)svg+=`<text x="${x}" y="${h+14}" font-size="10" fill="var(--muted)">${per==='quarter'?Math.floor(k/4):Math.floor(k/12)}</text>`;});
+  const avg=Math.pow(vals.reduce((p,v)=>p*(1+v),1),1/vals.length)-1;const ay=mid-Math.max(-1,Math.min(1,avg/mx))*(mid-pt);
+  svg+=`<line x1="0" x2="${w}" y1="${ay}" y2="${ay}" stroke="var(--fg)" stroke-width="1.3" stroke-dasharray="5 4" opacity=".75"/>`;
   svg+='</svg>';const last=keys.length-1;
-  return `<div class="rb-read" id="rbRead">${esc(lab(keys[last]))} · <span class="${cl(vals[last])}">${pct(vals[last])}</span></div><div class="rb-wrap" id="rbWrap">${svg}</div><div class="small muted expl" style="margin-top:4px">Tap a bar to see its value.</div>`;}
+  return `<div class="rb-top"><div class="rb-read" id="rbRead">${esc(lab(keys[last]))} · <span class="${cl(vals[last])}">${pct(vals[last])}</span></div><span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false}).replace(' %','%')}</span>${infoBtn('avgBars')}</span></div><div class="rb-wrap" id="rbWrap">${svg}</div><div class="small muted expl" style="margin-top:4px">Tap a bar to see its value.</div>`;}
 function reportCards(M,Z){
   const t=M.today;const dow=(new Date(t*DAY).getUTCDay()+6)%7;
   const wkB=t-dow-1;const qB=periodStart(t,'quarter')-1;const pqB=addMonths(qB+1,-3)-1;const yB=dn((yearOf(t)-1)+'-12-31');const pyB=dn((yearOf(t)-2)+'-12-31');
@@ -1473,7 +1516,20 @@ function viewAnalysis(v){
   ${(()=>{const d=dividendsCardHTML(M);return d?`<div data-card="divs"><h2 class="sec">Dividends</h2>${d}</div>`:'';})()}
   <div data-card="freedom"><h2 class="sec">Freedom number</h2>${freedomHTML(M,true)}</div>
   <div data-card="costs"><h2 class="sec">Costs</h2>${costsHTML(M)}</div>
-  <div data-card="updates"><h2 class="sec">Your updates</h2>${reportCards(M,Z)}</div>`;
+  <div data-card="updates"><h2 class="sec">Your updates</h2>${reportCards(M,Z)}</div>
+  ${(()=>{const kk=RANGES.includes(UI.krange)&&UI.krange!=='1D'?UI.krange:'1Y';const ks=stats(M,Z,kk);
+   return `<section class="card kfig-card" data-card="kpis"><div class="row-between"><div class="sub-h" style="margin:0">Key figures</div><span class="small muted">${esc(RANGE_WORD[kk])}</span></div>
+   <div class="ranges kranges" role="group" aria-label="Key figures period">${RANGES.filter(r=>r!=='1D').map(r=>`<button data-krange="${r}" aria-pressed="${r===kk}" class="${rangeShort(r,M.firstDay)?'nodata':''}">${r}</button>`).join('')}</div>
+   <div class="kgrid">
+    ${kpi('Time-weighted return',pct(ks.twr),cl(ks.twr),'TTWROR · deposits removed')}
+    ${kpi('Money-weighted p.a.',ks.irr!=null?pct(ks.irr):'—',ks.irr!=null?cl(ks.irr):'',ks.irr!=null?'MWR · your timing counts':'Shown for 1Y and longer')}
+    ${kpi('Gain / loss',F(ks.gain,{sign:true}),cl(ks.gain),'After fees, incl. dividends')}
+    ${kpi('Avg. annual return',ks.annual!=null?pct(ks.annual):'—',ks.annual!=null?cl(ks.annual):'',ks.annual!=null?'TTWROR, annualised':'Shown for 1Y and longer')}
+    ${kpi('Money added',F(ks.cf,{sign:true}),'','Bought minus sold')}
+    ${kpi('Dividends',F(ks.div),'','Received')}
+    ${kpi('Max drawdown',pct(ks.mdd),ks.mdd<0?'down':'','Worst fall from a peak')}
+    ${kpi('Volatility p.a.',ks.vol!=null?pct(ks.vol,{sign:false}):'—','','Size of daily swings')}
+   </div></section>`;})()}`;
   const wrap=$('#rbWrap');if(wrap){wrap.scrollLeft=wrap.scrollWidth;wrap.onclick=e=>{const r=e.target.closest('[data-rbar]');if(!r)return;const [l,val]=r.dataset.rbar.split('|');$('#rbRead').innerHTML=`${esc(l)} · <span class="${cl(+val)}">${pct(+val)}</span>`;};}
 }
 
@@ -2346,7 +2402,7 @@ function goNav(dir){
   const j=NAV.i+dir;if(j<0||j>=NAV.stack.length)return false;
   const s=NAV.stack[j];NAV.i=j;NAV.moving=true;UI.tab=s.tab;if(s.k)UI[s.k]=s.v;saveUI();
   const v=$('#view');render();window.scrollTo(0,0);NAV.moving=false;
-  if(v){v.classList.remove('nav-in-l','nav-in-r');void v.offsetWidth;v.classList.add(dir<0?'nav-in-l':'nav-in-r');}
+  if(v&&v.animate)v.animate([{opacity:.3,transform:`translateX(${dir<0?-28:28}px)`},{opacity:1,transform:'none'}],{duration:200,easing:'ease-out'});
   return true;}
 /* hook into render so every page/view change is recorded */
 {const _render=render;render=function(){_render();recordNav();};}
@@ -2378,8 +2434,7 @@ function goNav(dir){
    Typed values in form fields are never touched. */
 const SIGN_RE=/(^|[\s(\[·\/:=•])([+−]|^-)(?=[$£€]?\s?\d)/g;
 const SKIP_TAGS=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','NOSCRIPT']);
-function hasArrow(el){const a=el&&el.closest&&el.closest('.up,.down');if(!a)return false;
-  try{const c=getComputedStyle(a,'::before').content;return c&&c!=='none'&&c!=='normal';}catch(e){return true;}}
+function hasArrow(el){const a=el&&el.closest&&el.closest('.up,.down');if(!a)return false;return !a.closest('.prog')&&!a.classList.contains('lk');}
 function arrowText(node){const txt=node.nodeValue;if(!txt||!/[+−-]/.test(txt))return;
   SIGN_RE.lastIndex=0;if(!SIGN_RE.test(txt))return;SIGN_RE.lastIndex=0;
   const par=node.parentNode;if(!par||SKIP_TAGS.has(par.nodeName)||(par.closest&&par.closest('[data-keepsign],[contenteditable]')))return;
@@ -2491,12 +2546,14 @@ const PAGE_NAMES={overview:'Overview',holdings:'Holdings',analysis:'Insights'};
 const PAGE_SUB={holdings:['sub','positions'],analysis:['asub','performance']}; /* the view on each page that can be arranged */
 const CARD_LIB={
   hero:{t:'Total value',p:'overview'},chart:{t:'Main chart',p:'overview'},
-  compare:{t:'Compare with & return tables',p:'overview'},alloc:{t:'Allocation',p:'overview'},movers:{t:"Today's movers",p:'overview'},kpis:{t:'Key figures',p:'overview'},
+  compare:{t:'Compare with & return tables',p:'overview'},alloc:{t:'Allocation',p:'overview'},conc:{t:'Concentration',p:'overview'},movers:{t:"Today's movers",p:'overview'},
   hsum:{t:'Holdings summary',p:'holdings'},positions:{t:'Positions table',p:'holdings'},closed:{t:'Closed positions',p:'holdings'},
-  monthly:{t:'Monthly returns',p:'analysis'},divs:{t:'Dividends',p:'analysis'},freedom:{t:'Freedom number',p:'analysis'},costs:{t:'Costs',p:'analysis'},fxeffect:{t:'Currency effect',p:'analysis'},added:{t:'Money added per year',p:'analysis'},updates:{t:'Your updates',p:'analysis'},
+  monthly:{t:'Monthly returns',p:'analysis'},fxeffect:{t:'Currency effect',p:'analysis'},added:{t:'Money added per year',p:'analysis'},divs:{t:'Dividends',p:'analysis'},freedom:{t:'Freedom number',p:'analysis'},costs:{t:'Costs',p:'analysis'},updates:{t:'Your updates',p:'analysis'},kpis:{t:'Key figures',p:'analysis'},
 };
 /* the return tables now live inside the Compare card: older saved Overview layouts are reset once */
 if(UI.layout&&UI.layout.overview&&UI.layout.overview.some(c=>c.id==='cum'||c.id==='ann')){delete UI.layout.overview;saveUI();}
+/* Key figures moved to Insights by default */
+if(!UI.migKpis){UI.migKpis=1;if(UI.layout&&UI.layout.overview)UI.layout.overview=UI.layout.overview.filter(c=>c.id!=='kpis');saveUI();}
 const pageCards=pg=>Object.keys(CARD_LIB).filter(k=>CARD_LIB[k].p===pg);
 function layoutOf(pg){const saved=((UI.layout||{})[pg]||[]).filter(c=>CARD_LIB[c.id]);const ids=new Set(saved.map(c=>c.id));
   const out=saved.map(c=>({id:c.id,hidden:!!c.hidden}));for(const id of pageCards(pg))if(!ids.has(id))out.push({id,hidden:false});return out;}
@@ -2854,8 +2911,8 @@ document.addEventListener('click',e=>{if(!e.target.closest('[data-act="savefxfee
 const concLimit=()=>+(UI.concLimit||15);
 function concentration(M){if(!M)return [];const open=M.holdings.filter(h=>h.qty>0);const tot=open.reduce((s,h)=>s+h.value,0);if(!tot)return [];
   return open.filter(h=>h.a.cls!=='etf'&&h.value/tot*100>concLimit()).map(h=>({h,p:h.value/tot}));}
-{const _di=dataIssues;dataIssues=function(){const out=_di();for(const c of concentration(compute()))out.push({k:'conc',a:c.h.a,t:`${c.h.a.symbol} is ${pctTxt(c.p)} of your investments`,s:`Over your ${concLimit()} % limit for one stock or crypto. Not wrong, but a big bet.`});return out;};}
-{const _c=checkSettingsHTML;checkSettingsHTML=function(){return `<div class="card stack" style="margin-bottom:12px"><div class="row-between"><span class="small">Warn when one stock or crypto is over</span><span><input class="fx-in num" style="width:60px" inputmode="decimal" id="concIn" value="${concLimit()}"> % <button class="btn sm" data-act="saveconc">Save</button></span></div></div>`+_c();};}
+{const _di=dataIssues;dataIssues=function(){const out=_di();for(const c of concentration(compute()))out.push({k:'conc',a:c.h.a,t:`${c.h.a.symbol} is ${pctTxt(c.p)} of your investments`,s:`Over its ${c.lim} % limit. Not wrong, but a big bet.`});return out;};}
+{const _c=checkSettingsHTML;checkSettingsHTML=function(){return `<div class="card" style="margin-bottom:12px"><button class="btn sm" data-sset-go="conc">${iconSm('updown')} Concentration limits</button></div>`+_c();};}
 document.addEventListener('click',e=>{if(!e.target.closest('[data-act="saveconc"]'))return;const v=parseNum($('#concIn').value);UI.concLimit=isFinite(v)&&v>=1&&v<=100?v:15;saveUI();softRender();});
 
 /* ---------- 8) investment diary ---------- */
@@ -2922,17 +2979,199 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-collapse]'
 let LAST_TAB=null,LAST_TOTAL=null;
 function countUp(el,from,to,fmt){const t0=performance.now(),d=650;const step=now=>{const k=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1&&el.isConnected)requestAnimationFrame(step);};requestAnimationFrame(step);}
 {const _r=render;render=function(){_r();const v=$('#view');if(!v)return;document.body.dataset.page=UI.tab;
-  if(LAST_TAB!==UI.tab){v.classList.remove('fade-in');void v.offsetWidth;v.classList.add('fade-in');LAST_TAB=UI.tab;}
+  if(LAST_TAB!==UI.tab){if(v.animate)v.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}],{duration:170,easing:'ease-out'});LAST_TAB=UI.tab;}
   collapseCards(v);
   if(UI.tab==='overview'){const M=compute();
     if(M&&!PRIV()){const tot=conv(M,M.total);const el=$('#heroVal');if(el&&LAST_TOTAL!=null&&Math.abs(LAST_TOTAL-tot)>0.5)countUp(el,LAST_TOTAL,tot,x=>F(x));LAST_TOTAL=tot;}
     const chartTop=v.querySelector('[data-card="chart"] .row-between');if(chartTop&&!chartTop.querySelector('[data-act="chartfs"]'))chartTop.insertAdjacentHTML('beforeend',`<button class="gear-btn fs-btn" data-act="chartfs" aria-label="${document.body.classList.contains('chart-fs')||landFs()?'Close full screen':'Full screen chart'}">${document.body.classList.contains('chart-fs')||landFs()?ICON.close:'⤢'}</button>`);
-    const al=v.querySelector('[data-card="alloc"] .card');const cc=concentration(M);if(al&&cc.length)al.insertAdjacentHTML('beforeend',`<div class="conc-note">${cc.map(c=>`<b>${esc(c.h.a.symbol)}</b> is ${pctTxt(c.p)} of your investments`).join(' · ')} (limit ${concLimit()} %)</div>`);
     if(reviewDue()&&!v.querySelector('.review-banner')){const bar=v.querySelector('.page-bar');const nm=MON[+lastMonthYM().slice(5)-1];const h=`<div class="banner keep review-banner"><div style="flex:1"><b>Your ${nm} review is ready</b><div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="review">Open</button><button class="btn sm" data-act="reviewlater">Dismiss</button></div></div></div>`;if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);}}
   else document.body.classList.remove('chart-fs');
   if(UI.tab==='analysis'){const up=v.querySelector('[data-card="updates"] > h2.sec');if(up&&!v.querySelector('[data-act="review"]'))up.insertAdjacentHTML('afterend',`<button class="btn sm" data-act="review" style="margin:-4px 0 10px">${iconSm('table')} ${MON[+lastMonthYM().slice(5)-1]} review</button>`);}};}
 document.addEventListener('click',e=>{if(e.target.closest('[data-act="review"]')){reviewSheet();return;}if(e.target.closest('[data-act="reviewlater"]')){UI.reviewSeen=localToday().slice(0,7);saveUI();softRender();}});
 {const _rf=refresh;refresh=async function(f){await _rf(f);if((S.watch||[]).length)refreshWatch();};}
+
+/* ================= polish: scroll memory, concentration, Ø average + info boxes, settings search, backup frequency,
+   colour picker, share card ================= */
+
+/* ---------- keep your place: every page/view remembers where you were ---------- */
+const SCR={};let SCR_KEY=null;
+function scrKey(){const t=UI.tab;const k=SUBKEY[t];return t+'|'+(k?(UI[k]||''):'');}
+{const _r=render;render=function(){const before=SCR_KEY;if(before!=null)SCR[before]=window.scrollY;_r();const now=scrKey();
+  if(now!==before){SCR_KEY=now;const y=(UI.tab==='settings'&&UI.sset)?0:(SCR[now]||0);const go=()=>window.scrollTo(0,y);setTimeout(go,0);requestAnimationFrame(go);}};}
+
+/* ---------- small info boxes (ⓘ) ---------- */
+const INFO={
+  avgStart:'Average yearly return since your first investment (time-weighted, so deposits and withdrawals don\'t count as gains).',
+  avgPeriod:'Average yearly return over the period selected on the chart. Shown for periods of one year or longer.',
+  avgBars:'The average line in the bar chart represents the average return of the portfolio over the investment horizon.'};
+function infoBtn(key){return `<button class="info-i" data-info="${key}" aria-label="What is this?">i</button>`;}
+function closeInfo(){const b=$('#infoPop');if(b)b.remove();}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-info]');if(!b){if(!e.target.closest('#infoPop'))closeInfo();return;}
+  e.stopPropagation();const open=$('#infoPop');if(open&&open.dataset.for===b.dataset.info){closeInfo();return;}closeInfo();
+  const pop=document.createElement('div');pop.id='infoPop';pop.className='info-pop';pop.dataset.for=b.dataset.info;pop.textContent=INFO[b.dataset.info]||'';document.body.appendChild(pop);
+  const r=b.getBoundingClientRect();const w=Math.min(280,window.innerWidth-24);pop.style.width=w+'px';
+  let left=r.left+r.width/2-w/2;left=Math.max(12,Math.min(window.innerWidth-w-12,left));pop.style.left=left+'px';pop.style.top=(r.bottom+window.scrollY+8)+'px';},true);
+window.addEventListener('scroll',()=>{if($('#infoPop'))closeInfo();},{passive:true});
+
+/* ---------- Ø average yearly return in the Total value card ---------- */
+function avgStartAnnual(M,Z){const bi=M.firstDay-1-M.d0;const st=statsIdx(M,Z,bi,M.N-1);const days=M.N-1-bi;return days>=365?Math.pow(1+st.twr,365/days)-1:null;}
+function avgOpt(){return UI.avgShow||'start';}
+function heroAvgHTML(M,Z,st,key){const o=avgOpt();if(o==='off')return '';const out=[];
+  if(o==='start'||o==='both'){const a=avgStartAnnual(M,Z);out.push(`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${a==null?'muted':cl(a)}">${a==null?'—':pct(a,{sign:false}).replace(' %','%')}</span>${o==='both'?'<span class="muted small">all</span>':''}${infoBtn('avgStart')}</span>`);}
+  if(o==='period'||o==='both'){const a=st&&st.annual!=null&&key!=='MAX'?st.annual:(key==='MAX'?avgStartAnnual(M,Z):null);out.push(`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${a==null?'muted':cl(a)}">${a==null?'—':pct(a,{sign:false}).replace(' %','%')}</span>${o==='both'?`<span class="muted small">${esc(key)}</span>`:''}${infoBtn('avgPeriod')}</span>`);}
+  return `<div class="avg-row">${out.join('')}</div>`;}
+
+/* ---------- concentration: limits per type and per holding ---------- */
+const CONC_TYPES=[['stock','Single stocks',15],['crypto','Crypto',10],['etf','ETFs & funds',0]];
+function concCfg(){const c=Object.assign({},S.conc||{});c.type=Object.assign({stock:UI.concLimit||15,crypto:10,etf:0},c.type||{});c.asset=Object.assign({},c.asset||{});return c;}
+function limitFor(a){const c=concCfg();if(c.asset[a.id]!=null&&c.asset[a.id]!=='')return +c.asset[a.id];const t=a.cls==='fund'?'etf':a.cls;return +(c.type[t]||0);}
+function concRows(M){if(!M)return [];const open=M.holdings.filter(h=>h.qty>0);const tot=open.reduce((s,h)=>s+h.value,0);if(!tot)return [];
+  return open.map(h=>({h,p:h.value/tot,lim:limitFor(h.a)})).sort((a,b)=>b.p-a.p);}
+concentration=function(M){return concRows(M).filter(r=>r.lim>0&&r.p*100>r.lim);};
+function concCardHTML(M){const rows=concRows(M).filter(r=>r.lim>0||r.p>0.05);if(!rows.length)return '';const over=rows.filter(r=>r.lim>0&&r.p*100>r.lim);
+  return `<section class="card conc-card" data-card="conc"><div class="row-between"><div class="sub-h" style="margin:0">Concentration</div><button class="gear-btn" data-sset-go="conc" aria-label="Concentration settings">${iconSm('gear',16)}</button></div>
+   <div class="small ${over.length?'amber-v':'muted'}" style="margin:6px 0 8px">${over.length?over.length+' holding'+(over.length>1?'s':'')+' over your limit':'All holdings within your limits'}</div>
+   ${rows.slice(0,8).map(r=>{const ov=r.lim>0&&r.p*100>r.lim;return `<div class="cc-row ${ov?'over':''}"><span class="cc-sym">${esc(r.h.a.symbol)}</span><div class="cc-bar"><span style="width:${Math.min(100,r.p*100)}%"></span>${r.lim>0?`<i style="left:${Math.min(100,r.lim)}%"></i>`:''}</div><span class="cc-p num">${pctTxt(r.p)}</span><span class="cc-l small muted">${r.lim>0?'max '+r.lim+'%':'no limit'}</span></div>`;}).join('')}</section>`;}
+function concSettingsHTML(){const c=concCfg();const M=compute();const open=M?M.holdings.filter(h=>h.qty>0):[];
+  return `<div class="card stack"><div class="hint">A holding gets an amber warning on Overview and in Data check when it's a bigger share of your investments than its limit. 0 means no limit.</div>
+   <h3 class="h3" style="margin-top:4px">Limit per type</h3>
+   ${CONC_TYPES.map(([k,l])=>`<div class="row-between"><span>${l}</span><span><input class="fx-in num" style="width:70px" inputmode="decimal" data-conct="${k}" value="${inputNum(+c.type[k]||0,1)}"> %</span></div>`).join('')}
+   ${open.length?`<h3 class="h3">Limit per holding <span class="muted small">(empty = use the type limit)</span></h3>
+   ${open.map(h=>`<div class="row-between"><span>${esc(h.a.symbol)} <span class="muted small">${esc(CLASS_LABEL[h.a.cls]||'')}</span></span><span><input class="fx-in num" style="width:70px" inputmode="decimal" data-conca="${h.a.id}" placeholder="${inputNum(limitFor(Object.assign({},h.a,{id:'_'})),1)}" value="${c.asset[h.a.id]!=null?inputNum(+c.asset[h.a.id],1):''}"> %</span></div>`).join('')}`:''}
+   <div class="btns"><button class="btn primary sm" data-act="saveconc2">Save limits</button></div></div>`;}
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="saveconc2"]')){const c={type:{},asset:{}};
+    $$('[data-conct]').forEach(i=>{const v=parseNum(i.value);c.type[i.dataset.conct]=isFinite(v)&&v>=0&&v<=100?v:0;});
+    $$('[data-conca]').forEach(i=>{if(i.value.trim()==='')return;const v=parseNum(i.value);if(isFinite(v)&&v>=0&&v<=100)c.asset[i.dataset.conca]=v;});
+    S.conc=c;if(S.demo){lsSet('lq_state',S);}else Store.save();softRender();toast('Limits saved');return;}
+  const g=e.target.closest('[data-sset-go]');if(g){UI.tab='settings';UI.sset=g.dataset.ssetGo;saveUI();render();}});
+
+/* ---------- backup reminder frequency (default weekly) ---------- */
+const BK_OPTS=[[7,'Weekly'],[14,'Every 2 weeks'],[30,'Monthly'],[0,'Off']];
+const backupEvery=()=>{if(UI.backupEvery!=null)return +UI.backupEvery;return UI.backupRemind===false?0:7;};
+backupDue=function(){if(S.demo||!S.txs.length)return false;const ev=backupEvery();if(!ev)return false;const now=Date.now();if(UI.backupSnooze&&now<UI.backupSnooze)return false;return !UI.lastBackup||now-UI.lastBackup>ev*DAYMS;};
+{const _b=backupSettingsHTML;backupSettingsHTML=function(){return _b().replace(/<div class="look-row"><span class="lbl2">Monthly reminder<\/span>[\s\S]*?<\/div><\/div>/,
+  `<div class="look-row col"><span class="lbl2">Remind me to back up</span><div class="seg" role="group">${BK_OPTS.map(([d,l])=>`<button data-bkevery="${d}" aria-pressed="${backupEvery()===d}">${l}</button>`).join('')}</div></div>`);};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-bkevery]');if(b){UI.backupEvery=+b.dataset.bkevery;saveUI();softRender();}});
+
+/* ---------- settings: search + new sections ---------- */
+const SET_KW={start:'open first page home start',look:'colour color colors theme night day dark light accent background font text size transparency card',tables:'numbers decimals dot comma compact average ø avg',
+  currency:'nok eur usd exchange rates kr symbol',updown:'green red blue colour blind arrows',arrange:'cards order move hide add layout',expl:'calm explanations hints privacy hide amounts',
+  check:'problems duplicates missing prices broker',household:'wife partner family',portfolios:'portfolio',accounts:'ask aksjekonto kraken nordnet bank',import:'csv nordnet kraken file',
+  prices:'twelve data key helper cloudflare live',taxrules:'skatt skjerming tax 22 37.84',conc:'concentration limits warning share',share:'friends family link install',install:'iphone android home screen',
+  backup:'restore save files icloud reminder weekly',data:'example delete',sharecard:'share results image friends month market'};
+{const _v=viewSettings;viewSettings=function(v){_v(v);if(UI.sset)return;const t=v.querySelector('.set-title');if(!t)return;
+  t.insertAdjacentHTML('afterend',`<div class="set-search"><input id="setQ" type="search" placeholder="Search settings" autocomplete="off" value="${esc(UI.setQ||'')}"></div>`);filterSettings(UI.setQ||'');};}
+function filterSettings(q){q=String(q||'').trim().toLowerCase();const v=$('#view');if(!v)return;let any=false;
+  v.querySelectorAll('.list').forEach(list=>{let vis=0;list.querySelectorAll('[data-sset]').forEach(r=>{const k=r.dataset.sset;const txt=(r.textContent+' '+(SET_KW[k]||'')+' '+k).toLowerCase();const ok=!q||q.split(/\s+/).every(w=>txt.includes(w));r.style.display=ok?'':'none';if(ok)vis++;});
+    const h=list.previousElementSibling;list.style.display=vis?'':'none';if(h&&h.matches('h2.sec'))h.style.display=vis?'':'none';if(vis)any=true;});
+  let nf=v.querySelector('.set-none');if(!any&&q){if(!nf)v.querySelector('.set-search').insertAdjacentHTML('afterend','<div class="set-none card muted">No setting matches. Try "colour", "backup" or "tax".</div>');}else if(nf)nf.remove();}
+document.addEventListener('input',e=>{if(e.target.id==='setQ'){UI.setQ=e.target.value;filterSettings(e.target.value);}});
+SET_SECTIONS.conc={t:'Concentration limits',ic:'updown',own:()=>concSettingsHTML()};
+SET_SECTIONS.sharecard={t:'Share card',ic:'share',own:()=>shareCardSettingsHTML()};
+for(const g of SET_GROUPS){if(g[0]==='Your data'&&!g[1].includes('conc'))g[1].splice(g[1].indexOf('check')+1,0,'conc');if(g[0]==='App'&&!g[1].includes('sharecard'))g[1].splice(1,0,'sharecard');}
+{const _s=setSummary;setSummary=function(k){if(k==='conc'){const c=concCfg();return 'Stocks '+(c.type.stock||'off')+' % · crypto '+(c.type.crypto||'off')+' % · ETFs '+(c.type.etf||'no limit')+(Object.keys(c.asset).length?' · '+Object.keys(c.asset).length+' custom':'');}
+  if(k==='sharecard')return 'Your month vs the market, as a picture to send';if(k==='backup')return 'Last backup '+(UI.lastBackup?dateLabel(Math.floor(UI.lastBackup/864e5),true):'never')+' · reminder '+((BK_OPTS.find(x=>x[0]===backupEvery())||[0,'off'])[1]).toLowerCase();return _s(k);};}
+/* Ø setting lives with the number settings */
+{const _t=tableSettingsHTML;tableSettingsHTML=function(){const o=avgOpt();return _t().replace('<div class="tb-ex">',`<div class="look-row col"><span class="lbl2">Ø average in Total value</span><div class="seg" role="group">${[['start','Since start'],['period','Chart period'],['both','Both'],['off','Off']].map(([k,l])=>`<button data-avgshow="${k}" aria-pressed="${o===k}">${l}</button>`).join('')}</div></div><div class="tb-ex">`);};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-avgshow]');if(b){UI.avgShow=b.dataset.avgshow;saveUI();softRender();}});
+
+/* ---------- colour picker that stays open (drag, then Done) + card colour ---------- */
+function hexToRgb(h){const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return null;const n=parseInt(m[1],16);return [n>>16,n>>8&255,n&255];}
+function rgbToHex(r,g,b){return '#'+[r,g,b].map(x=>Math.round(Math.max(0,Math.min(255,x))).toString(16).padStart(2,'0')).join('').toUpperCase();}
+function hsvToRgb(h,s,v){const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return [f(5)*255,f(3)*255,f(1)*255];}
+function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return [h,mx?d/mx:0,mx];}
+const PICK_PRESETS={accent:['#FFA028','#FF7A1A','#FFD23F','#4AA3FF','#7CC4FF','#C9A0FF','#F472D0','#E6E6E6'],bg:['#000000','#0B0C0E','#14161A','#0A1424','#101010','#FFFFFF','#F1F2F4','#F6F2EA'],card:['#0E0F11','#15171B','#101826','#1A1612','#1C1C1E','#FFFFFF','#F7F7F9','#FFF9F0']};
+function colorPicker(kind,title,cur,onDone){const rgb=hexToRgb(cur)||[255,160,40];let [h,s,v]=rgbToHsv(...rgb);
+  openSheet(title,`<div class="cp"><div class="cp-sv" id="cpSV"><div class="cp-dot" id="cpDot"></div></div>
+   <div class="cp-hue" id="cpHue"><div class="cp-knob" id="cpHK"></div></div>
+   <div class="row-between" style="margin-top:12px"><span class="cp-prev" id="cpPrev"></span><input id="cpHex" class="fx-in num" style="width:120px" maxlength="7" autocapitalize="characters"></div>
+   <div class="swatches" style="margin-top:12px">${(PICK_PRESETS[kind]||PICK_PRESETS.accent).map(c=>`<button class="swatch" data-cppre="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div>
+   <div class="btns" style="margin-top:14px"><button class="btn primary" id="cpDone">Done</button><button class="btn" data-act="close">Cancel</button></div></div>`,sh=>{
+    const sv=sh.querySelector('#cpSV'),dot=sh.querySelector('#cpDot'),hue=sh.querySelector('#cpHue'),hk=sh.querySelector('#cpHK'),prev=sh.querySelector('#cpPrev'),hex=sh.querySelector('#cpHex');
+    const cur=()=>rgbToHex(...hsvToRgb(h,s,v));
+    const paint=(fromHex)=>{sv.style.background=`linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${h},100%,50%))`;dot.style.left=(s*100)+'%';dot.style.top=((1-v)*100)+'%';hk.style.left=(h/360*100)+'%';prev.style.background=cur();if(!fromHex)hex.value=cur();};
+    const drag=(el,fn)=>{const mv=e=>{const r=el.getBoundingClientRect();fn(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)));paint();};
+      el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture(e.pointerId);mv(e);const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);};el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);});};
+    drag(sv,(x,y)=>{s=x;v=1-y;});drag(hue,x=>{h=x*360;});
+    hex.addEventListener('input',()=>{const c=hexToRgb(hex.value.startsWith('#')?hex.value:'#'+hex.value);if(c){[h,s,v]=rgbToHsv(...c);paint(true);}});
+    sh.querySelectorAll('[data-cppre]').forEach(b=>b.onclick=()=>{[h,s,v]=rgbToHsv(...hexToRgb(b.dataset.cppre));paint();});
+    sh.querySelector('#cpDone').onclick=()=>{closeSheet();onDone(cur());};paint();});}
+{const _al=applyLook;applyLook=function(){_al();const L=look();const st=document.documentElement.style;
+  if(L.card){st.setProperty('--surface',L.card);st.setProperty('--surface2',`color-mix(in srgb,${L.card} 86%,${L.mode==='day'?'#000':'#fff'} 14%)`);}else{st.removeProperty('--surface');st.removeProperty('--surface2');}};}
+{const _ls=lookSettingsHTML;lookSettingsHTML=function(){const L=look();let h=_ls();
+  h=h.replace(/<label class="swatch custom" title="Custom"><input type="color" id="lkAccIn"[^>]*><span>\+<\/span><\/label>/,'<button class="swatch custom" data-pickcolor="accent" title="Custom colour"><span>+</span></button>');
+  h=h.replace(/<label class="swatch custom" title="Custom"><input type="color" id="lkBgIn"[^>]*><span>\+<\/span><\/label>/,'<button class="swatch custom" data-pickcolor="bg" title="Custom colour"><span>+</span></button>');
+  const cards=(L.mode==='day'?PICK_PRESETS.card.slice(5):PICK_PRESETS.card.slice(0,5));
+  const row=`<div class="look-row col"><span class="lbl2">Card colour</span><div class="swatches"><button class="swatch auto ${!L.card?'on':''}" data-lkcard="" title="Default">A</button>${cards.map(c=>`<button class="swatch ${String(L.card||'').toUpperCase()===c?'on':''}" data-lkcard="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<button class="swatch custom" data-pickcolor="card" title="Custom colour"><span>+</span></button></div></div>`;
+  return h.replace('<div class="look-row col"><label class="lbl2" for="lkAlpha">',row+'<div class="look-row col"><label class="lbl2" for="lkAlpha">');};}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pickcolor]');if(p){const k=p.dataset.pickcolor;const L=look();
+    colorPicker(k,{accent:'Accent colour',bg:'Background colour',card:'Card colour'}[k],k==='accent'?L.accent:k==='bg'?(L.bg||(L.mode==='day'?'#FFFFFF':'#000000')):(L.card||(L.mode==='day'?'#FFFFFF':'#0E0F11')),c=>{setLook({[k]:c});softRender();});return;}
+  const c=e.target.closest('[data-lkcard]');if(c&&c.hasAttribute('data-lkcard')){setLook({card:c.dataset.lkcard});softRender();}});
+
+/* ---------- share card: your month vs the market, as a picture ---------- */
+function shareOpt(){return Object.assign({month:true,ytd:true,start:true,best:true,amounts:false,idx:'URTH',period:'last'},UI.shareCard||{});}
+function idxRet(id,fromDay,toDay,ccy){const h=C.bm[id];if(!h||!h.s||!h.s.length)return null;const b=BENCHMARKS.find(x=>x.id===id)||{};const cur=h.cur||b.cur||'USD';
+  const at=d=>{const ds_=ds(d);let p=null,dd=null;for(const [x,v] of h.s){if(x<=ds_){p=v;dd=x;}else break;}return p==null?null:[p,dd];};
+  const a=at(fromDay),z=at(toDay);if(!a||!z||a[1]>=z[1])return null;const cv=(p,d)=>{const f1=fxNokOn(cur,d),f2=fxNokOn(ccy,d);return f1&&f2?p*f1/f2:null;};const va=cv(...a),vz=cv(...z);return va&&vz?vz/va-1:null;}
+function shareData(o){const M=compute();if(!M)return null;const Z=series(M,UI.ccy);const today=M.today;const ym=localToday().slice(0,7);
+  const per=o.period==='this'?ym:lastMonthYM();const s=dn(per+'-01'),e=Math.min(dn(shiftYM(per,1)+'-01')-1,today);
+  const win=(from,to)=>{const bi=Math.max(-1,from-M.d0),ei=to-M.d0;if(ei<=Math.max(bi,-1)||to<M.firstDay)return null;const st=statsIdx(M,Z,bi,ei);return {st,bi,ei,from,to};};
+  const m=win(s-1,e),y=win(dn(per.slice(0,4)+'-01-01')-1,e),a=win(M.firstDay-1,today);
+  const idx=d=>d?idxRet(o.idx,Math.max(d.from,M.firstDay-1),d.to,UI.ccy):null;
+  let best=null,worst=null;if(m){for(const h of M.holdings){let g=(h.AV[m.ei]||0)-(m.bi>=0?h.AV[m.bi]||0:0),inn=0;for(let i=Math.max(0,m.bi+1);i<=m.ei;i++){g+=-(h.ACF[i]||0)+(h.ADIV[i]||0);if(h.ACF[i]>0)inn+=h.ACF[i];}
+    const base=(m.bi>=0?h.AV[m.bi]||0:0)+inn;if(base<1)continue;const r=g/base;if(!best||r>best.r)best={a:h.a,r};if(!worst||r<worst.r)worst={a:h.a,r};}}
+  return {M,per,m,y,a,im:idx(m),iy:idx(y),ia:idx(a),best,worst,name:(BENCHMARKS.find(b=>b.id===o.idx)||{}).name||'Index'};}
+function drawShareCard(o){const D=shareData(o);if(!D||!D.m)return null;const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const cs=getComputedStyle(document.documentElement);const UP=cs.getPropertyValue('--up').trim()||'#1FE98A',DN=cs.getPropertyValue('--down').trim()||'#FF4A4A',AMB=cs.getPropertyValue('--amber').trim()||'#FFA028';
+  const mono='"IBM Plex Mono",ui-monospace,Menlo,monospace',sans='"IBM Plex Sans",-apple-system,Helvetica,Arial,sans-serif';
+  g.fillStyle='#08090B';g.fillRect(0,0,W,H);g.fillStyle='#121418';const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();};
+  const pctS=v=>v==null?'—':(v>=0?'▲ ':'▼ ')+nf2.format(Math.abs(v*100))+' %';const col=v=>v==null?'#8A8F98':v>=0?UP:DN;
+  g.fillStyle=AMB;g.font=`700 44px ${mono}`;g.fillText('LACAG',80,120);g.fillStyle='#8A8F98';g.font=`500 36px ${sans}`;
+  const mName=MON[+D.per.slice(5)-1]+' '+D.per.slice(0,4)+(o.period==='this'?' (so far)':'');g.fillText(mName,80,175);
+  rr(60,230,W-120,430,36);g.fillStyle='#121418';g.fill();
+  g.fillStyle='#C9CDD3';g.font=`600 38px ${sans}`;g.fillText('My portfolio',110,310);g.fillStyle=col(D.m.st.twr);g.font=`700 120px ${mono}`;g.fillText(pctS(D.m.st.twr),104,440);
+  g.fillStyle='#C9CDD3';g.font=`500 34px ${sans}`;g.fillText(D.name,110,530);g.fillStyle=col(D.im);g.font=`600 54px ${mono}`;g.fillText(pctS(D.im),110,600);
+  if(D.im!=null){const diff=D.m.st.twr-D.im;g.fillStyle=col(diff);g.font=`600 34px ${sans}`;const t=(diff>=0?'Beat the market by ':'Behind the market by ')+nf2.format(Math.abs(diff*100))+' %-pts';g.textAlign='right';g.fillText(t,W-110,600);g.textAlign='left';}
+  let y=740;const row=(label,mine,idx)=>{rr(60,y-70,W-120,120,28);g.fillStyle='#121418';g.fill();g.fillStyle='#C9CDD3';g.font=`600 34px ${sans}`;g.fillText(label,110,y);
+    g.font=`600 40px ${mono}`;g.fillStyle=col(mine);g.textAlign='right';g.fillText(pctS(mine),W-110,y-2);g.fillStyle='#8A8F98';g.font=`500 28px ${sans}`;g.fillText(idx==null?D.name+' —':D.name+' '+pctS(idx).replace('▲ ','+').replace('▼ ','−'),W-110,y+36);g.textAlign='left';y+=150;};
+  if(o.ytd&&D.y)row('This year',D.y.st.twr,D.iy);if(o.start&&D.a)row('Since I started',D.a.st.twr,D.ia);
+  if(o.best&&D.best){rr(60,y-70,W-120,120,28);g.fillStyle='#121418';g.fill();g.font=`600 32px ${sans}`;g.fillStyle='#C9CDD3';g.fillText('Best',110,y-12);g.fillText('Worst',W/2+20,y-12);
+    g.font=`600 36px ${mono}`;g.fillStyle=col(D.best.r);g.fillText(D.best.a.symbol+' '+pctS(D.best.r),110,y+34);if(D.worst&&D.worst!==D.best){g.fillStyle=col(D.worst.r);g.fillText(D.worst.a.symbol+' '+pctS(D.worst.r),W/2+20,y+34);}y+=150;}
+  if(o.amounts){g.fillStyle='#C9CDD3';g.font=`600 34px ${sans}`;g.fillText('Gain this month',110,y);g.fillStyle=col(D.m.st.gain);g.font=`600 40px ${mono}`;g.textAlign='right';g.fillText(F(D.m.st.gain,{sign:true}).replace('+','▲ ').replace('−','▼ '),W-110,y);g.textAlign='left';y+=70;
+    g.fillStyle='#C9CDD3';g.font=`600 34px ${sans}`;g.fillText('Portfolio value',110,y);g.fillStyle='#E8EAED';g.font=`600 40px ${mono}`;g.textAlign='right';g.fillText(F(D.m.st.Ve),W-110,y);g.textAlign='left';}
+  const Hn=Math.max(900,y+60);g.fillStyle='#5D636E';g.font=`500 26px ${sans}`;g.fillText('Time-weighted returns in '+UI.ccy+' · made with Lacag',80,Hn-50);
+  if(Hn<H){const c2=document.createElement('canvas');c2.width=W;c2.height=Hn;c2.getContext('2d').drawImage(cv,0,0);return c2;}
+  return cv;}
+function shareCardSheet(){const draw=()=>{const o=shareOpt();return `<div class="seg" role="group" style="margin-bottom:10px"><button data-shper="last" aria-pressed="${o.period==='last'}">Last month</button><button data-shper="this" aria-pressed="${o.period==='this'}">This month</button></div>
+   <div class="chips" style="margin-bottom:10px">${BENCHMARKS.map(b=>`<button class="tog" data-shidx="${b.id}" aria-pressed="${o.idx===b.id}"><span class="lk" style="background:${BM_COLOR[b.id]}"></span>${esc(b.name)}</button>`).join('')}</div>
+   <div id="shPrev" class="sh-prev"></div><div class="btns" style="margin-top:12px"><button class="btn primary" id="shGo">${iconSm('share')} Share</button><button class="btn" id="shSave">${iconSm('save')} Save image</button><button class="btn sm" data-sset-go="sharecard">What's on it</button></div>
+   ${C.bm[o.idx]?'':'<div class="hint">Index prices for this index haven\'t loaded yet, so it shows —. They load in the installed app with your Twelve Data key.</div>'}`;};
+  openSheet('Share your results',`<div id="shBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#shBody');
+    const paint=()=>{const cv=drawShareCard(shareOpt());const p=body.querySelector('#shPrev');if(!cv){p.innerHTML='<div class="card muted">No data for this month yet.</div>';return null;}p.innerHTML='';const img=new Image();img.src=cv.toDataURL('image/png');img.alt='Share card preview';p.appendChild(img);return cv;};
+    let cv=paint();
+    const blob=()=>new Promise(r=>(cv||paint()).toBlob(r,'image/png'));
+    body.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const o=shareOpt();
+      if(b.dataset.shper){UI.shareCard=Object.assign(o,{period:b.dataset.shper});saveUI();body.innerHTML=draw();cv=paint();return;}
+      if(b.dataset.shidx){UI.shareCard=Object.assign(o,{idx:b.dataset.shidx});saveUI();body.innerHTML=draw();cv=paint();if(!C.bm[b.dataset.shidx]&&!NET.blocked){UI.bms=[...new Set([...(UI.bms||[]),b.dataset.shidx])];saveUI();fetchBenchmarks();}return;}
+      if(b.id==='shGo'||b.id==='shSave'){const bl=await blob();if(!bl)return;const f=new File([bl],'lacag-'+shareData(o).per+'.png',{type:'image/png'});
+        if(b.id==='shGo'&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'My month'});}catch(err){}return;}
+        const url=URL.createObjectURL(bl);const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('Image saved');}});});}
+function shareCardSettingsHTML(){const o=shareOpt();const tg=(k,l)=>`<div class="look-row"><span class="lbl2">${l}</span><div class="seg" role="group"><button data-shopt="${k}:1" aria-pressed="${!!o[k]}">On</button><button data-shopt="${k}:0" aria-pressed="${!o[k]}">Off</button></div></div>`;
+  return `<div class="card stack"><div class="hint">A picture of your month you can send in Messages or WhatsApp. Percentages only unless you turn amounts on.</div>
+   ${tg('month','This month vs the index')}${tg('ytd','This year vs the index')}${tg('start','Since you started')}${tg('best','Best and worst holding')}${tg('amounts','Show kroner amounts')}
+   <div class="field"><label for="shIdx">Default index</label><select id="shIdx">${BENCHMARKS.map(b=>`<option value="${b.id}" ${o.idx===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select><div class="hint">You can switch the index when you share.</div></div>
+   <div><button class="btn primary sm" data-act="sharecard">${iconSm('share')} Preview and share</button></div></div>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-shopt]');if(b){const [k,v]=b.dataset.shopt.split(':');UI.shareCard=Object.assign(shareOpt(),{[k]:v==='1'});saveUI();softRender();return;}
+  if(e.target.closest('[data-act="sharecard"]'))shareCardSheet();});
+document.addEventListener('change',e=>{if(e.target.id==='shIdx'){UI.shareCard=Object.assign(shareOpt(),{idx:e.target.value});saveUI();}});
+
+/* share buttons: Overview page bar and Insights "Your updates" */
+{const _r=render;render=function(){_r();const v=$('#view');if(!v)return;
+  if(UI.tab==='overview'){const bar=v.querySelector('.page-bar');if(bar&&!bar.querySelector('[data-act="sharecard"]'))bar.querySelector('.gear-btn').insertAdjacentHTML('beforebegin',`<button class="gear-btn" data-act="sharecard" aria-label="Share your results" style="margin-left:auto;margin-right:8px">${iconSm('share',17)}</button>`);}
+  if(UI.tab==='analysis'){const rb=v.querySelector('[data-card="updates"] [data-act="review"]');if(rb&&!v.querySelector('[data-card="updates"] [data-act="sharecard"]'))rb.insertAdjacentHTML('afterend',` <button class="btn sm" data-act="sharecard" style="margin:-4px 0 10px">${iconSm('share')} Share card</button>`);}};}
+
+{const _r=render;render=function(){_r();if(UI.tab!=='overview')return;const hero=$('[data-card="hero"]');if(!hero)return;const eye=hero.querySelector('.hero-val .eye-btn'),ey=hero.querySelector('#heroEy');
+  if(eye&&ey&&!hero.querySelector('.hero-top')){const top=document.createElement('div');top.className='hero-top';ey.parentNode.insertBefore(top,ey);top.appendChild(ey);top.appendChild(eye);}};}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
