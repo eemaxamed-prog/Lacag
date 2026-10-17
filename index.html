@@ -717,7 +717,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610171838";
+const LACAG_BUILD="202610171922";
 "use strict";
 /* ================= utilities ================= */
 const DAY=864e5;
@@ -911,7 +911,7 @@ function market(){
   const d0=first;const N=today-d0+1;
   const fxD={};for(const cur of CCYS){if(cur==='NOK')continue;const {pts,mode}=fxPoints(cur,today);fxD[cur]=pts.length?dense(pts,d0,N,mode):null;}
   const fxAt=(cur,i)=>{if(cur==='NOK')return 1;const a=fxD[cur];if(!a)return S.fx[cur]||NaN;return a[Math.max(0,Math.min(N-1,i))];};
-  const priceCur={},src={};
+  const priceCur={},src={},lastTwo={};
   for(const a of S.assets){
     const m=new Map();let mode='lin';const h=C.hist[histKey(a)];
     const conv=(day,v,q)=>{if(!q||q===a.currency||!CCYS.includes(q))return v;const i=day-d0;return v*fxAt(q,i)/fxAt(a.currency,i);};
@@ -920,9 +920,11 @@ function market(){
     else{for(const t of S.txs)if(t.assetId===a.id&&(t.type==='buy'||t.type==='sell')&&t.price>0)m.set(dn(t.date),t.price/splitAfter(a.id,t.date));src[a.id]='manual';}
     for(const p of S.prices)if(p.assetId===a.id&&dn(p.date)>lastHist)m.set(dn(p.date),p.price/splitAfter(a.id,p.date));
     const lv=C.live[a.id];if(lv&&lv.date===localToday()&&lv.price>0)m.set(today,conv(today,lv.price,lv.q));
-    priceCur[a.id]=dense([...m.entries()].sort((x,y)=>x[0]-y[0]),d0,N,mode);
+    const ent=[...m.entries()].sort((x,y)=>x[0]-y[0]);priceCur[a.id]=dense(ent,d0,N,mode);
+    /* the last two days that really had a price (markets are closed at weekends): "today" = last trading day's move, like Nordnet */
+    if(mode==='step'&&ent.length>1)lastTwo[a.id]=[ent[ent.length-2][0],ent[ent.length-1][0]];
   }
-  MEMO.mkt={v:VERSION,today,d0,N,fxD,fxAt,priceCur,src};return MEMO.mkt;
+  MEMO.mkt={v:VERSION,today,d0,N,fxD,fxAt,priceCur,src,lastTwo};return MEMO.mkt;
 }
 
 function compute(){
@@ -977,10 +979,11 @@ function compute(){
   }
   const L=N-1;const holdings=[];
   for(const a of S.assets){const h=H[a.id];if(!h.qty&&!h.realized&&!h.divs&&!h.invested)continue;
-    const p=priceCur[a.id][L];const fxNow=fxAt(a.currency,L);const pPrev=N>1?priceCur[a.id][L-1]*fxAt(a.currency,L-1):p*fxNow;
+    const p=priceCur[a.id][L];const fxNow=fxAt(a.currency,L);let pPrev=N>1?priceCur[a.id][L-1]*fxAt(a.currency,L-1):p*fxNow;
+    {const lt=mk.lastTwo[a.id];if(lt&&lt[1]<today&&lt[0]-d0>=0){const j=lt[0]-d0;pPrev=priceCur[a.id][j]*fxNow;}} /* weekend/holiday: the last trading day's price move (like Nordnet) */
     const value=h.qty*p*fxNow;const avgCur=h.qty>0?h.costCur/h.qty:0;const avgFx=h.costCur>0?h.costNoFee/h.costCur:fxNow;
     holdings.push({a,kind:'asset',qty:h.qty,value,cost:h.cost,avgCur,avgFx,priceNow:p,fxNow,gain:value-h.cost,gainPct:h.cost>0?(value-h.cost)/h.cost:0,
-      dayChg:h.qty*(p*fxNow-pPrev),dayPct:pPrev>0?(p*fxNow-pPrev)/pPrev:0,priceEffect:h.qty*(p-avgCur)*fxNow,fxEffect:h.qty*avgCur*(fxNow-avgFx),
+      dayChg:h.qty*(p*fxNow-pPrev),dayPct:pPrev>0?(p*fxNow-pPrev)/pPrev:0,priceEffect:(value-h.cost)-h.qty*avgCur*(fxNow-avgFx),fxEffect:h.qty*avgCur*(fxNow-avgFx), /* price part includes fees, so price + currency = unrealised gain exactly */
       realized:h.realized,divs:h.divs,fees:h.fees,invested:h.invested,src:mk.src[a.id],accs:[...h.accs],byAcc:h.byAcc,AV:AV[a.id],ACF:ACF[a.id],ADIV:ADIV[a.id]});}
   const cashRows=[];for(const acc of S.accounts){if(!inP(acc.id))continue;const bal=cash[acc.id];if(Math.abs(bal)<0.005&&!cashIn[acc.id].dep)continue;
     cashRows.push({acc,balance:bal,value:bal*fxAt(acc.currency,L),deposited:cashIn[acc.id].dep,interest:cashIn[acc.id].int});}
@@ -1035,7 +1038,10 @@ function bmCompare(M,Z,id,bi,ei){
   let units=bi>=0?Z.V[bi]/b.p[bi]:0;const val=new Float64Array(M.N);
   for(let i=bi+1;i<=ei;i++){units+=(Z.CF[i]-Z.DIV[i])/b.p[i];val[i]=units*b.p[i];}
   if(bi>=0)val[bi]=Z.V[bi];
-  const twr=b.p[ei]/(bi>=0?b.p[bi]:b.p[start])-1;const days=ei-bi;
+  /* all time: compare from the day BEFORE your first investment, like your own return */
+  let pb=bi>=0?b.p[bi]:null;if(pb==null){const h=C.bm[id];const cur=h.cur||(BENCHMARKS.find(x=>x.id===id)||{}).cur||'USD';const day=ds(M.d0-1);let raw=null;for(const [d,v] of h.s){if(d<=day)raw=v;else break;}
+    pb=raw!=null?raw*fxNokOn(cur,day)/(Z.ccy==='NOK'?1:fxNokOn(Z.ccy,day)):b.p[start];if(!isFinite(pb))pb=b.p[start];}
+  const twr=b.p[ei]/pb-1;const days=ei-bi;
   return {p:b.p,val,twr,annual:days>=360?Math.pow(1+twr,365/days)-1:null,end:val[ei]};
 }
 
@@ -1098,7 +1104,9 @@ async function fetchHelper(a){const sym=yahooSym(a);if(!sym)throw new Error('Set
   const need=!h||h.src!=='yahoo'||!h.clean||Date.now()-h.t>12*36e5||h.from>from;
   const thr=a.cls==='stock'?0.15:0.08;
   const yrs=(dn(localToday())-dn(from))/365;const range=!need?'5d':yrs<0.9?'1y':yrs<1.9?'2y':yrs<4.9?'5y':yrs<9.9?'10y':'max';
-  const j=await helperGet(sym,range);const q=j.currency||a.currency;
+  let j=await helperGet(sym,range==='max'?'10y':range);const q=j.currency||a.currency;
+  /* held for 10+ years: Yahoo's "max" is monthly, so daily 10y is used and only the older part comes from "max" */
+  if(range==='max'){try{const m=await helperGet(sym,'max');const f=j.series.length?j.series[0][0]:'9999';j=Object.assign({},j,{series:m.series.filter(x=>x[0]<f).concat(j.series)});}catch(e){}}
   if(need){const cs=cleanSpikes(j.series.filter(x=>x[1]>0),thr);C.hist[key]={t:Date.now(),from,q,src:'yahoo',clean:true,fixed:cs.fixed,s:cs.s.filter(x=>x[0]>=from)};}
   else{const s=C.hist[key].s;for(const [d,c] of j.series){const i=s.findIndex(x=>x[0]===d);if(i>=0)s[i][1]=c;else if(!s.length||d>s[s.length-1][0])s.push([d,c]);}const cs=cleanSpikes(s,thr);C.hist[key].s=cs.s;C.hist[key].fixed=(C.hist[key].fixed||0)+cs.fixed;}
   if(j.price>0)C.live[a.id]={date:localToday(),price:+j.price,q,t:Date.now(),src:'yahoo'};}
@@ -1464,7 +1472,7 @@ function bmPeriodRet(M,Z,id,code,annual){const h=C.bm[id];if(!h||!h.s||!h.s.leng
   let pb=null,bdate=null;for(const [d,p] of s){if(d<=bd){pb=p;bdate=d;}else break;}if(pb==null||bdate>=ed)return null;
   const conv=(p,d)=>{const a=fxNokOn(cur,d),c=fxNokOn(ccy,d);return a&&c?p*a/c:null;};
   const vb=conv(pb,bdate),ve=conv(pe,ed);if(!vb||!ve)return null;const r=ve/vb-1;if(!isFinite(r))return null;if(!annual)return r;
-  const days=dn(ed)-dn(bdate);return days>0?Math.pow(1+r,365/days)-1:null;}
+  const days=M.today-Math.max(baseDay,dn(s[0][0])-1);return days>0?Math.pow(1+r,365/days)-1:null;} /* same day count as your own yearly return */
 function retTable(M,Z,periods,annual){const wide=periods.length>5;const g=annual?null:'cum';
   const baseIdx=c=>{if(c==='MAX'||c==='SINCE')return M.firstDay-1-M.d0;const b=rangeBase(c,M.today);if(b<M.firstDay-1)return null;const bi=b-M.d0;return bi<0?null:bi;};
   const myGain=c=>{const bi=baseIdx(c);if(bi==null||bi>=M.N-1)return null;return statsIdx(M,Z,bi,M.N-1).gain;};
@@ -1622,8 +1630,8 @@ function posMenu(id){const a=assetById(id);if(!a)return;
 
 /* ================= analysis: returns ================= */
 /* money gained per month/quarter (value change minus money added, plus dividends) */
-function periodGains(M,Z,per){const map=new Map();for(let i=1;i<M.N;i++){if(M.d0+i<M.firstDay)continue;const d=new Date((M.d0+i)*DAY);const k=per==='quarter'?d.getUTCFullYear()*4+Math.floor(d.getUTCMonth()/3):d.getUTCFullYear()*12+d.getUTCMonth();
-  const g=Z.V[i]-Z.V[i-1]-Z.CF[i]+Z.DIV[i];map.set(k,(map.get(k)||0)+g);}return map;}
+function periodGains(M,Z,per){const map=new Map();for(let i=0;i<M.N;i++){if(M.d0+i<M.firstDay)continue;const d=new Date((M.d0+i)*DAY);const k=per==='quarter'?d.getUTCFullYear()*4+Math.floor(d.getUTCMonth()/3):d.getUTCFullYear()*12+d.getUTCMonth();
+  const g=Z.V[i]-(i>0?Z.V[i-1]:0)-Z.CF[i]+Z.DIV[i];map.set(k,(map.get(k)||0)+g);}return map;}
 function periodReturns(M,Z,per){const map=new Map();for(let i=0;i<M.N;i++){const d=new Date((M.d0+i)*DAY);if(M.d0+i<M.firstDay)continue;const k=per==='quarter'?d.getUTCFullYear()*4+Math.floor(d.getUTCMonth()/3):d.getUTCFullYear()*12+d.getUTCMonth();map.set(k,(map.get(k)||1)*(1+Z.R[i]));}return map;}
 function returnsBars(map,per){const keys=[...map.keys()].sort((a,b)=>a-b);if(!keys.length)return '<div class="muted">No returns yet.</div>';
   const vals=keys.map(k=>map.get(k)-1);const sortedAbs=vals.map(Math.abs).sort((a,b)=>a-b);const mx=Math.max(0.01,sortedAbs[Math.floor(sortedAbs.length*0.92)]||0.01);const bw=per==='quarter'?22:11,gap=per==='quarter'?6:3;const h=180,mid=h/2,pt=8;const w=keys.length*(bw+gap)+gap;
@@ -2004,7 +2012,7 @@ function assetSheet(id){
    <h2 class="sec">Transactions</h2><div class="list">${S.txs.filter(t=>t.assetId===a.id).sort((x,y)=>x.date<y.date?1:-1).map(txLine).join('')}</div>`;
   openSheet(a.name||a.symbol,body,()=>{
     const drawA=()=>{const key=UI.drange;const FH=assetHist(a,mk);const cur=FH.cur||a.currency;const from=key==='MAX'?-Infinity:rangeBase(key,mk.today);
-      const all=FH.s.filter(p=>p.x>from);const pts=downsample(all.map((_,i)=>i)).map(i=>all[i]);
+      let i0=FH.s.findIndex(p=>p.x>from);if(i0<0)i0=FH.s.length;const all=FH.s.slice(Math.max(0,i0-1)); /* start at the last price ON or BEFORE the period start */const pts=downsample(all.map((_,i)=>i)).map(i=>all[i]);
       const r=pts.length>1?pts[pts.length-1].v/pts[0].v-1:0;$('#aRangeTxt').innerHTML=pts.length>1?`Price ${RANGE_WORD[key]}: <span class="${cl(r)}">${pct(r)}</span> in ${cur}`+(FH.loading?' · <span class="muted">loading full history…</span>':''):'';
       const fb=firstDateFor(a)?dn(firstDateFor(a)):null;let mi=-1;if(fb!=null&&pts.length>2&&fb>pts[0].x){mi=pts.findIndex(p=>p.x>=fb);}
       $$('[data-arange]').forEach(b=>{const k=b.dataset.arange;b.classList.toggle('nodata',k!=='MAX'&&FH.s.length>0&&rangeBase(k,mk.today)<FH.s[0].x-3);const sp=b.querySelector('.rp');if(sp)sp.outerHTML=assetRangePct2(FH,k,mk);});
@@ -3546,8 +3554,7 @@ C.adata=C.adata||{};
 const ySym=a=>a.yahoo?a.yahoo.toUpperCase():a.cls==='crypto'?String(a.symbol).toUpperCase().replace(/[-:].*$/,'')+'-USD':yahooSym(a);
 async function alData(inst){const a=inst.a;const ys=helperUrl()?ySym(a):null;const key=ys||a.dataSymbol||a.symbol;const o=C.adata[key];if(o&&Date.now()-o.t<30*60000)return o;
   let s=null,price=null,cur=null;
-  try{if(ys){const j=await helperGet(ys,'max');s=j.series.filter(x=>x[1]>0);price=+j.price||null;cur=j.currency||null;}
-    else if(S.settings.tdKey&&!NET.blocked){const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'1day',outputsize:'5000'});s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0).reverse();}}catch(e){}
+  try{if(!NET.blocked){const r=await fetchFullHist(a);if(r){s=r.s;price=r.price;cur=r.cur;}}}catch(e){}
   if(!s||!s.length){const h=C.hist[histKey(a)];s=h&&h.s?h.s.slice():[];}
   if(!s.length)return null;const today=localToday();const last=s[s.length-1];const cut=ds(dn(today)-30);
   const r={t:Date.now(),ath:Math.max(...s.map(x=>x[1])),top30:Math.max(...s.filter(x=>x[0]>=cut).map(x=>x[1]),last[1]),prev:last[0]===today&&s.length>1?s[s.length-2][1]:last[1],price:price||last[1],cur};
@@ -3645,9 +3652,20 @@ function assetRangePct(a,mk,r){const arr=mk.priceCur[a.id];const fd=firstDateFor
 function rpSpan(v){const av=Math.abs(v*100);const t=(av>=9999.5?Math.round(av/1000)+'k':av>=999.5?(Math.round(av/100)/10).toString().replace('.',',')+'k':av>=9.95?String(Math.round(av)):new Intl.NumberFormat('nb-NO',{minimumFractionDigits:1,maximumFractionDigits:1}).format(av))+'%';
   return `<span class="rp ${v>=0.0005?'rp-u':v<=-0.0005?'rp-d':''}">${v>=0.0005?'▲':v<=-0.0005?'▼':''}${t}</span>`;}
 
+/* ---------- full price history: DAILY prices for the last 10 years (Yahoo gives only monthly prices for "max"),
+   older years from "max" added before that. Used by holding charts and all-time-high alerts. ---------- */
+async function fetchFullHist(a){const ys=helperUrl()?ySym(a):null;
+  if(ys){const [d10,dm]=await Promise.all([helperGet(ys,'10y'),helperGet(ys,'max').catch(()=>null)]);
+    const thr=a.cls==='etf'||a.cls==='fund'?0.08:0.15;let daily=cleanSpikes(d10.series.filter(x=>x[1]>0),thr).s;
+    if(dm&&dm.series&&daily.length){const f=daily[0][0];const older=dm.series.filter(x=>x[1]>0&&x[0]<f);daily=older.concat(daily);}
+    const price=+d10.price||null;if(price&&daily.length){const t=localToday();if(daily[daily.length-1][0]===t)daily[daily.length-1][1]=price;else daily.push([t,price]);}
+    return {s:daily,cur:d10.currency||a.currency,price};}
+  if(S.settings.tdKey){const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'1day',outputsize:'5000',order:'ASC'});
+    const s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0);return {s,cur:(j.meta&&j.meta.currency)||a.currency,price:s.length?s[s.length-1][1]:null};}
+  return null;}
 /* ---------- a holding's chart shows ALL the price history there is, not only since you bought ---------- */
 C.ahist=C.ahist||{};
-const ahKey=a=>(a.yahoo||a.dataSymbol||a.symbol)+'';
+const ahKey=a=>'v2:'+(a.yahoo||a.dataSymbol||a.symbol);
 function assetHist(a,mk){const o=C.ahist[ahKey(a)];
   if(o&&o.s&&o.s.length)return {s:o.s.map(([d,v])=>({x:dn(d),v})),cur:o.cur,loading:false};
   /* until the full history has loaded: what Lacag already has */
@@ -3656,17 +3674,15 @@ function assetHist(a,mk){const o=C.ahist[ahKey(a)];
   const lv=C.live[a.id];if(lv&&lv.price>0&&s.length&&(lv.q||a.currency)===a.currency){const t=dn(localToday());if(s[s.length-1].x===t)s[s.length-1].v=lv.price;else if(s[s.length-1].x<t)s.push({x:t,v:lv.price});}
   return {s,cur:a.currency,loading:!NET.blocked&&(!!helperUrl()||!!S.settings.tdKey)};}
 async function loadAssetHist(a,mk){const k=ahKey(a);const o=C.ahist[k];if(o&&Date.now()-o.t<6*3600e3)return false;if(NET.blocked)return false;
-  let s=null,cur=null;
-  try{const ys=helperUrl()?ySym(a):null;
-    if(ys){const j=await helperGet(ys,'max');s=cleanSpikes(j.series.filter(x=>x[1]>0),a.cls==='etf'||a.cls==='fund'?0.08:0.15).s;cur=j.currency||a.currency;if(j.price>0&&s.length){const t=localToday();if(s[s.length-1][0]===t)s[s.length-1][1]=+j.price;else s.push([t,+j.price]);}}
-    else if(S.settings.tdKey){const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'1day',outputsize:'5000',order:'ASC'});s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0);cur=(j.meta&&j.meta.currency)||a.currency;}}catch(e){}
+  let s=null,cur=null;try{const r=await fetchFullHist(a);if(r){s=r.s;cur=r.cur;}}catch(e){}
   if(!s||s.length<2)return false;
-  /* very long daily histories are thinned to every 2nd day before 5 years ago (keeps storage small) */
-  const cut=ds(dn(localToday())-5*365);s=s.filter((x,i)=>x[0]>=cut||i%2===0);
-  C.ahist[k]={t:Date.now(),cur,s};try{saveCache();}catch(e){}return true;}
+  C.ahist[k]={t:Date.now(),v:2,cur,s};try{saveCache();}catch(e){}return true;}
 function assetRangePct2(FH,r,mk){const s=FH.s;if(s.length<2)return '<span class="rp"></span>';const last=s[s.length-1].v;let p0;
   if(r==='MAX')p0=s[0].v;else{const b=rangeBase(r,mk.today);if(b<s[0].x-3)return '<span class="rp"></span>';let i=s.findIndex(p=>p.x>b);if(i<0)return '<span class="rp"></span>';p0=i>0?s[i-1].v:s[i].v;}
   return p0>0?rpSpan(last/p0-1):'<span class="rp"></span>';}
+
+/* test hooks (used by the calculation checker) */
+setTimeout(()=>{try{Object.assign(window.__lacag,{statsIdx,rangeBase,periodReturns,periodGains,periodRet,idxRet,bmCompare,taxModel,avgStartAnnual,pcWin,kfWindow,assetHist,assetRangePct2,market,fxNokOn,bmPeriodRet,pcSlots,pcState});}catch(e){}},0);
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
