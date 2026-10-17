@@ -696,6 +696,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
   .ch-tools .bm-pick .bm-pick-t{display:none}   /* very small phones: index button shows only its colour line */
   .ch-tools .bm-pick{padding:4px 7px}
 }
+.fg-tag{display:inline-block;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--fg);letter-spacing:.02em}
 
 </style>
 <header class="top"><div class="top-in">
@@ -717,7 +718,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610171922";
+const LACAG_BUILD="202610172149";
 "use strict";
 /* ================= utilities ================= */
 const DAY=864e5;
@@ -1345,7 +1346,7 @@ function softRender(){render.keep=true;render();render.keep=false;}
 /* ================= overview ================= */
 function portfolioSeries(M,Z,key,st){
   if(key==='1D'){
-    const L=M.N-1;const tNow=Date.now();const t0=tNow-24*3600e3;const times=new Set();const live=M.holdings.filter(h=>h.qty>0);
+    const L=M.N-1;const tNow=Date.now();const t0=tNow-24*3600e3;const times=new Set();const live=M.holdings.filter(h=>h.qty>0&&(!M.__group||M.__group.ids.has(h.a.id)));
     for(const h of live){const it=C.intra[h.a.id];if(it&&tNow-it.t<6*3600e3)for(const [t] of it.s)if(t>=t0)times.add(t);}
     const k=UI.ccy==='NOK'?1:M.fxAt(UI.ccy,L);
     if(times.size<3)return {time:false,pts:[{x:M.today-1,v:M.N>1?Z.V[L-1]:Z.V[L]},{x:M.today,v:Z.V[L]}]};
@@ -1521,8 +1522,11 @@ function sameMoneyHTML(M,Z){const bi=M.firstDay-1-M.d0,ei=M.N-1;if(ei<=Math.max(
   return `<div class="cmp-h">Same money, same days</div><div class="small muted expl" style="margin-bottom:4px">Your deposits and withdrawals, put into the index on the same days, since your first investment.</div>
    ${rows.map(({b,r})=>{const d=yours-r.end;const alpha=st.twr-r.twr;return `<div class="sm-row"><span class="sw" style="background:${BM_COLOR[b.id]}"></span><div class="mid"><div class="t1">${esc(b.name)} would be ${F(r.end)}</div><div class="t2">Index ${pct(r.twr)} · you ${pct(st.twr)} · alpha <span class="${cl(alpha)}">${pct(alpha)}</span></div></div><div class="end"><div class="t1 ${cl(d)}">${F(d,{sign:true})}</div><div class="t2 muted">${d>=0?'ahead':'behind'}</div></div></div>`;}).join('')}`;}
 function viewOverview(v){
-  const M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
-  const Z=series(M,UI.ccy);const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
+  let M=compute();if(!M){v.innerHTML=demoBanner()+emptyState();return;}
+  let Z=series(M,UI.ccy);
+  /* a combined line first in the chart: the whole chart area (numbers, %s, value mode, scrub) follows that line */
+  const FG=focusGroup(M,UI.ccy);if(FG){M=FG.M;Z=FG.Z;}
+  const key=UI.range;const st=stats(M,Z,key);const ser=portfolioSeries(M,Z,key,st);
   const total=conv(M,M.total);const invNow=Z.V[M.N-1];const perf=UI.mode==='perf'&&!!ser.idx;
   let pts,inv=null;
   if(ser.idx){const base=st.bi>=0?Z.IDX[st.bi]:1;pts=ser.idx.map(i=>({x:M.d0+i,v:perf?Z.IDX[i]/base-1:Z.V[i]}));if(!perf)inv=ser.idx.map(i=>({x:M.d0+i,v:Z.NET[i]}));}
@@ -1538,7 +1542,7 @@ function viewOverview(v){
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted inv-line" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}<div class="pc-tools ch-tools">${perf&&key!=='1D'?bmMulti('chart'):''}<button class="gear-btn" data-act="chartcfg" aria-label="Chart settings">${iconSm('gear',16)}</button></div></div>
-  <div class="legend-row"><div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div></div>
+  <div class="legend-row"><div class="legend-line small muted">${!perf?'<span class="lk solid"></span>'+(M.__group?esc(M.__group.name):'Investments')+' <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div></div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges${chartOpt().rpct?' with-rp':''}" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}"><span class="rk">${r}</span>${chartOpt().rpct?rangePctHTML(M,Z,r):''}</button>`).join('')}</div>
 </section>
@@ -1556,11 +1560,11 @@ function viewOverview(v){
   const heroEy=$('#heroEy');const eyTotal=heroEy.textContent;
   const heroVal=$('#heroVal'),heroChg=$('#heroChg'),heroPct=$('#heroPct'),heroWhen=$('#heroWhen');
   let series_;const pf=pfOpt();
-  if(perf){series_=[];for(const k of pf.sel){const Zs=k==='all'?Z:classZ(M,UI.ccy,k);if(!Zs)continue;let fi=0;while(fi<M.N&&!(Zs.V[fi]>0))fi++;const bb=Math.max(st.bi,fi-1);const b0=bb>=0?Zs.IDX[bb]:1;
+  if(perf){series_=[];for(const k of pf.sel){const Zs=k==='all'?(M.__group?M.__group.Z0:Z):classZ(M,UI.ccy,k);if(!Zs)continue;let fi=0;while(fi<M.N&&!(Zs.V[fi]>0))fi++;const bb=Math.max(st.bi,fi-1);const b0=bb>=0?Zs.IDX[bb]:1;
       const held=i=>Zs.V[i]>0||(i>0&&Zs.V[i-1]>0);
       series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:held(i)?Zs.IDX[i]/b0-1:NaN})),color:CLS_LINE[k][1],dash:series_.length&&CLS_LINE[k][2]!=='1 0'?CLS_LINE[k][2]:null,label:k==='all'?portfolio().name:CLS_LINE[k][0],fmt:'pct',width:series_.length?1.9:2.2,noDiff:series_.length>0});}
     if(!series_.length)series_.push({pts,color:'var(--accent)',label:portfolio().name,fmt:'pct'});}
-  else series_=[{pts,color:up?'var(--up)':'var(--down)',label:'Investments',fmt:'money'}];
+  else series_=[{pts,color:up?'var(--up)':'var(--down)',label:M.__group?M.__group.name:'Investments',fmt:'money'}];
   if(inv)series_.push({pts:inv,color:'var(--muted)',width:1.4,dash:'4 4',opacity:.85,label:'Money put in',fmt:'money'});
   if(perf)for(const {b,r} of compare){const b0=st.bi>=0?r.p[st.bi]:r.p[st.startI];series_.push({pts:ser.idx.map(i=>({x:M.d0+i,v:r.p[i]/b0-1})),color:BM_COLOR[b.id],width:1.6,dash:BM_DASH[b.id],label:b.name,fmt:'pct'});}
   /* long periods that start before your first data: pad the start and dim it, so the chart shows the whole period */
@@ -3133,7 +3137,7 @@ function countUp(el,from,to,fmt){const t0=performance.now(),d=650;const step=now
   if(LAST_TAB!==UI.tab){if(v.animate)v.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}],{duration:170,easing:'ease-out'});LAST_TAB=UI.tab;}
   collapseCards(v);
   if(UI.tab==='overview'){const M=compute();
-    if(M&&!PRIV()){const tot=conv(M,M.total);const el=$('#heroVal');if(el&&LAST_TOTAL!=null&&Math.abs(LAST_TOTAL-tot)>0.5)countUp(el,LAST_TOTAL,tot,x=>F(x));LAST_TOTAL=tot;}
+    if(M&&!PRIV()&&!focusGroup(M,UI.ccy)){const tot=conv(M,M.total);const el=$('#heroVal');if(el&&LAST_TOTAL!=null&&Math.abs(LAST_TOTAL-tot)>0.5)countUp(el,LAST_TOTAL,tot,x=>F(x));LAST_TOTAL=tot;}
     const chartTop=v.querySelector('[data-card="chart"] .ch-tools')||v.querySelector('[data-card="chart"] .row-between');if(chartTop&&!chartTop.querySelector('[data-act="chartfs"]'))chartTop.insertAdjacentHTML('beforeend',`<button class="gear-btn fs-btn" data-act="chartfs" aria-label="${document.body.classList.contains('chart-fs')||landFs()?'Close full screen':'Full screen chart'}">${document.body.classList.contains('chart-fs')||landFs()?ICON.close:iconSm('expand',16)}</button>`);
     if(reviewDue()&&!v.querySelector('.review-banner')){const bar=v.querySelector('.page-bar');const nm=MON[+lastMonthYM().slice(5)-1];const h=`<div class="banner keep review-banner"><div style="flex:1"><b>Your ${nm} review is ready</b><div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="review">Open</button><button class="btn sm" data-act="reviewlater">Dismiss</button></div></div></div>`;if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);}}
   else document.body.classList.remove('chart-fs');
@@ -3683,6 +3687,26 @@ function assetRangePct2(FH,r,mk){const s=FH.s;if(s.length<2)return '<span class=
 
 /* test hooks (used by the calculation checker) */
 setTimeout(()=>{try{Object.assign(window.__lacag,{statsIdx,rangeBase,periodReturns,periodGains,periodRet,idxRet,bmCompare,taxModel,avgStartAnnual,pcWin,kfWindow,assetHist,assetRangePct2,market,fxNokOn,bmPeriodRet,pcSlots,pcState});}catch(e){}},0);
+
+/* ---------- the main chart follows a combined line ----------
+   When the FIRST line in the performance chart is one of your combined lines, the Total value card, the chart (value and
+   performance), the % under the period buttons and the finger readout all show that group: only its own buys, sales,
+   fees and dividends, from the day before its first buy. Everything else in the app stays on the whole portfolio. */
+function focusGroup(M,ccy){if(!M)return null;syncGroups();const k=(pfOpt().sel||[])[0];if(!k||!String(k).startsWith('g_')||!CLS_LINE[k])return null;
+  const g=lineGroups().find(x=>'g_'+x.id===k);if(!g)return null;M._fg=M._fg||{};const ck=ccy+'|'+k+'|'+g.ids.join(',');if(M._fg[ck])return M._fg[ck];
+  const Zc=classZ(M,ccy,k),Zn=ccy==='NOK'?Zc:classZ(M,'NOK',k);if(!Zc)return (M._fg[ck]=null);
+  const N=M.N;const NET=new Float64Array(N),R=new Float64Array(N);let net=0,prev=0;
+  for(let i=0;i<N;i++){net+=Zc.CF[i];NET[i]=net;const den=prev+Math.max(Zc.CF[i],0);let r=den>0?(Zc.V[i]+Zc.DIV[i]-Zc.CF[i]-prev)/den:0;R[i]=isFinite(r)?r:0;prev=Zc.V[i];}
+  let fi=0;while(fi<N&&!(Zc.V[fi]>0||Zc.CF[fi]!==0))fi++;
+  const Z={ccy,V:Zc.V,CF:Zc.CF,DIV:Zc.DIV,NET,R,IDX:Zc.IDX};
+  const ids=new Set(g.ids);
+  const Mg=Object.assign({},M,{firstDay:M.d0+Math.min(fi,N-1),total:Zn.V[N-1],invested:Zn.V[N-1],cash:0,_ser:{[ccy]:Z},_cls:M._cls,__group:{k,name:g.name,ids,Z0:series(M,ccy)}});
+  return (M._fg[ck]={M:Mg,Z,name:g.name});}
+/* Total value card: name the group and show what share of your investments it is */
+{const _r=render;render=function(){_r();if(UI.tab!=='overview')return;const M0=compute();const FG=focusGroup(M0,UI.ccy);const v=$('#view');if(!FG||!v)return;
+  const ey=v.querySelector('#heroEy');if(ey)ey.innerHTML=`${esc(portfolio().name)} · <span class="fg-tag">${esc(FG.name)}</span>`;
+  const il=v.querySelector('.inv-line');if(il){const share=M0.invested>0?FG.M.total/M0.invested:0;il.innerHTML=`<span class="amber-v">${pct1(share)}</span> of your investments · Whole portfolio <span class="amber-v">${F(conv(M0,M0.total))}</span> · <button class="linkbtn" data-act="fgoff">Show whole portfolio</button>`;}};}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-act="fgoff"]'))return;const o=pfOpt();o.sel=o.sel.filter(k=>!String(k).startsWith('g_'));if(!o.sel.length)o.sel=['all'];o.sel.unshift(...(o.sel.includes('all')?[]:['all']));o.sel=[...new Set(o.sel)];UI.pf=o;saveUI();softRender();});
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
