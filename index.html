@@ -638,6 +638,34 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 @media (max-width:440px){.calm-chip{padding:6px 8px;min-width:32px;justify-content:center}.calm-chip .ct{display:none}}
 .upd-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:65;display:flex;align-items:center;gap:12px;background:var(--surface2);color:var(--fg);border:1px solid var(--accent);border-radius:14px;padding:8px 8px 8px 14px;font-size:14px;font-weight:600;box-shadow:0 6px 24px rgb(0 0 0 / .4);max-width:calc(100% - 24px);white-space:nowrap}
 .ver-line{margin:4px 2px 18px}
+/* date + time on their own line in every add/edit window; iOS date fields never stick out */
+.dtrow{grid-template-columns:1fr 1fr}
+.sheet input[type="date"],.sheet input[type="time"]{width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;text-align:left}
+.sheet input[type="date"]::-webkit-date-and-time-value,.sheet input[type="time"]::-webkit-date-and-time-value{text-align:left}
+.sheet .field{min-width:0}
+.sheet .grid2>*{min-width:0}
+.inv-line .amber-v{font-weight:700}
+/* price alerts at the top of Overview */
+.al-stack{display:flex;flex-direction:column;gap:10px;margin:12px 0 4px}
+.al-card{display:flex;align-items:flex-start;gap:12px;background:color-mix(in srgb,var(--down) 14%,var(--surface));border:1.5px solid var(--down);border-radius:16px;padding:14px 12px 14px 14px}
+.al-ic{color:var(--down);font-size:22px;line-height:1.2}
+.al-txt{flex:1;min-width:0}.al-h{font-size:17px;line-height:1.35}.al-h b.down{color:var(--down)}
+.al-s{font-size:13px;color:var(--muted);margin-top:4px}
+.al-x{flex:none;background:var(--surface2)!important}
+.al-foot{display:flex;gap:8px;flex-wrap:wrap}
+.al-rule{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+/* news card */
+.nw-card{padding-top:6px}
+.nw-asset{padding:10px 0}.nw-asset+.nw-asset{border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.nw-ah{display:flex;align-items:center;gap:8px;margin-bottom:4px;min-width:0}
+.nw-sym{font-weight:800;font-size:15px}.nw-name{color:var(--muted);font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nw-item{display:block;padding:7px 0;color:var(--fg);text-decoration:none}
+.nw-t{display:block;font-size:14.5px;line-height:1.35}.nw-s{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.nw-item:active .nw-t{color:var(--accent)}
+.nw-empty{font-size:13px;color:var(--muted);padding:4px 0}
+.grp-pick{cursor:pointer}.grp-pick input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.al-more{width:100%;border:1.5px dashed var(--down);background:transparent;color:var(--fg)}
+.nw-more{margin:6px 0 4px}
 
 </style>
 <header class="top"><div class="top-in">
@@ -659,7 +687,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610161322";
+const LACAG_BUILD="202610171014";
 "use strict";
 /* ================= utilities ================= */
 const DAY=864e5;
@@ -1444,7 +1472,7 @@ function viewOverview(v){
   v.innerHTML=`${demoBanner()}
   <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
-    <div class="small muted" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
+    <div class="small muted inv-line" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}${key==='1D'?'':perf?`<div class="pc-tools">${bmMulti('chart')}<button class="gear-btn" data-act="chartcfg" aria-label="Choose what the performance chart shows">${iconSm('gear',18)}</button></div>`:`<button class="tog ev-tog" data-act="events" aria-pressed="${!!UI.events}"><span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Events</button>`}</div>
   <div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div>
   <div class="chart" id="mainChart"></div>
@@ -1781,7 +1809,8 @@ function txSheet(tx,opts={}){
      <div class="field"><label for="fData">Price ticker (for live prices)</label><input id="fData" autocapitalize="characters" placeholder="AAPL · WEBN:XETR · BTC"><div class="hint">Add <code>:EXCHANGE</code> for non-US listings, e.g. <code>WEBN:XETR</code>.</div></div>
    </div>
    <div class="note small" id="lookupNote" hidden></div>
-   <div class="grid2"><div class="field"><label for="fAcc">Account</label><select id="fAcc">${accOptions(t.accountId,a=>a.kind!=='cash')}</select></div><div class="field"><label for="fDate">Date</label><div class="dt2"><input id="fDate" type="date" value="${esc(t.date)}" max="${localToday()}"><input id="fTime" type="time" aria-label="Time (optional)" value="${esc(t.time||'')}"></div></div></div>
+   <div class="field"><label for="fAcc">Account</label><select id="fAcc">${accOptions(t.accountId,a=>a.kind!=='cash')}</select></div>
+   <div class="grid2 dtrow"><div class="field"><label for="fDate">Date</label><input id="fDate" type="date" value="${esc(t.date)}" max="${localToday()}"></div><div class="field"><label for="fTime">Time <span class="muted">(optional)</span></label><input id="fTime" type="time" value="${esc(t.time||'')}"></div></div>
      <div class="field"><label for="fNote">Why? <span class="muted">(optional diary note)</span></label><input id="fNote" maxlength="160" placeholder="e.g. Bought the dip after earnings" value="${esc(t.note||'')}"></div>
    <div id="tradeFields" class="stack">
      <div class="grid2"><div class="field"><label for="fQty">Quantity</label><input id="fQty" inputmode="decimal" value="${inputNum(t.qty,8)}" placeholder="0,05"></div><div class="field"><label for="fPrice" id="lPrice">Price per unit</label><input id="fPrice" inputmode="decimal" value="${inputNum(t.price,6)}"></div></div>
@@ -1869,7 +1898,8 @@ function cashSheet(tx,accId){
    <div style="overflow-x:auto"><div class="seg">${types.map(([k,l])=>`<button type="button" data-ctype="${k}" aria-pressed="${t.type===k}">${l}</button>`).join('')}</div></div>
    <div class="note small" id="cHint"></div>
    <div class="grid2"><div class="field"><label for="cAcc" id="lAcc">Account</label><select id="cAcc">${accOptions(t.accountId,a=>a.tracksCash)}</select></div><div class="field" id="toWrap"><label for="cTo">To account</label><select id="cTo">${accOptions(t.toAccountId,a=>a.tracksCash)}</select></div></div>
-   <div class="grid2"><div class="field"><label for="cDate">Date</label><div class="dt2"><input id="cDate" type="date" value="${esc(t.date)}" max="${localToday()}"><input id="cTime" type="time" aria-label="Time (optional)" value="${esc(t.time||'')}"></div></div><div class="field"><label for="cAmt" id="lAmt">Amount</label><input id="cAmt" inputmode="decimal" value="${inputNum(t.amount,2)}"></div></div>
+   <div class="grid2 dtrow"><div class="field"><label for="cDate">Date</label><input id="cDate" type="date" value="${esc(t.date)}" max="${localToday()}"></div><div class="field"><label for="cTime">Time <span class="muted">(optional)</span></label><input id="cTime" type="time" value="${esc(t.time||'')}"></div></div>
+   <div class="field"><label for="cAmt" id="lAmt">Amount</label><input id="cAmt" inputmode="decimal" value="${inputNum(t.amount,2)}"></div>
    <div class="err" id="cErr"></div><button class="btn primary block" type="submit">${isEdit?'Save changes':'Save'}</button>${isEdit?'<button class="btn danger block" type="button" id="delC">Delete</button>':''}</form>`;
   openSheet(isEdit?'Edit cash entry':'Cash',body,()=>{let type=t.type;
     const hints={deposit:'Money in from your salary or bank. Counts as money you put in, not as a gain.',withdraw:'Money taken out to spend. Counts as money taken out, not as a loss.',balance:'Enter the balance on your statement. The change since the last entry counts as return, which suits money market funds.',interest:'Interest paid in, or use a negative amount for a fee.',transfer:'Move money between two of your accounts. Not counted as money in or out.'};
@@ -3404,6 +3434,188 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-act="doupdate"]
 setTimeout(()=>checkUpdate(false),3000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate(false);});
 /* version line at the bottom of Settings */
 {const _r=render;render=function(){_r();if(UI.tab!=='settings'||UI.sset)return;const v=$('#view');if(v&&!v.querySelector('.ver-line'))v.insertAdjacentHTML('beforeend',`<div class="ver-line small muted">Version ${buildLabel()} · <button class="linkbtn" data-act="checkupd">Check for update</button></div>`);};}
+
+/* ================= combined lines, price alerts and the news card ================= */
+
+/* ---------- 1) combined lines: pick any assets and see them as ONE line in the performance chart ---------- */
+const GRP_COLORS=['#A0A8FF','#FFC2E2','#F7E08A','#9FE3FF','#D0B8FF','#FFFFFF','#FFB3A7','#B8F0FF'];
+const GRP_DASH=['1 0','6 3','3 3','10 3 2 3','1 0','6 3','3 3','10 3 2 3'];
+const lineGroups=()=>(UI.lineGroups||[]).filter(g=>g&&Array.isArray(g.ids)&&g.ids.length);
+function syncGroups(){for(const k of Object.keys(CLS_LINE))if(k.startsWith('g_'))delete CLS_LINE[k];
+  lineGroups().forEach((g,i)=>{CLS_LINE['g_'+g.id]=[g.name||'Combined',g.color||GRP_COLORS[i%GRP_COLORS.length],GRP_DASH[i%GRP_DASH.length]];});}
+{const _c=classZ;classZ=function(M,ccy,cls){if(!String(cls).startsWith('g_'))return _c(M,ccy,cls);const g=lineGroups().find(x=>'g_'+x.id===cls);if(!g)return null;
+  M._cls=M._cls||{};const key=ccy+'|'+cls+'|'+g.ids.join(',');if(M._cls[key]!==undefined)return M._cls[key];const ids=new Set(g.ids);
+  const hs=M.holdings.filter(h=>ids.has(h.a.id));if(!hs.length)return (M._cls[key]=null);const N=M.N;const f=i=>ccy==='NOK'?1:M.fxAt(ccy,i);
+  const V=new Float64Array(N),CF=new Float64Array(N),DIV=new Float64Array(N),IDX=new Float64Array(N);let prev=0,idx=1,any=false;
+  for(let i=0;i<N;i++){const k=f(i);let v=0,c=0,d=0;for(const h of hs){v+=h.AV[i];c+=h.ACF[i];d+=h.ADIV[i];}V[i]=v/k;CF[i]=c/k;DIV[i]=d/k;if(V[i]>0)any=true;
+    const den=prev+Math.max(CF[i],0);let r=den>0?(V[i]+DIV[i]-CF[i]-prev)/den:0;if(!isFinite(r))r=0;idx*=1+r;IDX[i]=idx;prev=V[i];}
+  return (M._cls[key]=any?{V,CF,DIV,IDX}:null);};}
+{const _r=render;render=function(){syncGroups();_r();};}
+syncGroups();
+{const _cs=chartCfgSheet;chartCfgSheet=function(){syncGroups();_cs();const sh=$('#sheet');const pf=sh&&sh.querySelector('#pfBody');if(!pf)return;
+  const box=document.createElement('div');box.id='grpBox';pf.after(box);
+  const draw=()=>{const G=lineGroups();box.innerHTML=`<h3 class="h3" style="margin-top:16px">Combined lines</h3>
+    <div class="hint">Put two or more assets together as one line, e.g. "Tech" = Apple + Microsoft + Nvidia. Tick it above to show it.</div>
+    ${G.length?`<div class="list" style="margin-top:8px">${G.map((g,i)=>`<button class="item" data-grpedit="${g.id}"><span class="lk" style="background:${lkBg(CLS_LINE['g_'+g.id][1],CLS_LINE['g_'+g.id][2]==='1 0'?null:CLS_LINE['g_'+g.id][2])};width:18px"></span><div class="mid"><div class="t1">${esc(g.name)}</div><div class="t2">${esc(g.ids.map(id=>(assetById(id)||{}).symbol).filter(Boolean).join(' + '))}</div></div><span class="set-chev">✎</span></button>`).join('')}</div>`:''}
+    <div class="btns" style="margin-top:10px"><button class="btn sm primary" data-grpedit="__new">${iconSm('plus')} New combined line</button></div>`;};
+  draw();box.addEventListener('click',e=>{const b=e.target.closest('[data-grpedit]');if(b)groupEditor(b.dataset.grpedit);});};}
+function groupEditor(id){const M=compute();if(!M)return;const G=UI.lineGroups||[];const g=id==='__new'?{id:uid(),name:'',ids:[]}:Object.assign({},G.find(x=>x.id===id)||{id,name:'',ids:[]});
+  const hs=M.holdings.slice().sort((a,b)=>(b.qty>0)-(a.qty>0)||String(a.a.symbol).localeCompare(b.a.symbol));
+  openSheet(id==='__new'?'New combined line':'Edit combined line',`<form id="grpForm" class="form">
+   <div class="field"><label for="grpName">Name</label><input id="grpName" maxlength="24" placeholder="e.g. Tech or Long term" value="${esc(g.name)}"></div>
+   <div class="h3" style="margin:12px 0 6px">Assets in this line</div>
+   <div class="list">${hs.map(h=>`<label class="item grp-pick"><input type="checkbox" value="${h.a.id}" ${g.ids.includes(h.a.id)?'checked':''}>${badge(h.a)}<div class="mid"><div class="t1">${esc(h.a.symbol)}</div><div class="t2">${esc(h.a.name||'')}${h.qty>0?'':' · sold'}</div></div></label>`).join('')}</div>
+   <div class="err" id="grpErr" hidden></div>
+   <div class="btns" style="margin-top:12px"><button class="btn primary" type="submit">Save</button>${id==='__new'?'':'<button class="btn" type="button" data-grpdel="1">Delete</button>'}</div></form>`,sh=>{
+    const back=()=>{syncGroups();softRender();chartCfgSheet();};
+    sh.querySelector('#grpForm').onsubmit=e=>{e.preventDefault();const ids=[...sh.querySelectorAll('.grp-pick input:checked')].map(x=>x.value);const err=sh.querySelector('#grpErr');
+      if(ids.length<2){err.hidden=false;err.textContent='Tick at least two assets.';return;}
+      g.name=sh.querySelector('#grpName').value.trim()||ids.map(x=>(assetById(x)||{}).symbol).join('+').slice(0,24);g.ids=ids;
+      const L=(UI.lineGroups||[]).filter(x=>x.id!==g.id);const i=(UI.lineGroups||[]).findIndex(x=>x.id===g.id);if(i>=0)L.splice(i,0,g);else L.push(g);UI.lineGroups=L;
+      if(id==='__new'){const o=pfOpt();o.multi=true;if(!o.sel.includes('g_'+g.id))o.sel.push('g_'+g.id);UI.pf=o;}
+      saveUI();back();toast('Combined line saved');};
+    const del=sh.querySelector('[data-grpdel]');if(del)del.onclick=()=>{if(!armed(del,'Tap again to delete'))return;UI.lineGroups=(UI.lineGroups||[]).filter(x=>x.id!==g.id);if(UI.pf&&UI.pf.sel)UI.pf.sel=UI.pf.sel.filter(k=>k!=='g_'+g.id);saveUI();back();};});}
+
+/* ---------- 3) price alerts: shown big at the top of Overview until you close them ---------- */
+const AL_BASIS=[['ath','From the all-time high'],['top30','From the 30-day high'],['day','Today (from yesterday\'s close)'],['cost','From my buy price'],['set','From the price when I made the alert']];
+const AL_BASIS_SHORT={ath:'from its all-time high',top30:'from its 30-day high',day:'today',cost:'from your buy price',set:'since you made the alert'};
+function alertCfg(){if(!S.alerts)S.alerts={on:true,rules:[{id:'def',target:'all',levels:[5,10,15],basis:'ath'}]};S.alerts.rules=S.alerts.rules||[];return S.alerts;}
+function alInstruments(M){const out=[];if(M)for(const h of M.holdings)if(h.qty>0)out.push({key:'a:'+h.a.id,kind:'own',sym:h.a.symbol,name:h.a.name||h.a.symbol,a:h.a,price:h.priceNow,cur:h.a.currency,cost:h.avgCur});
+  for(const w of S.watch||[]){const lv=(C.wlive||{})[w.id];out.push({key:'w:'+w.id,kind:'watch',sym:w.symbol.split(':')[0],name:w.name||w.symbol,a:{id:'w_'+w.id,symbol:w.symbol,dataSymbol:w.symbol,cls:'stock',currency:w.cur},price:lv&&lv.price,cur:(lv&&lv.cur)||w.cur});}
+  return out;}
+C.adata=C.adata||{};
+const ySym=a=>a.yahoo?a.yahoo.toUpperCase():a.cls==='crypto'?String(a.symbol).toUpperCase().replace(/[-:].*$/,'')+'-USD':yahooSym(a);
+async function alData(inst){const a=inst.a;const ys=helperUrl()?ySym(a):null;const key=ys||a.dataSymbol||a.symbol;const o=C.adata[key];if(o&&Date.now()-o.t<30*60000)return o;
+  let s=null,price=null,cur=null;
+  try{if(ys){const j=await helperGet(ys,'max');s=j.series.filter(x=>x[1]>0);price=+j.price||null;cur=j.currency||null;}
+    else if(S.settings.tdKey&&!NET.blocked){const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'1day',outputsize:'5000'});s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0).reverse();}}catch(e){}
+  if(!s||!s.length){const h=C.hist[histKey(a)];s=h&&h.s?h.s.slice():[];}
+  if(!s.length)return null;const today=localToday();const last=s[s.length-1];const cut=ds(dn(today)-30);
+  const r={t:Date.now(),ath:Math.max(...s.map(x=>x[1])),top30:Math.max(...s.filter(x=>x[0]>=cut).map(x=>x[1]),last[1]),prev:last[0]===today&&s.length>1?s[s.length-2][1]:last[1],price:price||last[1],cur};
+  C.adata[key]=r;return r;}
+let ALERTS=[],AL_BUSY=false;
+const inst_cur=(i,d)=>d.cur||i.cur;
+async function checkAlerts(){const cfg=alertCfg();if(!cfg.on||AL_BUSY){if(!cfg.on){ALERTS=[];}return;}AL_BUSY=true;
+  try{const M=compute();const ins=alInstruments(M);const data={};for(const i of ins){try{data[i.key]=await alData(i);}catch(e){}}
+    const out=[];let refsChanged=false;
+    for(const r of cfg.rules){const lv=(r.levels||[]).filter(x=>x>0).sort((a,b)=>b-a);if(!lv.length)continue;
+      if(r.target==='pf'){if(!M)continue;const Z=series(M,UI.ccy);const I=Z.IDX;const n=M.N-1;let ref=null;
+        if(r.basis==='ath'||r.basis==='cost')ref=Math.max(...Array.from(I).slice(Math.max(0,M.firstDay-M.d0)));else if(r.basis==='top30')ref=Math.max(...Array.from(I).slice(Math.max(0,n-30)));
+        else if(r.basis==='day')ref=I[n-1];else if(r.basis==='set'){r.refs=r.refs||{};if(r.refs.pf==null){r.refs.pf=I[n];refsChanged=true;}ref=r.refs.pf;}
+        const drop=ref>0?I[n]/ref-1:0;const L=lv.find(x=>drop<=-x/100);if(L)out.push({key:r.id+'|pf',level:L,drop,sym:portfolio().name,name:'Your whole portfolio',basis:r.basis==='cost'?'ath':r.basis,pf:true});continue;}
+      for(const i of ins){if(r.target==='own'&&i.kind!=='own')continue;if(r.target==='watch'&&i.kind!=='watch')continue;if(r.target.startsWith('a:')||r.target.startsWith('w:')){if(r.target!==i.key)continue;}
+        const d=data[i.key];const mk=['ath','top30','day'].includes(r.basis);const price=mk?((d&&d.price)||i.price):(i.price||(d&&d.price));const pcur=mk&&d&&d.price&&inst_cur(i,d);if(!price)continue;let ref=null;
+        if(r.basis==='ath')ref=d&&Math.max(d.ath,price);else if(r.basis==='top30')ref=d&&Math.max(d.top30,price);else if(r.basis==='day')ref=d&&d.prev;else if(r.basis==='cost')ref=i.cost||null;
+        else if(r.basis==='set'){r.refs=r.refs||{};if(r.refs[i.key]==null){r.refs[i.key]=price;refsChanged=true;}ref=r.refs[i.key];}
+        if(!(ref>0))continue;const drop=price/ref-1;const L=lv.find(x=>drop<=-x/100);
+        if(L)out.push({key:r.id+'|'+i.key,level:L,drop,sym:i.sym,name:i.name,basis:r.basis,price,ref,cur:pcur||i.cur,watch:i.kind==='watch'});}}
+    if(refsChanged)savePlan();
+    /* a closed alert stays closed until the price recovers, or falls to the next level */
+    UI.alDis=UI.alDis||{};const live=new Set(out.map(x=>x.key));for(const k of Object.keys(UI.alDis))if(!live.has(k))delete UI.alDis[k];saveUI();
+    const seen=new Set();ALERTS=out.filter(x=>{if(seen.has(x.key))return false;seen.add(x.key);return !(UI.alDis[x.key]>=x.level);}).sort((a,b)=>a.drop-b.drop);
+    saveCache();if(UI.tab==='overview')softRender();}finally{AL_BUSY=false;}}
+function alertsBanner(){if(!ALERTS.length||!alertCfg().on)return '';
+  const showAll=!!ALERTS.showAll;const list=showAll?ALERTS:ALERTS.slice(0,3);
+  return `<section class="al-stack" aria-label="Price alerts">${list.map(x=>`<div class="al-card"><div class="al-ic">▼</div><div class="al-txt"><div class="al-h"><b>${esc(x.sym)}</b> is down <b class="down">${pctTxt(-x.drop)}</b> ${AL_BASIS_SHORT[x.basis]||''}</div>
+    <div class="al-s">${esc(x.name)}${x.watch?' · watchlist':''} · your alert at ${x.level} %${x.price&&x.ref&&!x.pf?` · now ${money(x.price,x.cur)}, was ${money(x.ref,x.cur)}`:''}</div></div>
+    <button class="icon-btn al-x" data-aldis="${esc(x.key)}:${x.level}" aria-label="Close this alert">${ICON.close}</button></div>`).join('')}
+   ${ALERTS.length>list.length?`<button class="btn al-more" data-almore="1">Show ${ALERTS.length-list.length} more alert${ALERTS.length-list.length>1?'s':''}</button>`:''}
+   ${ALERTS.length>1?`<div class="al-foot"><button class="btn sm" data-aldis="__all">Close all ${ALERTS.length}</button><button class="btn sm" data-sset-go="alerts">Alert settings</button></div>`:`<div class="al-foot"><button class="btn sm" data-sset-go="alerts">Alert settings</button></div>`}</section>`;}
+document.addEventListener('click',e=>{if(e.target.closest('[data-almore]')){ALERTS.showAll=true;softRender();return;}const b=e.target.closest('[data-aldis]');if(!b)return;UI.alDis=UI.alDis||{};
+  if(b.dataset.aldis==='__all'){for(const x of ALERTS)UI.alDis[x.key]=x.level;ALERTS=[];}
+  else{const v=b.dataset.aldis;const i=v.lastIndexOf(':');const k=v.slice(0,i),L=+v.slice(i+1);UI.alDis[k]=L;ALERTS=ALERTS.filter(x=>x.key!==k);}
+  saveUI();softRender();});
+{const _r=render;render=function(){_r();if(UI.tab!=='overview')return;const v=$('#view');if(!v||v.querySelector('.al-stack'))return;const h=alertsBanner();if(!h)return;const bar=v.querySelector('.page-bar');(bar||v.firstChild)?(bar?bar.insertAdjacentHTML('afterend',h):v.insertAdjacentHTML('afterbegin',h)):v.insertAdjacentHTML('afterbegin',h);};}
+{const _rf=refresh;refresh=async function(f){await _rf(f);checkAlerts();};}
+setTimeout(checkAlerts,2500);
+/* settings: Alerts & warnings */
+function alertsSettingsHTML(){const cfg=alertCfg();const M=compute();const own=M?M.holdings.filter(h=>h.qty>0):[];const W=S.watch||[];
+  const tOpt=r=>`<option value="all" ${r.target==='all'?'selected':''}>Every asset I own or watch</option><option value="own" ${r.target==='own'?'selected':''}>Every asset I own</option><option value="watch" ${r.target==='watch'?'selected':''}>Every watchlist asset</option><option value="pf" ${r.target==='pf'?'selected':''}>My whole portfolio</option>
+    ${own.length?`<optgroup label="One asset I own">${own.map(h=>`<option value="a:${h.a.id}" ${r.target==='a:'+h.a.id?'selected':''}>${esc(h.a.symbol)}</option>`).join('')}</optgroup>`:''}
+    ${W.length?`<optgroup label="One watchlist asset">${W.map(w=>`<option value="w:${w.id}" ${r.target==='w:'+w.id?'selected':''}>${esc(w.symbol)}</option>`).join('')}</optgroup>`:''}`;
+  return `<div class="card stack">
+   <div class="look-row"><span class="lbl2">Alerts</span><div class="seg" role="group"><button data-alon="1" aria-pressed="${!!cfg.on}">On</button><button data-alon="0" aria-pressed="${!cfg.on}">Off</button></div></div>
+   <div class="hint">A big warning shows at the top of Overview when something falls past your levels. It stays until you close it, and comes back only if the price recovers and falls again, or falls to your next level. Lacag checks when you open or update the app; it can't alert you while the app is closed.</div>
+   ${cfg.rules.map((r,i)=>`<div class="al-rule">
+     <div class="row-between"><b>Alert ${i+1}</b><button class="btn sm" data-aldel="${r.id}">Delete</button></div>
+     <div class="field"><label>Watch</label><select data-alt="${r.id}">${tOpt(r)}</select></div>
+     <div class="field"><label>Warn when down (%)</label><input data-alv="${r.id}" inputmode="decimal" value="${esc((r.levels||[]).join(', '))}" placeholder="5, 10, 15"></div>
+     <div class="field"><label>Measured</label><select data-alb="${r.id}">${AL_BASIS.map(([k,l])=>`<option value="${k}" ${r.basis===k?'selected':''}>${l}</option>`).join('')}</select></div></div>`).join('')}
+   <div class="btns"><button class="btn sm primary" data-aladd="1">${iconSm('plus')} Add alert</button><button class="btn sm" data-alcheck="1">Check now</button></div>
+   <div class="hint">Levels: any numbers, separated by commas (e.g. 3, 7.5, 20). "From the all-time high" uses the full price history from your price helper or Twelve Data.</div></div>`;}
+SET_SECTIONS.alerts={t:'Alerts & warnings',ic:'updown',own:()=>alertsSettingsHTML()};
+for(const g of SET_GROUPS){if(g[0]==='Your data'&&!g[1].includes('alerts'))g[1].splice(g[1].indexOf('conc')+1,0,'alerts');}
+{const _s=setSummary;setSummary=function(k){if(k==='alerts'){const c=alertCfg();return c.on?c.rules.length+' alert'+(c.rules.length===1?'':'s')+' · e.g. down '+((c.rules[0]||{}).levels||[]).join(', ')+' %':'Off';}
+  if(k==='news'){const n=newsCfg();return n.sites.length+' news sources'+(n.yahoo?' + Yahoo Finance per asset':'');}return _s(k);};}
+SET_KW.alerts='alert alerts warning notification varsel drop fall down percent ath all-time high';
+const alRule=id=>alertCfg().rules.find(r=>r.id===id);
+document.addEventListener('click',e=>{const t=e.target.closest('[data-alon],[data-aladd],[data-aldel],[data-alcheck]');if(!t)return;const c=alertCfg();const d=t.dataset;
+  if(d.alon){c.on=d.alon==='1';if(!c.on)ALERTS=[];}
+  else if(d.aladd)c.rules.push({id:uid(),target:'all',levels:[10],basis:'ath'});
+  else if(d.aldel)c.rules=c.rules.filter(r=>r.id!==d.aldel);
+  else if(d.alcheck){Object.keys(C.adata).forEach(k=>C.adata[k].t=0);checkAlerts().then(()=>toast(ALERTS.length?ALERTS.length+' alert'+(ALERTS.length>1?'s':'')+' on Overview':'Nothing has fallen past your levels'));return;}
+  savePlan();softRender();if(c.on)checkAlerts();});
+document.addEventListener('change',e=>{const t=e.target;const d=t.dataset||{};let r;
+  if(d.alt&&(r=alRule(d.alt))){r.target=t.value;delete r.refs;}else if(d.alb&&(r=alRule(d.alb))){r.basis=t.value;delete r.refs;}
+  else if(d.alv&&(r=alRule(d.alv))){r.levels=[...new Set(t.value.split(/[;,\s]+/).map(x=>parseNum(x)).filter(x=>isFinite(x)&&x>0&&x<100))].sort((a,b)=>a-b);t.value=r.levels.join(', ');}
+  else return;savePlan();checkAlerts();});
+
+/* ---------- 4) news card: today's move + latest headlines for what you own or watch ---------- */
+const NEWS_SITES=[['bloomberg.com','Bloomberg'],['reuters.com','Reuters'],['wsj.com','The Wall Street Journal'],['ft.com','Financial Times'],['cnbc.com','CNBC'],['economist.com','The Economist'],
+  ['barrons.com',"Barron's"],['finance.yahoo.com','Yahoo Finance'],['marketwatch.com','MarketWatch'],['investing.com','Investing.com'],['seekingalpha.com','Seeking Alpha'],['foxbusiness.com','Fox Business']];
+function newsCfg(){const n=Object.assign({sites:['bloomberg.com','reuters.com','wsj.com','ft.com','cnbc.com','marketwatch.com'],yahoo:true,days:2,per:2,market:true},UI.news||{});return n;}
+C.news=C.news||{};
+const newsQuery=a=>{if(a.cls==='crypto')return (a.name||a.symbol).replace(/\b(USD|EUR|NOK)\b/g,'').trim()||a.symbol;
+  const n=String(a.name||a.symbol).replace(/\b(Inc|Corp|Corporation|Company|Co|ASA|AB|AG|SA|NV|plc|PLC|Ltd|Limited|Holdings?|Class [A-C]|ETF|UCITS|Acc|Dist|\(.*?\))\b\.?/gi,'').replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+  return n.length>2?n+' stock':a.symbol+' stock';};
+function newsTargets(M){const out=[];if(M)for(const h of M.holdings)if(h.qty>0)out.push({key:'a:'+h.a.id,sym:h.a.symbol,name:h.a.name||h.a.symbol,a:h.a,move:h.dayPct,own:true});
+  for(const w of S.watch||[])out.push({key:'w:'+w.id,sym:w.symbol.split(':')[0],name:w.name||w.symbol,a:{symbol:w.symbol,dataSymbol:w.symbol,name:w.name||w.symbol,cls:'stock',currency:w.cur},move:null});
+  return out.sort((x,y)=>Math.abs(y.move||0)-Math.abs(x.move||0));}
+let NEWS_BUSY=false,NEWS_ERR='';
+async function loadNews(force){if(NEWS_BUSY||NET.blocked||!helperUrl())return;NEWS_BUSY=true;const n=newsCfg();const sig=n.sites.join(',')+'|'+n.yahoo+'|'+n.days;
+  try{const M=compute();const T=newsTargets(M).slice(0,8);const jobs=T.map(t=>({k:t.key,sym:ySym(t.a)||t.sym,q:newsQuery(t.a)}));if(n.market)jobs.push({k:'market',sym:'^GSPC',q:'stock market'});
+    let changed=false;for(const j of jobs){const o=C.news[j.k];if(!force&&o&&o.sig===sig&&Date.now()-o.t<20*60000)continue;
+      try{const r=await getJSON(helperUrl()+'/?news='+encodeURIComponent(j.sym)+'&q='+encodeURIComponent(j.q)+'&sites='+encodeURIComponent(n.sites.join(','))+'&yahoo='+(n.yahoo&&j.k!=='market'?1:0)+'&days='+n.days,15000);
+        if(r&&r.error){NEWS_ERR='old';break;}if(!r||!Array.isArray(r.news))continue;NEWS_ERR='';C.news[j.k]={t:Date.now(),sig,items:r.news.slice(0,8)};changed=true;}catch(e){NEWS_ERR=NEWS_ERR||'net';}}
+    if(changed)saveCache();if(UI.tab==='overview')softRender();}finally{NEWS_BUSY=false;}}
+function agoTxt(ms){if(!ms)return '';const m=Math.round((Date.now()-ms)/60000);if(m<60)return Math.max(1,m)+' min ago';const h=Math.round(m/60);if(h<24)return h+' h ago';return Math.round(h/24)+' d ago';}
+const newsLink=x=>`<a class="nw-item" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer"><span class="nw-t">${esc(x.title)}</span><span class="nw-s">${esc(x.source||'')}${x.time?' · '+agoTxt(x.time):''}</span></a>`;
+function newsCardHTML(M){const n=newsCfg();const head=`<div class="row-between"><h2 class="sec" style="margin:0">Why it moved · news</h2><button class="gear-btn" data-sset-go="news" aria-label="News sources">${iconSm('gear',16)}</button></div>`;
+  let body;
+  if(!helperUrl())body=`<div class="card"><div class="note">Headlines come through your free price helper. Add it once under Live prices.</div><div class="btns" style="margin-top:8px"><button class="btn sm" data-sset-go="prices">Live prices</button></div></div>`;
+  else if(NEWS_ERR==='old')body=`<div class="card"><div class="note"><b>Update your price helper once</b> to get news: open Cloudflare → your worker <b>lacag-prices</b> → Edit code, paste the new code (file <b>lacag-prices-worker.js</b>) and Deploy. Your prices keep working as before.</div><div class="btns" style="margin-top:8px"><button class="btn sm" data-act="newsretry">Try again</button></div></div>`;
+  else if(NET.blocked)body=`<div class="card muted small">News loads when you open Lacag from your home screen.</div>`;
+  else{const ALL=newsTargets(M).slice(0,8);const T=UI.newsAll?ALL:ALL.slice(0,4);const per=n.per||3;
+    const blocks=T.map(t=>{const o=C.news[t.key];const items=o?o.items.slice(0,per):null;
+      return `<div class="nw-asset"><div class="nw-ah"><span class="nw-sym">${esc(t.sym)}</span><span class="nw-name">${esc(t.name)}</span>${t.move!=null?`<span class="pill ${cl(t.move)}">${pct(t.move)}</span>`:'<span class="pill flat">watchlist</span>'}</div>
+       ${items==null?'<div class="nw-empty">Loading headlines…</div>':items.length?items.map(newsLink).join(''):'<div class="nw-empty">No news in the last '+n.days+' days from your sources.</div>'}</div>`;}).join('');
+    const mk=C.news.market;const market=n.market?`<div class="nw-asset"><div class="nw-ah"><span class="nw-sym">Market</span><span class="nw-name">Big picture</span></div>${mk?mk.items.slice(0,4).map(newsLink).join('')||'<div class="nw-empty">No market news right now.</div>':'<div class="nw-empty">Loading headlines…</div>'}</div>`:'';
+    body=`<div class="card nw-card">${blocks||'<div class="nw-empty">Add holdings or watchlist assets to see their news.</div>'}${ALL.length>T.length?`<button class="btn sm nw-more" data-nwall="1">Show ${ALL.length-T.length} more</button>`:UI.newsAll&&ALL.length>4?'<button class="btn sm nw-more" data-nwall="0">Show less</button>':''}${market}<div class="small muted" style="margin-top:8px">Sorted by today's move. Tap a headline to read it.</div></div>`;}
+  return `<div data-card="news">${head}${body}</div>`;}
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="newsretry"]')){NEWS_ERR='';loadNews(true);}const m=e.target.closest('[data-nwall]');if(m){UI.newsAll=m.dataset.nwall==='1';saveUI();softRender();}});
+{const _vo=viewOverview;viewOverview=function(v){_vo(v);const M=compute();if(!M)return;const mv=v.querySelector('[data-card="movers"]');const html=newsCardHTML(M);if(mv)mv.insertAdjacentHTML('afterend',html);else v.insertAdjacentHTML('beforeend',html);};}
+{const _rf=refresh;refresh=async function(f){await _rf(f);loadNews(false);};}
+setTimeout(()=>loadNews(false),3500);
+function newsSettingsHTML(){const n=newsCfg();
+  return `<div class="card stack"><div class="hint">The news card on Overview shows, for each asset you own or watch, today's move and the newest headlines that may explain it. Pick where headlines come from.</div>
+   <div class="list" style="background:var(--surface2)">${NEWS_SITES.map(([d,l])=>{const on=d==='finance.yahoo.com'?n.yahoo:n.sites.includes(d);return `<button class="item" data-nwsite="${d}"><div class="mid"><div class="t1">${esc(l)}</div>${d==='finance.yahoo.com'?'<div class="t2">News for each ticker</div>':''}</div><span class="bmm-chk ${on?'on':''}">${on?'✓':''}</span></button>`;}).join('')}</div>
+   <div class="look-row"><span class="lbl2">News from the last</span><div class="seg" role="group">${[[1,'Day'],[2,'2 days'],[7,'Week']].map(([k,l])=>`<button data-nwdays="${k}" aria-pressed="${n.days===k}">${l}</button>`).join('')}</div></div>
+   <div class="look-row"><span class="lbl2">Headlines per asset</span><div class="seg" role="group">${[2,3,5].map(k=>`<button data-nwper="${k}" aria-pressed="${n.per===k}">${k}</button>`).join('')}</div></div>
+   <div class="look-row"><span class="lbl2">Market news</span><div class="seg" role="group"><button data-nwmk="1" aria-pressed="${n.market}">Show</button><button data-nwmk="0" aria-pressed="${!n.market}">Hide</button></div></div>
+   <div class="hint">Some sites (Bloomberg, WSJ, FT, Barron's, The Economist) need a subscription to read the full article.</div></div>`;}
+SET_SECTIONS.news={t:'News sources',ic:'eye',own:()=>newsSettingsHTML()};
+for(const g of SET_GROUPS){if(g[0]==='Your data'&&!g[1].includes('news'))g[1].splice(g[1].indexOf('alerts')+1,0,'news');}
+SET_KW.news='news headlines nyheter bloomberg reuters wsj ft cnbc economist barrons yahoo marketwatch investing seeking alpha fox';
+document.addEventListener('click',e=>{const t=e.target.closest('[data-nwsite],[data-nwdays],[data-nwper],[data-nwmk]');if(!t)return;const n=newsCfg();const d=t.dataset;
+  if(d.nwsite){if(d.nwsite==='finance.yahoo.com')n.yahoo=!n.yahoo;else{const i=n.sites.indexOf(d.nwsite);if(i>=0)n.sites.splice(i,1);else n.sites.push(d.nwsite);}}
+  else if(d.nwdays)n.days=+d.nwdays;else if(d.nwper)n.per=+d.nwper;else if(d.nwmk)n.market=d.nwmk==='1';
+  UI.news=n;saveUI();softRender();clearTimeout(loadNews.t);loadNews.t=setTimeout(()=>loadNews(true),900);});
+
+/* Overview default order: Total value · Main chart · Allocation · Today's movers · News · Currency effect */
+{const keep=Object.assign({},CARD_LIB);for(const k of Object.keys(CARD_LIB))delete CARD_LIB[k];
+  for(const [k,v] of Object.entries(keep)){CARD_LIB[k]=v;if(k==='movers')CARD_LIB.news={t:'News',p:'overview'};}
+  if(!CARD_LIB.news)CARD_LIB.news={t:'News',p:'overview'};}
+if(!UI.migV5){UI.migV5=1;if(UI.layout&&UI.layout.overview){const L=UI.layout.overview;if(!L.some(c=>c.id==='news')){const i=L.findIndex(c=>c.id==='movers');L.splice(i>=0?i+1:L.length,0,{id:'news'});}}saveUI();}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
