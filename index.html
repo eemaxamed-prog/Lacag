@@ -682,6 +682,20 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 .ranges.with-rp button{flex:1 1 0;min-width:0;padding-left:0;padding-right:0}
 .ranges .rp{font-size:8.5px;letter-spacing:-.04em}
 .ranges .rp.rp-u{color:var(--up)}.ranges .rp.rp-d{color:var(--down)}
+/* main chart top row: Value/Performance · index · ⚙ · full screen — compact, shrinks on small screens */
+.chart-card > .row-between{flex-wrap:nowrap;gap:6px;min-width:0}
+.chart-card > .row-between > .seg{flex:none}
+.chart-card > .row-between > .seg button{padding:5px 10px;font-size:12.5px}
+.ch-tools{gap:5px;flex-wrap:nowrap;min-width:0;justify-content:flex-end}
+.ch-tools .gear-btn{width:32px;height:32px;border-radius:9px;flex:none}
+.ch-tools .bm-pick{min-height:32px;padding:4px 8px;font-size:12px;border-radius:9px;max-width:120px;min-width:0;gap:5px}
+.ch-tools .bm-pick .lk{width:12px}
+.legend-row{margin-top:6px;min-height:0}
+@media (max-width:380px){
+  .chart-card > .row-between > .seg button{padding:5px 8px;font-size:12px}
+  .ch-tools .bm-pick .bm-pick-t{display:none}   /* very small phones: index button shows only its colour line */
+  .ch-tools .bm-pick{padding:4px 7px}
+}
 
 </style>
 <header class="top"><div class="top-in">
@@ -703,7 +717,7 @@ table.rtab.wide,:root[data-tables="scroll"] table.rtab.wide{min-width:var(--tw,6
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610171813";
+const LACAG_BUILD="202610171838";
 "use strict";
 /* ================= utilities ================= */
 const DAY=864e5;
@@ -1154,19 +1168,22 @@ function mountChart(host,cfg){
   let lo=Math.min(...all),hi=Math.max(...all);if(!isFinite(lo)){host.innerHTML='<div class="empty">No prices yet</div>';return;}
   if(hi-lo<1e-9){const d=Math.abs(hi)*0.02||1;lo-=d;hi+=d;}const padv=(hi-lo)*0.08;const minAll=lo;lo-=padv;hi+=padv;if(cfg.kind!=='pct'&&lo<0&&minAll>=0)lo=0;
   const fmtTick0=v=>cfg.kind==='pct'?((v>1e-9?'\u25B2':v<-1e-9?'\u25BC':'')+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
-  const pr=yax==='small'?Math.max(24,Math.max(...niceTicks(lo,hi,3).map(t=>fmtTick0(t).length))*5.4+8):pr0;
+  const prW={small:5.4,xs:4.5,ends:4.8}[yax];const pr=prW?Math.max(20,Math.max(...niceTicks(lo,hi,3).map(t=>fmtTick0(t).length))*prW+7):pr0;
   const n=S0.pts.length;const X=i=>n===1?(w-pr)/2:i/(n-1)*(w-pr);const Y=v=>pt+(1-(v-lo)/(hi-lo))*(h-pt-pb);
   const pathOf=pts=>{let d='',pen=false;pts.forEach((p,i)=>{if(!isFinite(p.v)){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+','+Y(p.v).toFixed(1);pen=true;});return d;};
   const fmtTick=v=>cfg.kind==='pct'?((v>1e-9?'\u25B2':v<-1e-9?'\u25BC':'')+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
   const xl=i=>cfg.xfmt?cfg.xfmt(S0.pts[i].x):cfg.time?timeLabel(S0.pts[i].x):dateLabel(S0.pts[i].x);
   const gid='g'+(++chartSeq);const main=S0.color;
   let svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${esc(cfg.label||'Chart')}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${main}" stop-opacity=".22"/><stop offset="1" stop-color="${main}" stop-opacity="0"/></linearGradient></defs>`;
-  for(const t of niceTicks(lo,hi,3)){const y=Y(t);if(y<pt-2||y>h-pb+2)continue;svg+=`<line x1="0" x2="${w-pr+(yax==='inside'||yax==='off'?0:6)}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1" ${t===0&&cfg.kind==='pct'?'':'stroke-dasharray="2 4"'} ${yax==='normal'?'':'opacity=".6"'}/>`;
+  const TK=niceTicks(lo,hi,3).filter(t=>{const y=Y(t);return !(y<pt-2||y>h-pb+2);});
+  for(const t of TK){const y=Y(t);svg+=`<line x1="0" x2="${w-pr+(yax==='inside'||yax==='off'?0:6)}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1" ${t===0&&cfg.kind==='pct'?'':'stroke-dasharray="2 4"'} ${yax==='normal'?'':'opacity=".6"'}/>`;
     if(yax==='normal')svg+=`<text x="${w-2}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;
     else if(yax==='small')svg+=`<text x="${w-2}" y="${y+3}" text-anchor="end" font-size="8.5" fill="var(--muted)" opacity=".8" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;
-    else if(yax==='inside'&&y>pt+8)svg+=`<text x="${w-6}" y="${y-4}" text-anchor="end" font-size="8.5" fill="var(--muted)" opacity=".75" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;}
-  for(const m of cfg.markers||[]){if(m.i<0||m.i>=n)continue;const x=X(m.i);svg+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${h-pb}" stroke="${m.color||'var(--muted)'}" stroke-width="1" stroke-dasharray="3 3"/><text x="${Math.min(x+3,w-pr-4)}" y="${pt+9}" font-size="10" fill="${m.color||'var(--muted)'}">${esc(m.label)}</text>`;}
-  if(cfg.refLine!=null){const y=Y(cfg.refLine);svg+=`<line x1="0" x2="${w-pr}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="5 4"/><text x="4" y="${y-5}" font-size="10.5" fill="var(--muted)">${esc(cfg.refLabel||'')}</text>`;}
+    else if(yax==='xs')svg+=`<text x="${w-2}" y="${y+2.5}" text-anchor="end" font-size="7" fill="var(--muted)" opacity=".7" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;
+    else if(yax==='ends'&&(t===TK[0]||t===TK[TK.length-1]))svg+=`<text x="${w-2}" y="${y+2.5}" text-anchor="end" font-size="7.5" fill="var(--muted)" opacity=".75" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;
+    else if(yax==='inside'&&y>pt+8)svg+=`<text x="${w-6}" y="${y-4}" text-anchor="end" font-size="7.5" fill="var(--muted)" opacity=".75" font-family="IBM Plex Mono,monospace">${esc(fmtTick(t))}</text>`;}
+  for(const m of cfg.markers||[]){if(m.i<0||m.i>=n)continue;const x=X(m.i);svg+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${h-pb}" stroke="${m.color||'var(--muted)'}" stroke-width="1" stroke-dasharray="3 3"/><text x="${Math.min(x+3,w-pr-4)}" y="${pt+9}" font-size="${CO?9:10.5}" fill="${m.color||'var(--muted)'}">${esc(m.label)}</text>`;}
+  if(cfg.refLine!=null){const y=Y(cfg.refLine);svg+=`<line x1="0" x2="${w-pr}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="5 4"/><text x="4" y="${y-4}" font-size="${CO?8.5:10.5}" fill="var(--muted)">${esc(cfg.refLabel||'')}</text>`;}
   const d0=pathOf(S0.pts);if(S0.area!==false){const fi=S0.pts.findIndex(p=>isFinite(p.v));if(fi>=0)svg+=`<path d="${d0}L${X(n-1).toFixed(1)},${h-pb}L${X(fi).toFixed(1)},${h-pb}Z" fill="url(#${gid})"/>`;}
   for(let k=cfg.series.length-1;k>=0;k--){const s=cfg.series[k];if(s.hidden)continue;svg+=`<path d="${pathOf(s.pts)}" fill="none" stroke="${s.color}" stroke-width="${s.width||2.2}" ${s.dash?`stroke-dasharray="${s.dash}"`:''} stroke-linejoin="round" stroke-linecap="round" ${s.opacity?`opacity="${s.opacity}"`:''}/>`;}
   const lastP=S0.pts[n-1];if(isFinite(lastP.v))svg+=`<circle cx="${X(n-1)}" cy="${Y(lastP.v)}" r="3.5" fill="${main}"/>`;
@@ -1241,7 +1258,7 @@ function donut(items,total,center1,center2){
 /* ---- main chart options (Overview chart ⚙) ---- */
 function chartOpt(){return Object.assign({yax:'small',rpct:true,grid:true},UI.chartOpt||{});}
 /* x-axis ticks at natural boundaries: a day number, a month (Jun) or a year (2025), never all three */
-function xTicks(pts,width){const n=pts.length;if(n<2)return [];const a=pts[0].x,b=pts[n-1].x,span=b-a;const max=Math.max(3,Math.min(6,Math.floor(width/58)));
+function xTicks(pts,width){const n=pts.length;if(n<2)return [];const a=pts[0].x,b=pts[n-1].x,span=b-a;const max=Math.max(3,Math.min(6,Math.floor(width/50)));
   const unit=span<=45?'day':span<=600?'month':'year';const key=d=>{const t=new Date(d*DAY);return unit==='day'?t.getUTCDate():unit==='month'?t.getUTCFullYear()*12+t.getUTCMonth():t.getUTCFullYear();};
   const cand=[];for(let i=1;i<n;i++)if(key(pts[i].x)!==key(pts[i-1].x))cand.push(i);
   let picked=cand;if(unit==='day'&&span>12)picked=cand.filter(i=>new Date(pts[i].x*DAY).getUTCDay()===1); /* longer than ~2 weeks: Mondays */
@@ -1512,8 +1529,8 @@ function viewOverview(v){
   <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted inv-line" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
-  <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}<div class="pc-tools ch-tools"><button class="gear-btn" data-act="chartcfg" aria-label="Chart settings">${iconSm('gear',18)}</button></div></div>
-  <div class="legend-row"><div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div>${perf&&key!=='1D'?bmMulti('chart'):''}</div>
+  <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}<div class="pc-tools ch-tools">${perf&&key!=='1D'?bmMulti('chart'):''}<button class="gear-btn" data-act="chartcfg" aria-label="Chart settings">${iconSm('gear',16)}</button></div></div>
+  <div class="legend-row"><div class="legend-line small muted">${!perf?'<span class="lk solid"></span>Investments <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div></div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges${chartOpt().rpct?' with-rp':''}" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}"><span class="rk">${r}</span>${chartOpt().rpct?rangePctHTML(M,Z,r):''}</button>`).join('')}</div>
 </section>
@@ -1961,7 +1978,7 @@ function assetSheet(id){
   const accRows=Object.entries(h.byAcc||{}).filter(([,q])=>q>0).map(([aid,q])=>`<div class="row-between small"><span>${esc((accById(aid)||{}).name||'')}</span><span class="num">${qtyFmt(q)}</span></div>`).join('');
   const body=`<div class="row-between" style="margin-bottom:6px"><div style="display:flex;gap:10px;align-items:center">${badge(a)}<div><div style="font-weight:700">${esc(a.symbol)}</div><div class="small muted">${CLASS_LABEL[a.cls]} · ${a.currency} · ${esc(a.sector||'')}</div></div></div><div style="text-align:right"><div class="num" style="font-size:18px">${money(h.priceNow,a.currency)}</div><div class="small ${cl(h.dayPct)}">${pct(h.dayPct)} today</div></div></div>
    <div class="chart" id="assetChart" style="height:200px"></div>
-   <div class="ranges">${RANGES.map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}" class="${firstDateFor(a)&&rangeShort(r,dn(firstDateFor(a)))?'nodata':''}">${r}</button>`).join('')}</div>
+   <div class="ranges${chartOpt().rpct?' with-rp':''}">${RANGES.map(r=>`<button data-arange="${r}" aria-pressed="${r===UI.drange}" class="${firstDateFor(a)&&rangeShort(r,dn(firstDateFor(a)))?'nodata':''}"><span class="rk">${r}</span>${chartOpt().rpct?assetRangePct(a,mk,r):''}</button>`).join('')}</div>
    <div class="small muted" id="aRangeTxt" style="margin:2px 0 14px"></div>
    <div class="card sumgrid">
     <div><div class="k">Holding</div><div class="v">${qtyFmt(h.qty)}</div></div><div><div class="k">Value</div><div class="v">${kr(h.value)}</div></div>
@@ -1986,11 +2003,13 @@ function assetSheet(id){
     <div class="btns"><button class="btn sm" data-act="saveasset">Save details</button><button class="btn sm primary" data-act="tradeasset">${iconSm('plus',15)} Trade ${esc(a.symbol)}</button></div>${C.err[a.id]?`<div class="small down">${esc(C.err[a.id])}</div>`:''}</div>
    <h2 class="sec">Transactions</h2><div class="list">${S.txs.filter(t=>t.assetId===a.id).sort((x,y)=>x.date<y.date?1:-1).map(txLine).join('')}</div>`;
   openSheet(a.name||a.symbol,body,()=>{
-    const drawA=()=>{const key=UI.drange;const bi=Math.max(-1,rangeBase(key,mk.today)-mk.d0);const fi=Math.max(Math.max(0,bi),dn(firstDateFor(a))-mk.d0);
-      const idxs=[];for(let i=fi;i<mk.N;i++)idxs.push(i);const arr=mk.priceCur[a.id];const pts=downsample(idxs).map(i=>({x:mk.d0+i,v:arr[i]})).filter(p=>isFinite(p.v));
-      const r=pts.length>1?pts[pts.length-1].v/pts[0].v-1:0;$('#aRangeTxt').innerHTML=pts.length>1?`Price ${RANGE_WORD[key]}: <span class="${cl(r)}">${pct(r)}</span> in ${a.currency}`:'';
-      mountChart($('#assetChart'),{series:[{pts,color:r>=0?'var(--up)':'var(--down)',label:'Price',fmt:'price'}],kind:'price',ccy:a.currency,refLine:h.qty?h.avgCur:null,refLabel:'Avg. cost',tipExtra:i=>{const p0=pts[0].v;const v=pts[i].v;const rows=[{label:'Change',text:pct(v/p0-1),cls:cl(v/p0-1)}];if(h.qty)rows.push({label:'vs avg. cost',text:pct(v/h.avgCur-1),cls:cl(v/h.avgCur-1)});return rows;}});};
-    drawA();
+    const drawA=()=>{const key=UI.drange;const FH=assetHist(a,mk);const cur=FH.cur||a.currency;const from=key==='MAX'?-Infinity:rangeBase(key,mk.today);
+      const all=FH.s.filter(p=>p.x>from);const pts=downsample(all.map((_,i)=>i)).map(i=>all[i]);
+      const r=pts.length>1?pts[pts.length-1].v/pts[0].v-1:0;$('#aRangeTxt').innerHTML=pts.length>1?`Price ${RANGE_WORD[key]}: <span class="${cl(r)}">${pct(r)}</span> in ${cur}`+(FH.loading?' · <span class="muted">loading full history…</span>':''):'';
+      const fb=firstDateFor(a)?dn(firstDateFor(a)):null;let mi=-1;if(fb!=null&&pts.length>2&&fb>pts[0].x){mi=pts.findIndex(p=>p.x>=fb);}
+      $$('[data-arange]').forEach(b=>{const k=b.dataset.arange;b.classList.toggle('nodata',k!=='MAX'&&FH.s.length>0&&rangeBase(k,mk.today)<FH.s[0].x-3);const sp=b.querySelector('.rp');if(sp)sp.outerHTML=assetRangePct2(FH,k,mk);});
+      mountChart($('#assetChart'),{main:true,series:[{pts,color:r>=0?'var(--up)':'var(--down)',label:'Price',fmt:'price'}],kind:'price',ccy:cur,markers:mi>0?[{i:mi,color:'var(--accent)',label:'First buy'}]:[],refLine:h.qty&&cur===a.currency?h.avgCur:null,refLabel:'Avg. cost',tipExtra:i=>{const p0=pts[0].v;const v=pts[i].v;const rows=[{label:'Change',text:pct(v/p0-1),cls:cl(v/p0-1)}];if(h.qty)rows.push({label:'vs avg. cost',text:pct(v/h.avgCur-1),cls:cl(v/h.avgCur-1)});return rows;}});};
+    drawA();loadAssetHist(a,mk).then(ok=>{if(ok&&document.body.contains($('#assetChart')||document.body))drawA();});
     $$('[data-arange]').forEach(b=>b.onclick=()=>{UI.drange=b.dataset.arange;saveUI();$$('[data-arange]').forEach(x=>x.setAttribute('aria-pressed',x===b));drawA();});
     const allw=fv('useAllWorld');if(allw)allw.onclick=()=>{fv('eLookR').value=lookToText(LOOK_ALLWORLD.region);fv('eLookS').value=lookToText(LOOK_ALLWORLD.sector);};
     document.querySelector('[data-act="addprice"]').onclick=()=>{const d=fv('pDate').value,p=parseNum(fv('pPrice').value);if(!d||!(p>0)){fv('pErr').textContent='Enter a date and a price above 0.';return;}
@@ -3107,7 +3126,7 @@ function countUp(el,from,to,fmt){const t0=performance.now(),d=650;const step=now
   collapseCards(v);
   if(UI.tab==='overview'){const M=compute();
     if(M&&!PRIV()){const tot=conv(M,M.total);const el=$('#heroVal');if(el&&LAST_TOTAL!=null&&Math.abs(LAST_TOTAL-tot)>0.5)countUp(el,LAST_TOTAL,tot,x=>F(x));LAST_TOTAL=tot;}
-    const chartTop=v.querySelector('[data-card="chart"] .ch-tools')||v.querySelector('[data-card="chart"] .row-between');if(chartTop&&!chartTop.querySelector('[data-act="chartfs"]'))chartTop.insertAdjacentHTML('beforeend',`<button class="gear-btn fs-btn" data-act="chartfs" aria-label="${document.body.classList.contains('chart-fs')||landFs()?'Close full screen':'Full screen chart'}">${document.body.classList.contains('chart-fs')||landFs()?ICON.close:iconSm('expand',18)}</button>`);
+    const chartTop=v.querySelector('[data-card="chart"] .ch-tools')||v.querySelector('[data-card="chart"] .row-between');if(chartTop&&!chartTop.querySelector('[data-act="chartfs"]'))chartTop.insertAdjacentHTML('beforeend',`<button class="gear-btn fs-btn" data-act="chartfs" aria-label="${document.body.classList.contains('chart-fs')||landFs()?'Close full screen':'Full screen chart'}">${document.body.classList.contains('chart-fs')||landFs()?ICON.close:iconSm('expand',16)}</button>`);
     if(reviewDue()&&!v.querySelector('.review-banner')){const bar=v.querySelector('.page-bar');const nm=MON[+lastMonthYM().slice(5)-1];const h=`<div class="banner keep review-banner"><div style="flex:1"><b>Your ${nm} review is ready</b><div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="review">Open</button><button class="btn sm" data-act="reviewlater">Dismiss</button></div></div></div>`;if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);}}
   else document.body.classList.remove('chart-fs');
   if(UI.tab==='analysis'){const up=v.querySelector('[data-card="updates"] > h2.sec');if(up&&!v.querySelector('[data-act="review"]'))up.insertAdjacentHTML('afterend',`<button class="btn sm" data-act="review" style="margin:-4px 0 10px">${iconSm('table')} ${MON[+lastMonthYM().slice(5)-1]} review</button>`);}};}
@@ -3371,9 +3390,9 @@ document.addEventListener('change',e=>{if(e.target.id==='pcType'){UI.pcType=e.ta
 function mountPcLine(){const host=$('#pcLine');if(!host)return;const M=compute();if(!M)return;const Z=series(M,UI.ccy);const st=pcState(M);
   const from=st.per==='all'?M.firstDay-1:Math.max(M.firstDay-1,dn(st.per+'-01-01')-1),to=st.per==='all'?M.today:Math.min(dn((+st.per+1)+'-01-01')-1,M.today);
   const bi=Math.max(0,from-M.d0),ei=to-M.d0;if(ei<=bi){host.innerHTML='<div class="empty">No data for this period</div>';return;}const idxs=[];for(let i=bi;i<=ei;i++)idxs.push(i);const ix=downsample(idxs);
-  const b0=Z.IDX[bi];const series_=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/b0-1})),color:'var(--accent)',label:portfolio().name,fmt:'pct'}];
+  const b0=from-M.d0<0?1:Z.IDX[bi];const series_=[{pts:ix.map(i=>({x:M.d0+i,v:Z.IDX[i]/b0-1})),color:'var(--accent)',label:portfolio().name,fmt:'pct'}];
   const b=pcIdx('perf')?bmSeries(M,pcIdx('perf'),UI.ccy):null;if(b&&isFinite(b.p[bi]))series_.push({pts:ix.map(i=>({x:M.d0+i,v:b.p[i]/b.p[bi]-1})),color:BM_COLOR[pcIdx('perf')],dash:'9 4',width:1.6,label:pcIdxName('perf'),fmt:'pct'});
-  mountChart(host,{series:series_,kind:'pct',ccy:UI.ccy,diff:series_.length>1});}
+  mountChart(host,{main:true,series:series_,kind:'pct',ccy:UI.ccy,diff:series_.length>1});}
 
 /* ---------- merged Key figures + Your updates ---------- */
 const KF_P=[['w','This week'],['m','This month'],['q','This quarter'],['y','YTD'],['1Y','1Y'],['3Y','3Y'],['5Y','5Y'],['MAX','Max']];
@@ -3437,8 +3456,9 @@ applyLook(); /* apply text size + fit at start (earlier wrappers only ran on lat
 
 /* ================= index picker top right (several indexes): Main chart and Compare card ================= */
 const BMM={chart:{get:()=>chartBms(),set:L=>{UI.chartBms=L;},t:'Indexes in the chart'},cmp:{get:()=>UI.bms.slice(),set:L=>{UI.bms=L;},t:'Compare with'}};
+const BM_SHORT={SPY:'S&P',QQQ:'Nasdaq',URTH:'World',ACWI:'ACWI'};
 function bmMulti(k){const L=BMM[k].get().filter(id=>BENCHMARKS.some(b=>b.id===id));const first=BENCHMARKS.find(b=>b.id===L[0]);
-  const label=!L.length?'No index':esc(first.name)+(L.length>1?` <span class="bm-more">&amp; ${L.length-1} more</span>`:'');
+  const label=k==='chart'?(!L.length?'Index':esc(BM_SHORT[first.id]||first.name)+(L.length>1?` <span class="bm-more">+${L.length-1}</span>`:'')):(!L.length?'No index':esc(first.name)+(L.length>1?` <span class="bm-more">&amp; ${L.length-1} more</span>`:''));
   return `<button class="bm-pick" data-bmmulti="${k}" aria-label="Choose indexes">${L.length?`<span class="lk" style="background:${BM_COLOR[L[0]]}"></span>`:''}<span class="bm-pick-t">${label}</span>${iconSm('down',14)}</button>`;}
 function bmMultiBody(k){const L=BMM[k].get();
   return `<div class="list bmm-list"><button class="item" data-bmmset="${k}:none"><div class="mid"><div class="t1">No index</div></div><span class="bmm-chk ${L.length?'':'on'}">${L.length?'':'✓'}</span></button>
@@ -3603,8 +3623,8 @@ if(UI.layout&&UI.layout.overview){UI.layout.overview=UI.layout.overview.filter(c
 delete UI.news;delete UI.newsAll;if(C.news)delete C.news;
 
 /* ---------- main chart: return under each period button, and the chart ⚙ settings ---------- */
-function rangePctHTML(M,Z,r){if(rangeShort(r,M.firstDay)&&r!=='MAX')return '<span class="rp"></span>';const n=M.N-1;let b=r==='MAX'?M.firstDay-1:rangeBase(r,M.today);b=Math.max(b,M.firstDay-1);const bi=Math.max(0,b-M.d0);
-  if(bi>=n||!(Z.IDX[bi]>0))return '<span class="rp"></span>';const v=Z.IDX[n]/Z.IDX[bi]-1;if(!isFinite(v))return '<span class="rp"></span>';
+function rangePctHTML(M,Z,r){if(rangeShort(r,M.firstDay)&&r!=='MAX')return '<span class="rp"></span>';const n=M.N-1;let b=r==='MAX'?M.firstDay-1:rangeBase(r,M.today);b=Math.max(b,M.firstDay-1);const bi=Math.max(-1,b-M.d0);const base=bi<0?1:Z.IDX[bi]; /* -1 = the day before your first investment, so MAX matches Total value */
+  if(bi>=n||!(base>0))return '<span class="rp"></span>';const v=Z.IDX[n]/base-1;if(!isFinite(v))return '<span class="rp"></span>';
   const av=Math.abs(v*100);const t=(av>=9999.5?Math.round(av/1000)+'k':av>=999.5?(Math.round(av/100)/10).toString().replace('.',',')+'k':av>=9.95?String(Math.round(av)):new Intl.NumberFormat('nb-NO',{minimumFractionDigits:1,maximumFractionDigits:1}).format(av))+'%';
   return `<span class="rp ${v>=0.0005?'rp-u':v<=-0.0005?'rp-d':''}">${v>=0.0005?'▲':v<=-0.0005?'▼':''}${t}</span>`;}
 {const _cs=chartCfgSheet;chartCfgSheet=function(){_cs();const sh=$('#sheet');const pf=sh&&sh.querySelector('#pfBody');if(!pf)return;
@@ -3612,11 +3632,41 @@ function rangePctHTML(M,Z,r){if(rangeShort(r,M.firstDay)&&r!=='MAX')return '<spa
   const head=document.createElement('div');head.id='coBox';pf.before(head);const lines=document.createElement('h3');lines.className='h3';lines.style.marginTop='16px';lines.textContent='Performance lines';pf.before(lines);
   const seg=(attr,opts,cur)=>`<div class="seg" role="group">${opts.map(([k,l])=>`<button data-${attr}="${k}" aria-pressed="${String(cur)===String(k)}">${l}</button>`).join('')}</div>`;
   const draw=()=>{const o=chartOpt();head.innerHTML=`
-    <div class="look-row"><span class="lbl2">Numbers on the side</span>${seg('coyax',[['small','Small'],['inside','Inside'],['normal','Big'],['off','Off']],o.yax)}</div>
+    <div class="look-row"><span class="lbl2">Numbers on the side</span>${seg('coyax',[['small','S'],['xs','XS'],['ends','Ends'],['inside','Inside'],['off','Off']],o.yax==='normal'?'small':o.yax)}</div>
     <div class="look-row"><span class="lbl2">% under each period</span>${seg('corp',[['1','On'],['0','Off']],o.rpct?'1':'0')}</div>
     <div class="look-row"><span class="lbl2">Trades & deposits on the value chart</span>${seg('coev',[['1','On'],['0','Off']],UI.events?'1':'0')}</div>`;};
   draw();head.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const o=chartOpt();const d=b.dataset;
     if(d.coyax)o.yax=d.coyax;else if(d.corp)o.rpct=d.corp==='1';else if(d.coev){UI.events=d.coev==='1';}else return;UI.chartOpt=o;saveUI();draw();softRender();});};}
+
+/* price change for each period on a holding's chart; MAX = since your first buy */
+function assetRangePct(a,mk,r){const arr=mk.priceCur[a.id];const fd=firstDateFor(a);if(!arr||!fd)return '<span class="rp"></span>';const n=mk.N-1;const first=dn(fd)-mk.d0;
+  if(r!=='MAX'&&rangeShort(r,dn(fd)))return '<span class="rp"></span>';let bi=r==='MAX'?first:Math.max(first,rangeBase(r,mk.today)-mk.d0);bi=Math.max(0,Math.min(bi,n-1));
+  const p0=arr[bi],p1=arr[n];if(!(p0>0)||!(p1>0))return '<span class="rp"></span>';return rpSpan(p1/p0-1);}
+function rpSpan(v){const av=Math.abs(v*100);const t=(av>=9999.5?Math.round(av/1000)+'k':av>=999.5?(Math.round(av/100)/10).toString().replace('.',',')+'k':av>=9.95?String(Math.round(av)):new Intl.NumberFormat('nb-NO',{minimumFractionDigits:1,maximumFractionDigits:1}).format(av))+'%';
+  return `<span class="rp ${v>=0.0005?'rp-u':v<=-0.0005?'rp-d':''}">${v>=0.0005?'▲':v<=-0.0005?'▼':''}${t}</span>`;}
+
+/* ---------- a holding's chart shows ALL the price history there is, not only since you bought ---------- */
+C.ahist=C.ahist||{};
+const ahKey=a=>(a.yahoo||a.dataSymbol||a.symbol)+'';
+function assetHist(a,mk){const o=C.ahist[ahKey(a)];
+  if(o&&o.s&&o.s.length)return {s:o.s.map(([d,v])=>({x:dn(d),v})),cur:o.cur,loading:false};
+  /* until the full history has loaded: what Lacag already has */
+  const h=C.hist[histKey(a)];let s=[];if(h&&h.s&&h.s.length&&(h.q||a.currency)===a.currency)s=h.s.map(([d,v])=>({x:dn(d),v}));
+  if(!s.length){const arr=mk.priceCur[a.id];const f=firstDateFor(a)?dn(firstDateFor(a))-mk.d0:0;for(let i=Math.max(0,f);i<mk.N;i++)if(isFinite(arr[i]))s.push({x:mk.d0+i,v:arr[i]});}
+  const lv=C.live[a.id];if(lv&&lv.price>0&&s.length&&(lv.q||a.currency)===a.currency){const t=dn(localToday());if(s[s.length-1].x===t)s[s.length-1].v=lv.price;else if(s[s.length-1].x<t)s.push({x:t,v:lv.price});}
+  return {s,cur:a.currency,loading:!NET.blocked&&(!!helperUrl()||!!S.settings.tdKey)};}
+async function loadAssetHist(a,mk){const k=ahKey(a);const o=C.ahist[k];if(o&&Date.now()-o.t<6*3600e3)return false;if(NET.blocked)return false;
+  let s=null,cur=null;
+  try{const ys=helperUrl()?ySym(a):null;
+    if(ys){const j=await helperGet(ys,'max');s=cleanSpikes(j.series.filter(x=>x[1]>0),a.cls==='etf'||a.cls==='fund'?0.08:0.15).s;cur=j.currency||a.currency;if(j.price>0&&s.length){const t=localToday();if(s[s.length-1][0]===t)s[s.length-1][1]=+j.price;else s.push([t,+j.price]);}}
+    else if(S.settings.tdKey){const j=await td('time_series',{...tdSym(a.dataSymbol||a.symbol),interval:'1day',outputsize:'5000',order:'ASC'});s=(j.values||[]).map(v=>[v.datetime.slice(0,10),+v.close]).filter(v=>v[1]>0);cur=(j.meta&&j.meta.currency)||a.currency;}}catch(e){}
+  if(!s||s.length<2)return false;
+  /* very long daily histories are thinned to every 2nd day before 5 years ago (keeps storage small) */
+  const cut=ds(dn(localToday())-5*365);s=s.filter((x,i)=>x[0]>=cut||i%2===0);
+  C.ahist[k]={t:Date.now(),cur,s};try{saveCache();}catch(e){}return true;}
+function assetRangePct2(FH,r,mk){const s=FH.s;if(s.length<2)return '<span class="rp"></span>';const last=s[s.length-1].v;let p0;
+  if(r==='MAX')p0=s[0].v;else{const b=rangeBase(r,mk.today);if(b<s[0].x-3)return '<span class="rp"></span>';let i=s.findIndex(p=>p.x>b);if(i<0)return '<span class="rp"></span>';p0=i>0?s[i-1].v:s[i].v;}
+  return p0>0?rpSpan(last/p0-1):'<span class="rp"></span>';}
 
 /* ================= events ================= */
 document.addEventListener('click',async e=>{
