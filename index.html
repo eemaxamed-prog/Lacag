@@ -726,7 +726,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610191323";
+const LACAG_BUILD="202610191346";
 "use strict";
 /* ================= one tap dispatcher: every page-wide tap handler runs from here, in the order added; one failing handler no longer stops the others ================= */
 const TAP=[];
@@ -3187,7 +3187,7 @@ function reviewDue(){if(S.demo||!S.txs.length)return false;const cur=localToday(
 const TEXT_SIZES=[['s','Small',0.92],['m','Normal',1],['l','Large',1.12],['xl','Extra large',1.25]];
 {const _al=applyLook;applyLook=function(){_al();const L=look();const z=(TEXT_SIZES.find(x=>x[0]===L.size)||TEXT_SIZES[1])[2];document.documentElement.style.setProperty('--zoom',String(z));document.documentElement.dataset.calm=UI.calm?'on':'off';};}
 {const _ls=lookSettingsHTML;lookSettingsHTML=function(){const L=look();return _ls().replace('<div><button class="btn sm" data-lkreset="1">',`<div class="look-row"><span class="lbl2">Text size</span><div class="seg" role="group">${TEXT_SIZES.map(([k,l])=>`<button data-lksize="${k}" aria-pressed="${(L.size||'m')===k}">${l}</button>`).join('')}</div></div><div><button class="btn sm" data-lkreset="1">`);};}
-{const _ex=explSettingsHTML;explSettingsHTML=function(){return _ex().replace('<div class="card stack">',`<div class="card stack"><div class="look-row"><span class="lbl2">Calm mode</span><div class="seg" role="group"><button data-calmset="0" aria-pressed="${!UI.calm}">Off</button><button data-calmset="1" aria-pressed="${!!UI.calm}">On</button></div></div><div class="hint">Hides daily ups and downs (1D and 1W, Today's movers, today's change) so you see monthly and yearly results. Checking less often usually means trading less, and doing better.</div>`);};}
+{const _ex=explSettingsHTML;explSettingsHTML=function(){return _ex().replace('<div class="card stack">',`<div class="card stack"><div class="look-row"><span class="lbl2">Calm mode</span><div class="seg" role="group"><button data-calmset="0" aria-pressed="${!UI.calm}">Off</button><button data-calmset="1" aria-pressed="${!!UI.calm}">On</button></div></div><div class="hint">Hides daily ups and downs (1D and 1W, Today's movers, today's change) so you see monthly and yearly results. Checking less often usually means trading less, and doing better. Lacag always starts with Calm mode off and the chart on 1D.</div>`);};}
 onTap(e=>{const s=e.target.closest('[data-lksize]');if(s){setLook({size:s.dataset.lksize});softRender();return;}
   const c=e.target.closest("[data-calmset]");if(c){UI.calm=c.dataset.calmset==="1";saveUI();applyLook();softRender();return;}});
 
@@ -3926,6 +3926,9 @@ function twoColumns(){const v=$('#view');const on=wideMode()&&['overview','holdi
   for(const k of [...v.children]){if(k.dataset&&HALF_CARDS.has(k.dataset.card))run.push(k);else flush();}flush();}
 afterRender(twoColumns);
 {let was=null;window.addEventListener('resize',()=>{const w=wideMode();if(was===null){was=w;return;}if(w!==was){was=w;softRender();}});}
+
+/* ---------- every start: main chart on 1D (today since 00:00) and Calm mode off ---------- */
+UI.range='1D';UI.calm=false;saveUI();applyLook();
 
 /* ================= events ================= */
 onTap(async e=>{
