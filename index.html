@@ -726,7 +726,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610191346";
+const LACAG_BUILD="202610200648";
 "use strict";
 /* ================= one tap dispatcher: every page-wide tap handler runs from here, in the order added; one failing handler no longer stops the others ================= */
 const TAP=[];
@@ -3929,6 +3929,109 @@ afterRender(twoColumns);
 
 /* ---------- every start: main chart on 1D (today since 00:00) and Calm mode off ---------- */
 UI.range='1D';UI.calm=false;saveUI();applyLook();
+
+/* ================= sync between your devices (your own Cloudflare Worker, end-to-end encrypted) ================= */
+/* The portfolio (everything you entered: trades, accounts, plans, settings) is encrypted on this device with your
+   sync password (PBKDF2 → AES-GCM) and stored as one scrambled record in your Worker's KV storage.
+   The vault name and write key are one-way hashes of the password; the password itself never leaves the device.
+   Page choices (open tab, chart period, layout) stay per device. */
+const SYNC_KEY='lq_sync';
+function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{};}catch(e){return {};}}
+function syncSave(c){try{localStorage.setItem(SYNC_KEY,JSON.stringify(c));}catch(e){}}
+const SYNC={busy:false,timer:null,status:'',err:'',keys:{}};
+function deviceName(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?'Android':/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC (Windows)':'Computer';}
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const b64=b=>{let s='';const a=new Uint8Array(b);for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(s);};
+const unb64=s=>{const r=atob(s);const a=new Uint8Array(r.length);for(let i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;};
+async function sha(s){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)));}
+async function syncIds(pass){return {id:await sha('lacag-vault-v1:'+pass),auth:await sha('lacag-write-v1:'+pass)};}
+async function syncKey(pass,salt){const k=salt+'|'+pass.length;if(SYNC.keys[k]&&SYNC.keys[k].p===pass)return SYNC.keys[k].key;
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:unb64(salt),iterations:210000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  SYNC.keys[k]={p:pass,key};return key;}
+async function gz(bytes,dir){const s=new Blob([bytes]).stream().pipeThrough(dir==='in'?new CompressionStream('gzip'):new DecompressionStream('gzip'));return new Uint8Array(await new Response(s).arrayBuffer());}
+async function sealState(pass,salt){let bytes=new TextEncoder().encode(JSON.stringify(S));let tag='p';
+  if(typeof CompressionStream==='function'){try{bytes=await gz(bytes,'in');tag='g';}catch(e){}}
+  const iv=crypto.getRandomValues(new Uint8Array(12));const key=await syncKey(pass,salt);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,bytes);return {iv:b64(iv),data:tag+':'+b64(ct)};}
+async function openState(pass,rec){const key=await syncKey(pass,rec.salt);const [tag,body]=[rec.data.slice(0,1),rec.data.slice(2)];
+  let bytes=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(rec.iv)},key,unb64(body)));
+  if(tag==='g')bytes=await gz(bytes,'out');return migrate(JSON.parse(new TextDecoder().decode(bytes)));}
+function syncUrl(c){return String(c.url||'').trim().replace(/\/+$/,'');}
+async function syncReq(c,method,body){const r=await fetch(syncUrl(c)+'/?sync='+c.id,{method,headers:Object.assign({'X-Lacag-Auth':c.auth},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  let j=null;try{j=await r.json();}catch(e){}if(r.status===403)throw new Error('Wrong sync password for this storage');if(!r.ok&&r.status!==409)throw new Error((j&&j.error)||('The helper answered '+r.status));return {status:r.status,j};}
+/* keep the portfolio we are about to replace, so it can be brought back */
+function keepPrev(why){try{localStorage.setItem('lq_sync_prev',JSON.stringify({t:Date.now(),why,state:S}));}catch(e){}}
+function applyRemote(remote,rec,c){keepPrev('replaced by '+(rec.device||'another device'));S=remote;lsSet('lq_state',S);VERSION++;
+  c.rev=rec.rev;c.dirty=false;c.last=Date.now();syncSave(c);render();}
+/* send this device's portfolio; if the other device saved in the meantime, the newer one wins */
+async function syncPush(force){const c=syncCfg();if(!c.on||!c.pass||S.demo||SYNC.busy)return;SYNC.busy=true;
+  try{const sealed=await sealState(c.pass,c.salt);let res=await syncReq(c,'PUT',{baseRev:c.rev,updated:S.updated||Date.now(),device:deviceName(),salt:c.salt,...sealed});
+    if(res.status===409){const rec=res.j;if(!force&&(rec.updated||0)>(S.updated||0)){const remote=await openState(c.pass,rec);applyRemote(remote,rec,c);toast('Newer changes from your '+(rec.device||'other device')+' were loaded');return;}
+      c.rev=rec.rev;res=await syncReq(c,'PUT',{baseRev:c.rev,updated:S.updated||Date.now(),device:deviceName(),salt:c.salt,...sealed});}
+    if(res.j&&res.j.ok){c.rev=res.j.rev;c.dirty=false;c.last=Date.now();syncSave(c);SYNC.err='';}}
+  catch(e){SYNC.err=String(e.message||e);}finally{SYNC.busy=false;syncPaint();}}
+/* fetch the newest version from the other device */
+async function syncPull(){const c=syncCfg();if(!c.on||!c.pass||SYNC.busy)return;SYNC.busy=true;let pushAfter=false;
+  try{const {j}=await syncReq(c,'GET');if(!j.exists){pushAfter=!S.demo;return;}
+    if(j.rev===c.rev){c.last=Date.now();syncSave(c);SYNC.err='';return;}
+    if(c.dirty&&(S.updated||0)>(j.updated||0)){c.rev=j.rev;syncSave(c);pushAfter=true;return;}
+    const remote=await openState(c.pass,j);applyRemote(remote,j,c);toast('Updated from your '+(j.device||'other device'));SYNC.err='';}
+  catch(e){SYNC.err=String(e.message||e);}finally{SYNC.busy=false;syncPaint();if(pushAfter)syncPush();}}
+function syncSoon(){const c=syncCfg();if(!c.on)return;c.dirty=true;syncSave(c);clearTimeout(SYNC.timer);SYNC.timer=setTimeout(()=>syncPush(),2000);}
+{const _sv=Store.save.bind(Store);Store.save=function(){_sv();if(!S.demo)syncSoon();};}
+/* pull when the app opens, when you come back to it, and every 2 minutes while it is open */
+setTimeout(syncPull,900);
+setTimeout(()=>{try{Object.assign(window.__lacag,{storeSave:()=>Store.save(),syncPull,syncPush});}catch(e){}},0); /* test hooks */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){const c=syncCfg();if(c.on&&c.dirty)syncPush();else syncPull();}});
+setInterval(()=>{if(!document.hidden)syncPull();},120000);
+
+/* ---------- Settings → Sync between devices ---------- */
+function syncSettingsHTML(){const c=syncCfg();const when=c.last?(dateLabel(Math.floor((c.last+0)/864e5),true)+' '+timeLabel(c.last)):'not yet';
+  const prev=(()=>{try{return JSON.parse(localStorage.getItem('lq_sync_prev')||'null');}catch(e){return null;}})();
+  if(c.on)return `<div class="card stack"><div class="ok-line"><span class="chk-ic">✓</span> Sync is on for this ${esc(deviceName())}</div>
+    <div class="small muted" id="syncStatus">${SYNC.busy?'Syncing…':SYNC.err?'<span class="amber-v">'+esc(SYNC.err)+'</span>':'Last synced '+esc(when)+(c.dirty?' · changes waiting to be sent':'')}</div>
+    <div class="hint">Your portfolio is encrypted with your sync password before it leaves this device. Open Lacag on your other device and turn on sync there with the same password.</div>
+    <div class="btns"><button class="btn sm primary" data-act="syncnow">Sync now</button><button class="btn sm" data-act="syncoff">Turn off on this device</button></div>
+    ${prev?`<div class="hint">A copy of this device's portfolio from before the last sync is kept (${esc(dateLabel(Math.floor(prev.t/864e5),true))} ${esc(timeLabel(prev.t))}).</div><div><button class="btn sm" data-act="syncprev">Bring back that copy</button></div>`:''}</div>`;
+  return `<div class="card stack"><div class="note keep">See and change the same portfolio on your phone and your PC. Your data is encrypted on the device with your sync password; your Cloudflare helper only stores scrambled text.</div>
+   <div class="field"><label for="syncUrl">Your helper address</label><input id="syncUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://lacag-helper.yourname.workers.dev" value="${esc(c.url||S.settings.helper||'')}"><div class="hint">The same Cloudflare Worker as your price helper (version 3, with sync storage).</div></div>
+   <div class="field"><label for="syncPass">Sync password</label><input id="syncPass" type="password" autocomplete="new-password" placeholder="at least 10 characters"><div class="hint">Use the same password on every device. If you forget it, the synced copy can't be read, but each device keeps its own data.</div></div>
+   <div class="btns"><button class="btn sm primary" data-act="syncon">Turn on sync</button></div><div class="err" id="syncErr"></div><div id="syncAsk"></div></div>`;}
+function syncPaint(){const s=document.getElementById('syncStatus');if(s){const c=syncCfg();s.innerHTML=SYNC.busy?'Syncing…':SYNC.err?'<span class="amber-v">'+esc(SYNC.err)+'</span>':'Last synced '+esc(c.last?dateLabel(Math.floor(c.last/864e5),true)+' '+timeLabel(c.last):'not yet')+(c.dirty?' · changes waiting to be sent':'');}}
+SET_SECTIONS.sync={t:'Sync between devices',ic:'refresh',own:()=>syncSettingsHTML()};
+for(const g of SET_GROUPS){if(g[0]==='Portfolios & data'&&!g[1].includes('sync'))g[1].unshift('sync');}
+{const _ss=setSummary;setSummary=function(k){if(k==='sync'){const c=syncCfg();return c.on?'On · last synced '+(c.last?timeLabel(c.last):'not yet'):'Off · same portfolio on phone and PC';}return _ss(k);};}
+let SYNC_PENDING=null;
+onTap(async e=>{const b=e.target.closest('[data-act="syncon"],[data-act="syncnow"],[data-act="syncoff"],[data-act="syncprev"],[data-syncpick]');if(!b)return;const act=b.dataset.act;
+  if(act==='syncnow'){const c=syncCfg();if(c.dirty)await syncPush();else await syncPull();toast(SYNC.err?SYNC.err:'Synced');softRender();return;}
+  if(act==='syncoff'){if(!armed(b,'Tap again to turn off'))return;const c=syncCfg();syncSave({url:c.url});toast('Sync is off on this device');softRender();return;}
+  if(act==='syncprev'){if(!armed(b,'Tap again: replaces what you see now'))return;try{const p=JSON.parse(localStorage.getItem('lq_sync_prev'));keepPrev('before bringing back the older copy');S=migrate(p.state);Store.save();toast('Older copy brought back');render();}catch(err){toast('No copy found');}return;}
+  const err=$('#syncErr');const ask=$('#syncAsk');
+  if(b.dataset.syncpick){const P=SYNC_PENDING;if(!P)return;SYNC_PENDING=null;const c=P.c;
+    if(b.dataset.syncpick==='remote'){applyRemote(P.remote,P.rec,Object.assign(c,{on:true}));toast('Synced portfolio loaded');}
+    else{if(P.remote){try{localStorage.setItem('lq_sync_prev',JSON.stringify({t:Date.now(),why:'synced copy before you chose this device',state:P.remote}));}catch(x){}}c.on=true;c.rev=P.rec?P.rec.rev:undefined;syncSave(c);await syncPush(true);toast(SYNC.err||'This device\'s portfolio is now the synced one');}
+    softRender();return;}
+  /* turn on */
+  err.textContent='';ask.innerHTML='';const url=String($('#syncUrl').value||'').trim().replace(/\/+$/,'');const pass=String($('#syncPass').value||'');
+  if(!/^https:\/\/[^\s]+$/.test(url)){err.textContent='Enter your helper address, starting with https://';return;}
+  if(pass.length<10){err.textContent='Use a sync password of at least 10 characters.';return;}
+  b.disabled=true;b.textContent='Checking…';
+  try{const ping=await (await fetch(url+'/?ping',{cache:'no-store'})).json().catch(()=>null);
+    if(!ping||!(ping.version>=3))throw new Error('The helper at this address is an older version. Update it with the version 3 code first.');
+    if(!ping.sync)throw new Error('The helper has no sync storage yet: bind a KV namespace named LACAG_SYNC to it.');
+    const ids=await syncIds(pass);const c={url,pass,...ids,device:deviceName()};
+    const {j}=await syncReq(c,'GET');
+    if(!j.exists){c.salt=b64(crypto.getRandomValues(new Uint8Array(16)));SYNC_PENDING={c,rec:null};
+      ask.innerHTML=S.demo||!S.txs.length?`<div class="hint">No synced portfolio for this password yet, and this device only has ${S.demo?'the example':'no trades'}. Check the password, or set up sync on the device that has your portfolio first.</div>`
+        :`<div class="banner"><div><b>No synced portfolio for this password yet</b><div class="small">If you already set up sync on another device, check the password. Otherwise: start sync with the portfolio on this ${esc(deviceName())}? Then use the same password on your other device.</div><div class="btns" style="margin-top:8px"><button class="btn sm primary" data-syncpick="local">Start sync with this device</button></div></div></div>`;}
+    else{c.salt=j.salt;const remote=await openState(pass,j);SYNC_PENDING={c,remote,rec:j};
+      const n=remote.txs?remote.txs.length:0;const when=dateLabel(Math.floor(j.updated/864e5),true)+' '+timeLabel(j.updated);
+      if(S.demo||!S.txs.length){applyRemote(remote,j,Object.assign(c,{on:true}));SYNC_PENDING=null;toast('Synced portfolio loaded');softRender();return;}
+      ask.innerHTML=`<div class="banner"><div><b>Found your synced portfolio</b><div class="small">${n} transactions, last changed ${esc(when)} on ${esc(j.device||'another device')}. Which one should both devices use?</div>
+        <div class="btns" style="margin-top:8px"><button class="btn sm primary" data-syncpick="remote">Use the synced one</button><button class="btn sm" data-syncpick="local">Use this device's</button></div>
+        <div class="small muted" style="margin-top:6px">The one not chosen is kept as a copy on this device.</div></div></div>`;}}
+  catch(x){err.textContent=String(x.message||x);}finally{b.disabled=false;b.textContent='Turn on sync';}});
 
 /* ================= events ================= */
 onTap(async e=>{
