@@ -705,6 +705,31 @@ body.wide2 main,body.wide2 .top-in,body.wide2 .tabs-in{max-width:1180px}
 .two-col>div>[data-card]+[data-card]{margin-top:12px}
 .two-col>div>[data-card]:first-child>.sec:first-child{margin-top:6px}
 body.wide2 .chart-card .chart{height:340px}
+/* compact alerts: two columns */
+.al-stack{gap:6px;margin:10px 0 4px}
+.al-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:860px){.al-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.al-stack .al-card{display:block;padding:8px 8px 8px 10px;border-radius:12px;border-width:1px;cursor:pointer;min-width:0}
+.al-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.al-sym{font-weight:700;font-size:var(--fs-m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-stack .al-x{width:24px;height:24px;border-radius:7px;border:0;display:grid;place-items:center;background:var(--surface2);color:var(--fg);flex:none;padding:0}
+.al-pct{font-family:var(--f-num);font-size:var(--fs-l);font-weight:600;margin-top:2px}
+.al-b{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-stack .al-s{display:none;font-size:var(--fs-xs);margin-top:4px}
+.al-stack .al-card.open .al-s{display:block}
+.al-stack .al-foot{gap:14px;font-size:var(--fs-s)}
+/* budget: the split of your pay, with labels that fit the screen */
+.stackbar.sb-big{height:clamp(24px,3.2vw,32px);border-radius:8px;gap:2px;margin-top:2px}
+.stackbar.sb-big span{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:3px}
+.sb-l{font-style:normal;font-weight:700;font-size:clamp(10.5px,1.4vw,13px);white-space:nowrap;padding:0 4px;line-height:1;color:#000}
+.stackbar.sb-big .left .sb-l{color:var(--fg)}
+.sb-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px;margin-top:2px}
+.sb-li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;column-gap:6px;align-items:center;font-size:var(--fs-s)}
+.sb-sw{width:10px;height:10px;border-radius:3px}
+.sb-sw.left{background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 4px)}
+.sb-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-p{text-align:right;color:var(--fg)}
+.sb-a{grid-column:2/4;color:var(--muted);font-size:var(--fs-xs)}
 
 </style>
 <header class="top"><div class="top-in">
@@ -726,8 +751,11 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610200648";
+const LACAG_BUILD="202610200922";
 "use strict";
+/* which device the app is open on, for texts like "only on this iPhone" */
+function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
+const thisDevice=()=>'this '+deviceKind();
 /* ================= one tap dispatcher: every page-wide tap handler runs from here, in the order added; one failing handler no longer stops the others ================= */
 const TAP=[];
 function onTap(fn,capture){if(capture){document.addEventListener('click',fn,true);return;}TAP.push(fn);}
@@ -1866,7 +1894,7 @@ function settingsAllHTML(){
   ${currencySettingsHTML()}
   <h2 class="sec">Install on your phone</h2>
   <div class="card stack">
-   ${IS_STANDALONE?'<div class="note"><b>You\'re using the installed app.</b> Your data stays on this phone. Copy a backup now and then.</div>':`
+   ${IS_STANDALONE?'<div class="note"><b>You\'re using the installed app.</b> Your data stays on '+thisDevice()+'. Copy a backup now and then.</div>':`
    <div class="note">For daily prices the app file needs a web address. GitHub Pages is free and takes about five minutes:</div>
    <ol class="steps"><li>${inArtifact?'Tap <b>Download app file</b> below.':'Use the <code>lacag.html</code> file you were sent.'}</li><li>Rename it to <code>index.html</code> and upload it to a new GitHub repository (or drag it onto app.netlify.com/drop).</li><li>Turn on GitHub Pages and open the link in <b>Safari</b> on your iPhone.</li><li>Tap <b>Share → Add to Home Screen</b>.</li><li>Move your data with <b>Copy backup</b> here and <b>Import</b> there.</li></ol>
    ${inArtifact?'<div><button class="btn primary sm" data-act="dlapp">Download app file</button></div>':''}`}
@@ -2359,14 +2387,18 @@ function viewBudget(v,head){
   const b=B();const ym=bym();const m=monthNo(ym);const r=budgetMonth(m);const inc=r.income||1;
   const diffMonth=b.incomes.some(x=>x.overrides&&x.overrides[m]!=null&&x.overrides[m]!=='')||b.cats.some(c=>c.overrides&&c.overrides[m]!=null&&c.overrides[m]!=='');
   const groups=b.groups.map(g=>{const items=r.cats.filter(x=>x.c.group===g.id);return {g,items,sum:items.reduce((s,x)=>s+x.v,0),offItems:b.cats.filter(c=>c.group===g.id&&c.on===false)};});
-  const bar=groups.filter(x=>x.sum>0).map(x=>`<span style="width:${x.sum/inc*100}%;background:${groupColor(x.g.id)}" title="${esc(x.g.name)}"></span>`).join('')+(r.left>0?`<span class="left" style="width:${r.left/inc*100}%"></span>`:'');
+  /* the split of your pay: each part shows its name and % when there is room, only the % when less, and is always listed below */
+  const parts=groups.filter(x=>x.sum>0).map(x=>({name:x.g.name,v:x.sum,col:groupColor(x.g.id)}));if(r.left>0)parts.push({name:'Left over',v:r.left,left:true});
+  const pc=v=>fmtPct(v/inc,{dec:1,sign:false});
+  const bar=parts.map(x=>`<span class="${x.left?'left':''}" style="width:${x.v/inc*100}%;${x.left?'':'background:'+x.col}" title="${esc(x.name)} · ${pc(x.v)}"><i class="sb-l" data-long="${esc(x.name)} ${pc(x.v)}" data-short="${pc(x.v)}">${esc(x.name)} ${pc(x.v)}</i></span>`).join('');
+  const legend=`<div class="sb-legend">${parts.map(x=>`<div class="sb-li"><span class="sb-sw ${x.left?'left':''}" style="${x.left?'':'background:'+x.col}"></span><span class="sb-n">${esc(x.name)}</span><span class="sb-p num">${pc(x.v)}</span><span class="sb-a num">${bkr(x.v)}</span></div>`).join('')}</div>`;
   const target=b.savingsTargetPct||0;const savePct=r.totalSave/inc*100;
   const act=actualsFor(ym);const hasTx=b.tx.some(t=>t.date.startsWith(ym));
   const rulesList=r.cats.filter(x=>x.c.rule&&x.c.rule.type);
   v.innerHTML=`${head}
   <div class="month-nav"><button class="icon-btn" data-bmonth="-1" aria-label="Previous month">${ICON.chev.replace('<svg','<svg style="transform:rotate(90deg)"')}</button><div class="mn-label">${ymLabel(ym)}${diffMonth?'<span class="pill flat">Different month</span>':''}</div><button class="icon-btn" data-bmonth="1" aria-label="Next month">${ICON.chev.replace('<svg','<svg style="transform:rotate(-90deg)"')}</button></div>
   <section class="card stack"><div class="row-between"><div><div class="eyebrow">Take-home pay</div><div class="big2 num">${bkr(r.income,{dec:true})}</div></div><button class="btn sm" data-binc="${b.incomes[0]?b.incomes[0].id:'__new'}">Edit pay</button></div>
-   <div class="stackbar" role="img" aria-label="How your pay is split">${bar}</div>
+   <div class="stackbar sb-big" role="img" aria-label="How your pay is split">${bar}</div>${legend}
    <div class="sumgrid"><div><div class="k">Spending</div><div class="v">${bkr(r.spent,{dec:true})}</div><div class="small muted">${pct1(r.spent/inc)}</div></div>
     <div><div class="k">Savings</div><div class="v">${bkr(r.saved,{dec:true})}</div><div class="small muted">${pct1(r.saved/inc)}</div></div>
     <div><div class="k">${r.left>=0?'Left over':'Short by'}</div><div class="v ${r.left<0?'down':''}">${bkr(Math.abs(r.left),{dec:true})}</div><div class="small muted">${pct1(Math.abs(r.left)/inc)}</div></div>
@@ -2507,6 +2539,15 @@ onTap(e=>{
   if(d.btx){txCatSheet(d.btx,[]);return;}
   switch(d.bact){case 'import':bankImportSheet();return;case 'uncat':txListSheet(true);return;case 'txlist':txListSheet(false);return;case 'match':matchSheet();return;case 'target':targetSheet();return;}
 });
+
+/* fit the labels inside the pay bar: full name + %, else only %, else nothing (the list below always has all) */
+function fitStackbar(){document.querySelectorAll('.stackbar.sb-big').forEach(bar=>{
+  bar.querySelectorAll('span').forEach(sp=>{const l=sp.querySelector('.sb-l');if(!l)return;
+    const bg=getComputedStyle(sp).backgroundColor;const m=bg.match(/\d+(\.\d+)?/g);if(m&&!sp.classList.contains('left')){const [r,g,b]=m.map(Number);const lum=(0.299*r+0.587*g+0.114*b)/255;l.style.color=lum>0.55?'#000':'#fff';}
+    l.textContent=l.dataset.long;l.hidden=false;l.style.padding="";if(l.scrollWidth<=sp.clientWidth-8)return;
+    l.textContent=l.dataset.short;l.style.padding="0 2px";if(l.scrollWidth<=sp.clientWidth-2)return;l.hidden=true;});
+  if(!bar._ro&&window.ResizeObserver){let lw=bar.clientWidth;bar._ro=new ResizeObserver(()=>{if(Math.abs(bar.clientWidth-lw)>2){lw=bar.clientWidth;fitStackbar();}});bar._ro.observe(bar);}});}
+afterRender(()=>{if(document.querySelector('.stackbar.sb-big'))requestAnimationFrame(fitStackbar);});
 
 /* ================= appearance: night/day, colours, fonts, card transparency, wide tables (per device) ================= */
 const LOOK_DEFAULT={mode:'night',accent:'#FFA028',bg:'',alpha:100,font:'plex',num:'plexmono',tables:'fit'};
@@ -2700,7 +2741,7 @@ function setSummary(k){const L=look();const T=tblOpt();const O=curOpt();
     case 'import':return 'Nordnet, Kraken or any CSV file';
     case 'prices':return (S.settings.tdKey?'Twelve Data key saved':'No Twelve Data key')+' · '+(S.settings.helper?'price helper on':'no price helper');
     case 'share':return 'Send the app to family and friends';
-    case 'install':return IS_STANDALONE?'Installed on this phone':'Home screen on iPhone or Android';
+    case 'install':return IS_STANDALONE?'Installed on '+thisDevice():'Home screen on iPhone or Android';
     case 'backup':return 'Last backup '+(UI.lastBackup?dateLabel(Math.floor(UI.lastBackup/864e5),true):'never');
     case 'taxrules':{const r=taxRules();const ys=Object.keys(r.skj).map(Number).sort();return 'Shares '+nf2.format(r.base*r.factor*100)+' % · crypto '+nf0.format(r.crypto*100)+' % · skjerming up to '+(ys.length?ys[ys.length-1]:'—');}
     case 'check':{const n=dataIssues().length;return n?n+' thing'+(n>1?'s':'')+' to look at':'Everything looks right';}
@@ -2824,10 +2865,10 @@ async function backupToFile(){const name='lacag-backup-'+localToday()+'.json';co
 function backupDue(){if(S.demo||!S.txs.length||UI.backupRemind===false)return false;const now=Date.now();
   if(UI.backupSnooze&&now<UI.backupSnooze)return false;return !UI.lastBackup||now-UI.lastBackup>30*DAYMS;}
 function backupBanner(){const last=UI.lastBackup?Math.floor((Date.now()-UI.lastBackup)/DAYMS):null;
-  return `<div class="banner keep backup-banner"><div style="flex:1"><b>Time for a backup</b><div class="small">${last==null?'You have never saved a backup.':`Last backup ${last} days ago.`} Your data lives only on this phone.</div>
+  return `<div class="banner keep backup-banner"><div style="flex:1"><b>Time for a backup</b><div class="small">${last==null?'You have never saved a backup.':`Last backup ${last} days ago.`} ${typeof syncCfg==='function'&&syncCfg().on?'Your data is synced between your devices, but a backup file is still your safety copy.':'Your data lives only on '+thisDevice()+'.'}</div>
    <div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="backupfile">${iconSm('save')} Back up now</button><button class="btn sm" data-act="backuplater">Later</button></div></div></div>`;}
 function backupSettingsHTML(){const last=UI.lastBackup?dateLabel(Math.floor(UI.lastBackup/DAYMS),true):'never';
-  return `<div class="card stack"><div class="note keep">Your data is saved ${Store.cloud?'in your Claude account and ':''}on this phone. Deleting the home-screen app or clearing Safari's data deletes it. A backup file in iCloud Drive (Files) keeps it safe.</div>
+  return `<div class="card stack"><div class="note keep">Your data is saved ${Store.cloud?'in your Claude account and ':''}on ${thisDevice()}${typeof syncCfg==='function'&&syncCfg().on?' and, encrypted, in your sync storage':''}. Clearing the browser's data or deleting the home-screen app deletes it from this device. A backup file (for example in iCloud Drive or OneDrive) keeps it safe.</div>
    <div class="row-between"><div><div class="k">Last backup</div><div class="num">${esc(last)}</div></div><button class="btn primary sm" data-act="backupfile">${iconSm('save')} Back up now</button></div>
    <div class="hint">On iPhone, choose <b>Save to Files</b> → iCloud Drive in the share sheet.</div>
    <div class="look-row"><span class="lbl2">Monthly reminder</span><div class="seg" role="group"><button data-bkrem="1" aria-pressed="${UI.backupRemind!==false}">On</button><button data-bkrem="0" aria-pressed="${UI.backupRemind===false}">Off</button></div></div>
@@ -3408,6 +3449,7 @@ const PC_RECENT=[['w','This week'],['m','This month'],['q','This quarter'],['y',
 const PC_CANLAST=['w','m','q','y'];
 function pcState(M){const years=[];for(let y=yearOf(M.firstDay);y<=yearOf(M.today);y++)years.push(y);let per=UI.pcPer==null?'all':String(UI.pcPer);
   if(per!=='all'&&!PC_RECENT.some(x=>x[0]===per)&&!years.includes(+per))per='all';
+  if(!pcOpt().recent&&PC_RECENT.some(x=>x[0]===per))per='all';
   return {years:years.slice().reverse(),per,last:PC_CANLAST.includes(per)&&!!UI.pcLast,type:['bar','heat','line'].includes(UI.pcType)?UI.pcType:'bar'};}
 /* the chosen period as [day before start, last day], its name, and the bar size */
 function pcRange(M,st){const T=M.today;
@@ -3434,13 +3476,17 @@ function pcSlots(M,Z,st){PC_CARD='perf';const out=[];const T=M.today;const rg=pc
 let PC_SLOTS=[];
 /* on wide screens the drawing gets the card's real width, so text and bars are not stretched */
 function pcDrawW(){const v=document.querySelector('#view');const w=v?v.clientWidth-34:0;return w>420?Math.round(w):360;}
-function pcBarsSVG(slots,avgIn){const W=pcDrawW(),H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
+/* Performance chart options (⚙ on the card): bars overlapping or side by side, how see-through your bar is, week…5Y buttons on/off */
+function pcOpt(){return Object.assign({style:'overlap',see:35,recent:true},UI.pcOpt||{});}
+function pcBarsSVG(slots,avgIn){const O=pcOpt();const side=O.style==='side';const fa=side?.95:Math.max(.15,1-(+O.see||0)/100);const W=pcDrawW(),H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
   const vals=slots.flatMap(s=>s.w?[s.w.st.twr,s.w.idx]:[]).filter(v=>v!=null&&isFinite(v));let hi=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi-lo<0.002){hi+=0.001;lo-=0.001;}const pad_=(hi-lo)*0.06;hi+=hi>0?pad_:0;lo-=lo<0?pad_:0;
   const y=v=>pt+(hi-v)/(hi-lo)*(H-pt-pb);mid=y(0);
   let svg=`<svg class="pc-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Performance per period">`;
   svg+=`<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)" stroke-dasharray="2 3"/>`;const mine=[];slots.forEach((s,i)=>{const cx=sw*i+sw/2;svg+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(s.label)}</text>`;if(!s.w)return;
-    const iv=s.w.idx;if(iv!=null&&isFinite(iv)){const yy=y(iv);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="var(--pc-idx)"/>`;}
-    const v=s.w.st.twr;mine.push(v);const yy=y(v);svg+=`<rect x="${cx-bw/2}" y="${Math.min(yy,mid)}" width="${bw}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="${v>=0?'var(--up)':'var(--down)'}" opacity=".95"/>`;});
+    const iv=s.w.idx;const hasI=iv!=null&&isFinite(iv);const b2=side&&hasI?Math.min(bw*0.62,sw*0.4):bw;const xi=side&&hasI?cx-b2-1:cx-bw/2,xm=side&&hasI?cx+1:cx-bw/2;
+    if(hasI){const yy=y(iv);svg+=`<rect x="${xi}" y="${Math.min(yy,mid)}" width="${b2}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="var(--pc-idx)"/>`;}
+    const v=s.w.st.twr;mine.push(v);const yy=y(v);const col=v>=0?'var(--up)':'var(--down)';const hh=Math.max(1,Math.abs(yy-mid));
+    svg+=`<rect x="${xm}" y="${Math.min(yy,mid)}" width="${b2}" height="${hh}" rx="2" fill="${col}" fill-opacity="${fa.toFixed(2)}"${!side&&hasI&&fa<.9?` stroke="${col}" stroke-width="1.2" vector-effect="non-scaling-stroke"`:''}/>`;});
   const avg=avgIn!==undefined?avgIn:(mine.length?Math.pow(mine.reduce((p,v)=>p*(1+v),1),1/mine.length)-1:null);if(avg!=null)svg+=`<line x1="0" x2="${W}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
   svg+=`<line class="pc-cur" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="var(--fg)" opacity="0" stroke-width="1"/></svg>`;return {svg,avg};}
 function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</div><div class="tr sub"><span class="tl">No data</span></div>`;const w=s.w;
@@ -3475,8 +3521,8 @@ function perfCardHTML(M,Z){PC_CARD='perf';const st=pcState(M);const slots=pcSlot
   else{body=`<div class="chart" id="pcLine" style="height:200px"></div>`;}
   const types=[['bar','Bar chart'],['heat','Heatmap'],['line','Line chart']];
   return `<section class="card pc-card" data-card="perf"><div class="row-between"><div class="sub-h" style="margin:0">Performance</div>
-    <div class="pc-tools">${bmPick('perf')}<label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div></div>
-   <div class="pc-pers">${[...PC_RECENT.map(([k,l])=>[k,st.last&&k===st.per?(k==='y'?'Last year':l.replace('This','Last')):l]),['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per ${['3Y','5Y'].includes(k)&&rangeShort(k,M.firstDay)?'nodata':''}" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
+    <div class="pc-tools">${bmPick('perf')}<button class="gear-btn" data-act="pccfg" aria-label="Performance chart settings">${iconSm('gear',18)}</button><label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div></div>
+   <div class="pc-pers">${[...(pcOpt().recent?PC_RECENT:[]).map(([k,l])=>[k,st.last&&k===st.per?(k==='y'?'Last year':l.replace('This','Last')):l]),['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per ${['3Y','5Y'].includes(k)&&rangeShort(k,M.firstDay)?'nodata':''}" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
    ${st.per!=='all'&&!/^\d{4}$/.test(st.per)?`<div class="pc-when">${PC_CANLAST.includes(st.per)?`<div class="seg" role="group"><button data-pclast="0" aria-pressed="${!st.last}">This</button><button data-pclast="1" aria-pressed="${st.last}">Last</button></div>`:''}<span class="small muted">${dateLabel(Math.max(rg.from+1,M.firstDay))} – ${dateLabel(rg.to)}</span></div>`:''}
    <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You${pcIdx('perf')?` <span class="lk" style="background:${st.type==='line'?BM_COLOR[pcIdx('perf')]:'var(--pc-idx)'};margin-left:8px"></span> ${esc(pcIdxName('perf'))}`:''}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false})}</span>${infoBtn(avgInfo)}</span>`:''}</div>
    ${body}${pcBreakdown(M,Z,win)}</section>`;}
@@ -3515,6 +3561,15 @@ if(!UI.migV3){UI.migV3=1;if(UI.layout){delete UI.layout.overview;delete UI.layou
 afterRender(()=>{if(UI.tab==='analysis'&&$('#pcLine'))mountPcLine();});
 
 document.addEventListener('change',e=>{const c=e.target.dataset&&e.target.dataset.cardbm;if(!c)return;UI.cardBm=Object.assign({},UI.cardBm,{[c]:e.target.value});saveUI();softRender();if(!NET.blocked)fetchBenchmarks();});
+
+function pcCfgSheet(){const draw=()=>{const O=pcOpt();return `<div class="look-row"><span class="lbl2">You and the index</span><div class="seg" role="group"><button data-pco="style:overlap" aria-pressed="${O.style!=='side'}">Overlapping</button><button data-pco="style:side" aria-pressed="${O.style==='side'}">Side by side</button></div></div>
+   ${O.style!=='side'?`<div class="look-row col" style="margin-top:14px"><span class="lbl2">See-through: your bar ${O.see} %</span><input type="range" min="0" max="80" step="5" value="${O.see}" data-pcsee="1" aria-label="How see-through your bar is"><div class="hint">Higher lets you see the index bar behind yours. Your bar keeps a solid outline.</div></div>`:'<div class="hint" style="margin-top:8px">The index bar stands on the left, yours on the right.</div>'}
+   <div class="look-row" style="margin-top:14px"><span class="lbl2">Week, month, quarter, YTD, 1Y, 3Y, 5Y buttons</span><div class="seg" role="group"><button data-pco="recent:1" aria-pressed="${O.recent}">Show</button><button data-pco="recent:0" aria-pressed="${!O.recent}">Hide</button></div></div>`;};
+  openSheet('Performance chart',`<div id="pcoBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#pcoBody');
+    const set=(k,v)=>{UI.pcOpt=Object.assign({},pcOpt(),{[k]:v});saveUI();softRender();};
+    body.addEventListener('click',e=>{const b=e.target.closest('[data-pco]');if(!b)return;const [k,v]=b.dataset.pco.split(':');set(k,k==='recent'?v==='1':v);body.innerHTML=draw();});
+    body.addEventListener('input',e=>{if(e.target.dataset.pcsee){set('see',+e.target.value);const l=body.querySelector('.look-row.col .lbl2');if(l)l.textContent='See-through: your bar '+e.target.value+' %';}});});}
+onTap(e=>{if(e.target.closest('[data-act="pccfg"]'))pcCfgSheet();});
 
 /* ================= settings shortcuts open in a small window on the current page (no jump to Settings) ================= */
 function setSheetBody(key){const sec=SET_SECTIONS[key];if(!sec)return '';if(sec.own)return sec.own();const parts=settingsSections();let body=sec.from.map(t=>parts[t]||'').join('');
@@ -3658,13 +3713,17 @@ async function checkAlerts(){const cfg=alertCfg();if(!cfg.on||AL_BUSY){if(!cfg.o
     UI.alDis=UI.alDis||{};const live=new Set(out.map(x=>x.key));for(const k of Object.keys(UI.alDis))if(!live.has(k))delete UI.alDis[k];saveUI();
     const seen=new Set();ALERTS=out.filter(x=>{if(seen.has(x.key))return false;seen.add(x.key);return !(UI.alDis[x.key]>=x.level);}).sort((a,b)=>a.drop-b.drop);
     saveCache();if(UI.tab==='overview')softRender();}finally{AL_BUSY=false;}}
+/* compact alerts: two columns, at most 4 shown; tap one to see its details */
+const AL_BASIS_TINY={ath:'from top',top30:'from 30-day high',day:'today',cost:'from buy price',set:'since alert'};
 function alertsBanner(){if(!ALERTS.length||!alertCfg().on)return '';
-  const showAll=!!ALERTS.showAll;const list=showAll?ALERTS:ALERTS.slice(0,3);
-  return `<section class="al-stack" aria-label="Price alerts">${list.map(x=>`<div class="al-card"><div class="al-ic">▼</div><div class="al-txt"><div class="al-h"><b>${esc(x.sym)}</b> is down <b class="down">${pctTxt(-x.drop)}</b> ${AL_BASIS_SHORT[x.basis]||''}</div>
-    <div class="al-s">${esc(x.name)}${x.watch?' · watchlist':''} · your alert at ${x.level} %${x.price&&x.ref&&!x.pf?` · now ${money(x.price,x.cur)}, was ${money(x.ref,x.cur)}`:''}</div></div>
-    <button class="icon-btn al-x" data-aldis="${esc(x.key)}:${x.level}" aria-label="Close this alert">${ICON.close}</button></div>`).join('')}
-   ${ALERTS.length>list.length?`<button class="btn al-more" data-almore="1">Show ${ALERTS.length-list.length} more alert${ALERTS.length-list.length>1?'s':''}</button>`:''}
-   ${ALERTS.length>1?`<div class="al-foot"><button class="btn sm" data-aldis="__all">Close all ${ALERTS.length}</button><button class="btn sm" data-sset-go="alerts">Alert settings</button></div>`:`<div class="al-foot"><button class="btn sm" data-sset-go="alerts">Alert settings</button></div>`}</section>`;}
+  const showAll=!!ALERTS.showAll;const list=showAll?ALERTS:ALERTS.slice(0,4);
+  return `<section class="al-stack" aria-label="Price alerts"><div class="al-grid">${list.map(x=>`<div class="al-card ${AL_OPEN.has(x.key)?'open':''}" role="button" tabindex="0" data-alopen="${esc(x.key)}">
+     <div class="al-top"><span class="al-sym">${esc(x.sym)}</span><button class="al-x" data-aldis="${esc(x.key)}:${x.level}" aria-label="Close this alert">${iconSm('close',14)}</button></div>
+     <div class="al-pct down">${pctTxt(-x.drop)}</div><div class="al-b">${AL_BASIS_TINY[x.basis]||''} · alert ${x.level} %</div>
+     <div class="al-s">${esc(x.name)}${x.watch?' · watchlist':''}${x.price&&x.ref&&!x.pf?` · now ${money(x.price,x.cur)}, was ${money(x.ref,x.cur)}`:''}</div></div>`).join('')}</div>
+   <div class="al-foot">${ALERTS.length>list.length?`<button class="linkbtn" data-almore="1">Show ${ALERTS.length-list.length} more</button>`:''}${ALERTS.length>1?`<button class="linkbtn" data-aldis="__all">Close all ${ALERTS.length}</button>`:''}<button class="linkbtn" data-sset-go="alerts">Alert settings</button></div></section>`;}
+const AL_OPEN=new Set(); /* which alerts you opened, kept while the page redraws */
+onTap(e=>{const c=e.target.closest('[data-alopen]');if(c&&!e.target.closest('[data-aldis]')){const k=c.dataset.alopen;if(AL_OPEN.has(k))AL_OPEN.delete(k);else AL_OPEN.add(k);c.classList.toggle('open',AL_OPEN.has(k));}});
 onTap(e=>{if(e.target.closest('[data-almore]')){ALERTS.showAll=true;softRender();return;}const b=e.target.closest('[data-aldis]');if(!b)return;UI.alDis=UI.alDis||{};
   if(b.dataset.aldis==='__all'){for(const x of ALERTS)UI.alDis[x.key]=x.level;ALERTS=[];}
   else{const v=b.dataset.aldis;const i=v.lastIndexOf(':');const k=v.slice(0,i),L=+v.slice(i+1);UI.alDis[k]=L;ALERTS=ALERTS.filter(x=>x.key!==k);}
@@ -3792,7 +3851,7 @@ onTap(e=>{if(!e.target.closest('[data-act="fgoff"]'))return;const o=pfOpt();cons
 /* a warning on every page when your last change could not be saved, or when a damaged save was replaced by the safety copy */
 function safetyBanner(){
   if(STORE_FAIL)return `<div class="banner keep safety-bar"><div style="flex:1"><b>Your last change was not saved.</b> This phone's storage for Lacag is full. Download a backup now so nothing is lost, then delete old data or free space.<div class="btns" style="margin-top:8px"><button class="btn primary sm" data-act="backupfile">${iconSm('save')} Back up now</button><button class="btn sm" data-act="retrysave">Try saving again</button></div></div></div>`;
-  if(STORE_RECOVERED&&!UI.recoverSeen)return `<div class="banner keep safety-bar"><div style="flex:1"><b>${STORE_RECOVERED.day?'Your data was restored from the safety copy of '+esc(dateLabel(dn(STORE_RECOVERED.day),true)):'Your saved data could not be read'}.</b> The damaged copy is kept untouched on this phone. ${STORE_RECOVERED.day?'Changes made after that day may be missing; restore a backup file if you have a newer one.':'Restore a backup file to get your data back.'}<div class="btns" style="margin-top:8px"><button class="btn sm" data-sset-go="backup">Backup &amp; restore</button><button class="btn sm" data-act="recoverok">OK</button></div></div></div>`;
+  if(STORE_RECOVERED&&!UI.recoverSeen)return `<div class="banner keep safety-bar"><div style="flex:1"><b>${STORE_RECOVERED.day?'Your data was restored from the safety copy of '+esc(dateLabel(dn(STORE_RECOVERED.day),true)):'Your saved data could not be read'}.</b> The damaged copy is kept untouched on ${thisDevice()}. ${STORE_RECOVERED.day?'Changes made after that day may be missing; restore a backup file if you have a newer one.':'Restore a backup file to get your data back.'}<div class="btns" style="margin-top:8px"><button class="btn sm" data-sset-go="backup">Backup &amp; restore</button><button class="btn sm" data-act="recoverok">OK</button></div></div></div>`;
   return '';}
 afterRender(()=>{const v=$('#view');if(!v||v.querySelector('.safety-bar'))return;const h=safetyBanner();if(!h)return;const bar=v.querySelector('.page-bar');if(bar)bar.insertAdjacentHTML('afterend',h);else v.insertAdjacentHTML('afterbegin',h);});
 onTap(e=>{const b=e.target.closest('[data-act="retrysave"],[data-act="recoverok"],[data-act="usesnap"],[data-bkkey]');if(!b)return;const d=b.dataset;
@@ -3805,13 +3864,13 @@ onTap(e=>{const b=e.target.closest('[data-act="retrysave"],[data-act="recoverok"
 {const _bj=backupJSON;backupJSON=function(){if(UI.backupKey)return _bj();const copy=JSON.parse(JSON.stringify(S));if(copy.settings)delete copy.settings.tdKey;return JSON.stringify({app:'lacag',v:2,saved:new Date().toISOString(),data:copy},null,1);};}
 /* Backup & restore settings: storage used, the daily safety copy, the key choice */
 {const _b=backupSettingsHTML;backupSettingsHTML=function(){const snap=lsGet('lq_state_snap',null);const used=storageUsedKB();
-  const extra=`<h3 class="h3">Safety on this phone</h3>
+  const extra=`<h3 class="h3">Safety on ${thisDevice()}</h3>
    <div class="row-between"><span>Storage used by Lacag</span><span class="num">${used<1024?used+' KB':(used/1024).toFixed(1).replace('.',',')+' MB'} of about 5 MB</span></div>
    <div class="hint">If storage runs full, Lacag first clears downloaded prices (they come back by themselves). Your own data always goes first, and you are warned if a save ever fails.</div>
    <div class="row-between"><span>Daily safety copy</span><span class="num">${snap&&snap.day?esc(dateLabel(dn(snap.day),true))+' · '+(snap.data&&snap.data.txs?snap.data.txs.length:0)+' entries':'none yet'}</span></div>
    ${snap&&snap.data?`<div><button class="btn sm" data-act="usesnap">Restore this copy</button></div>`:''}
    <div class="look-row"><span class="lbl2">Include Twelve Data key in backups</span><div class="seg" role="group"><button data-bkkey="0" aria-pressed="${!UI.backupKey}">No</button><button data-bkkey="1" aria-pressed="${!!UI.backupKey}">Yes</button></div></div>
-   <div class="hint">No is safer if you send or store backups somewhere others can see. When you restore a backup without a key, the key on this phone is kept.</div>`;
+   <div class="hint">No is safer if you send or store backups somewhere others can see. When you restore a backup without a key, the key on ${thisDevice()} is kept.</div>`;
   return _b().replace('<h3 class="h3">Restore</h3>',extra+'<h3 class="h3">Restore</h3>');};}
 setTimeout(()=>{try{Object.assign(window.__lacag,{saveState:saveStateSafely,backupJSON,rerender:()=>render()});}catch(e){}},0); /* test hooks */
 
@@ -3822,9 +3881,10 @@ SET_GROUPS.splice(0,SET_GROUPS.length,
   ['Appearance',['look','updown']],
   ['Pages & behaviour',['start','arrange','expl','sharecard']],
   ['Numbers & currency',['tables','currency']],
-  ['Portfolios & data',['portfolios','accounts','household','import','check','backup']],
+  ['Your data',['prices','sync','backup','import','check','data']],
+  ['Portfolios & accounts',['portfolios','accounts','household']],
   ['Alerts & limits',['alerts','conc']],
-  ['App & advanced',['prices','taxrules','install','share','data']]);
+  ['Tax & app',['taxrules','install','share']]);
 
 /* ---------- price freshness per holding ---------- */
 /* a price is "old" when it is more than 2 working days old (funds publish a day late) or, for crypto, more than 1 day old */
@@ -3939,7 +3999,7 @@ const SYNC_KEY='lq_sync';
 function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{};}catch(e){return {};}}
 function syncSave(c){try{localStorage.setItem(SYNC_KEY,JSON.stringify(c));}catch(e){}}
 const SYNC={busy:false,timer:null,status:'',err:'',keys:{}};
-function deviceName(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?'Android':/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC (Windows)':'Computer';}
+function deviceName(){const k=deviceKind();return k==='PC'?'PC (Windows)':k[0].toUpperCase()+k.slice(1);}
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const b64=b=>{let s='';const a=new Uint8Array(b);for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(s);};
 const unb64=s=>{const r=atob(s);const a=new Uint8Array(r.length);for(let i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;};
@@ -4000,7 +4060,7 @@ function syncSettingsHTML(){const c=syncCfg();const when=c.last?(dateLabel(Math.
    <div class="btns"><button class="btn sm primary" data-act="syncon">Turn on sync</button></div><div class="err" id="syncErr"></div><div id="syncAsk"></div></div>`;}
 function syncPaint(){const s=document.getElementById('syncStatus');if(s){const c=syncCfg();s.innerHTML=SYNC.busy?'Syncing…':SYNC.err?'<span class="amber-v">'+esc(SYNC.err)+'</span>':'Last synced '+esc(c.last?dateLabel(Math.floor(c.last/864e5),true)+' '+timeLabel(c.last):'not yet')+(c.dirty?' · changes waiting to be sent':'');}}
 SET_SECTIONS.sync={t:'Sync between devices',ic:'refresh',own:()=>syncSettingsHTML()};
-for(const g of SET_GROUPS){if(g[0]==='Portfolios & data'&&!g[1].includes('sync'))g[1].unshift('sync');}
+/* listed in Settings → Your data (see the groups in l21) */
 {const _ss=setSummary;setSummary=function(k){if(k==='sync'){const c=syncCfg();return c.on?'On · last synced '+(c.last?timeLabel(c.last):'not yet'):'Off · same portfolio on phone and PC';}return _ss(k);};}
 let SYNC_PENDING=null;
 onTap(async e=>{const b=e.target.closest('[data-act="syncon"],[data-act="syncnow"],[data-act="syncoff"],[data-act="syncprev"],[data-syncpick]');if(!b)return;const act=b.dataset.act;
