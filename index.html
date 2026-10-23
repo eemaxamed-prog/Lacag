@@ -730,6 +730,58 @@ body.wide2 .chart-card .chart{height:340px}
 .sb-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-p{text-align:right;color:var(--fg)}
 .sb-a{grid-column:2/4;color:var(--muted);font-size:var(--fs-xs)}
+:root{--pc-cum:#FFD84D;--pc-cumidx:#9AA3B5}
+:root[data-look="day"]{--pc-cum:#B07A00;--pc-cumidx:#6B7280}
+/* ===== one card design: one box, title + buttons on the top line ===== */
+#view .c-shell{background:color-mix(in srgb,var(--surface) calc(var(--card-alpha)*1%),transparent);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+#view .c-shell > .c-flat,#view .c-shell > .c-flat.card,#view .c-shell > .c-flat.list{background:transparent!important;border:0!important;border-radius:0;padding:0;box-shadow:none}
+#view .c-shell > .c-flat + .c-flat{margin-top:10px}
+#view .c-box{padding:14px}
+#view .c-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;margin:0 0 10px;flex-wrap:nowrap}
+#view .c-head > :not(.c-title){flex:none}
+#view .c-title{margin:0!important;font-family:var(--f-display);font-size:var(--fs-s);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;line-height:1.2;padding:4px 0}
+#view .c-head .pc-tools,#view .c-head .ch-tools{flex-wrap:nowrap;gap:6px}
+#view .c-head select{max-width:118px;text-overflow:ellipsis}
+#view .c-head .bm-pick{max-width:130px}
+#view .c-sub{margin-bottom:6px}
+#view [data-card].collapsed.c-shell,#view [data-card].collapsed.c-box{padding-top:10px;padding-bottom:10px}
+#view [data-card].collapsed .c-head{margin:0}
+#view [data-card].collapsed .c-head > :not(.ctitle){display:none!important}
+#view [data-card].collapsed > .c-flat,#view [data-card].collapsed > .c-sub{display:none!important}
+#view [data-card] + [data-card]{margin-top:12px}
+/* B: a small accent mark before each title */
+:root[data-ct="b"] #view .c-title::before{content:"";display:inline-block;width:3px;height:.95em;border-radius:2px;background:var(--accent);margin-right:8px;vertical-align:-.12em}
+/* C: compact — smaller titles and buttons so everything fits on one line */
+:root[data-ct="c"] #view .c-title{font-size:var(--fs-xs);letter-spacing:.06em}
+:root[data-ct="c"] #view .c-head{min-height:28px;margin-bottom:8px;gap:6px}
+:root[data-ct="c"] #view .c-head .gear-btn,:root[data-ct="c"] #view .c-head .icon-btn{width:28px;height:28px;border-radius:8px}
+:root[data-ct="c"] #view .c-head select,:root[data-ct="c"] #view .c-head .bm-pick{font-size:var(--fs-xs);padding:4px 8px;min-height:28px}
+:root[data-ct="c"] #view .c-box,:root[data-ct="c"] #view .c-shell{padding:12px}
+:root[data-ct="c"] #view [data-card].collapsed.c-shell,:root[data-ct="c"] #view [data-card].collapsed.c-box{padding-top:8px;padding-bottom:8px}
+#view [data-card].collapsed .c-head.c-head{margin:0;min-height:28px}
+:root[data-ct="c"] #view [data-card].collapsed .c-head{min-height:24px}
+#view > .seg + [data-card],#view > .row-between + [data-card]{margin-top:12px}
+/* arrows hidden: colour only */
+:root[data-arrows="off"] .up::before,:root[data-arrows="off"] .down::before{content:none!important}
+:root[data-arrows="off"] .arw{display:none!important}
+/* Gain per holding */
+.gl-list{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.gl-row{display:grid;grid-template-columns:minmax(44px,64px) minmax(0,1fr) auto;column-gap:10px;align-items:center;min-height:30px;font-size:var(--fs-s);cursor:pointer;border-radius:6px}
+.gl-row.sold .gl-sym{color:var(--muted);font-weight:500}
+.gl-sym{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-track{position:relative;height:14px}
+.gl-zero{position:absolute;top:-6px;bottom:-6px;width:1px;background:var(--muted);opacity:.6}
+.gl-bar{position:absolute;top:0;height:14px;border-radius:3px;min-width:2px}
+.gl-bar.gl-neg{opacity:.75;background-image:repeating-linear-gradient(45deg,transparent 0 3px,rgba(0,0,0,.5) 3px 5px)!important}
+.gl-v{text-align:right;white-space:nowrap;font-size:var(--fs-s)}
+.gl-det{grid-column:1/-1;color:var(--muted);padding:0 0 6px;font-size:var(--fs-xs)}
+.gl-card .gl-det span{white-space:nowrap}
+.gl-tot{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:var(--fs-m)}
+.gl-leg{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 6px}.gl-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.gl-stripe{background:var(--muted);background-image:repeating-linear-gradient(45deg,transparent 0 2px,rgba(0,0,0,.6) 2px 4px)}
+.gl-cols{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
+.gl-svg{display:block}
+.gl-unit button{padding:4px 10px}
 
 </style>
 <header class="top"><div class="top-in">
@@ -751,7 +803,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610200922";
+const LACAG_BUILD="202610221912";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1271,11 +1323,11 @@ function mountChart(host,cfg){
   const all=[];for(const s of cfg.series)if(!s.hidden)for(const p of s.pts)if(isFinite(p.v))all.push(p.v);if(cfg.refLine!=null)all.push(cfg.refLine);if(cfg.kind==='pct')all.push(0);
   let lo=Math.min(...all),hi=Math.max(...all);if(!isFinite(lo)){host.innerHTML='<div class="empty">No prices yet</div>';return;}
   if(hi-lo<1e-9){const d=Math.abs(hi)*0.02||1;lo-=d;hi+=d;}const padv=(hi-lo)*0.08;const minAll=lo;lo-=padv;hi+=padv;if(cfg.kind!=='pct'&&lo<0&&minAll>=0)lo=0;
-  const fmtTick0=v=>cfg.kind==='pct'?((v>1e-9?'\u25B2':v<-1e-9?'\u25BC':'')+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
+  const fmtTick0=v=>cfg.kind==='pct'?(arw(v,1e-9)+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
   const prW={small:5.4,xs:4.5,ends:4.8}[yax];const pr=prW?Math.max(20,Math.max(...niceTicks(lo,hi,3).map(t=>fmtTick0(t).length))*prW+7):pr0;
   const n=S0.pts.length;const X=i=>n===1?(w-pr)/2:i/(n-1)*(w-pr);const Y=v=>pt+(1-(v-lo)/(hi-lo))*(h-pt-pb);
   const pathOf=pts=>{let d='',pen=false;pts.forEach((p,i)=>{if(!isFinite(p.v)){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+','+Y(p.v).toFixed(1);pen=true;});return d;};
-  const fmtTick=v=>cfg.kind==='pct'?((v>1e-9?'\u25B2':v<-1e-9?'\u25BC':'')+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
+  const fmtTick=v=>cfg.kind==='pct'?(arw(v,1e-9)+nf0.format(Math.abs(v*100))+'%'):cfg.kind==='price'?new Intl.NumberFormat('nb-NO',{maximumFractionDigits:v<10?2:0}).format(v):cShort(v,cfg.ccy||'NOK');
   const xl=i=>cfg.xfmt?cfg.xfmt(S0.pts[i].x):cfg.time?timeLabel(S0.pts[i].x):dateLabel(S0.pts[i].x);
   const gid='g'+(++chartSeq);const main=S0.color;
   let svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${esc(cfg.label||'Chart')}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${main}" stop-opacity=".22"/><stop offset="1" stop-color="${main}" stop-opacity="0"/></linearGradient></defs>`;
@@ -1889,8 +1941,10 @@ function settingsAllHTML(){
    ${assetsActive.length?`<div class="list" style="background:var(--surface2)">${assetsActive.map(a=>{const lv=C.live[a.id];const e=C.err[a.id];const hh=C.hist[histKey(a)];const srcTxt=hh?(a.cls==='crypto'?'Binance':hh.src==='yahoo'?'Price helper':'Twelve Data'):'Your prices';return `<div class="item" style="cursor:default">${badge(a)}<div class="mid"><div class="t1">${esc(a.symbol)} <span class="muted small">· ${srcTxt}</span></div><div class="t2 ${e?'down':''}">${e?esc(e):lv?('Updated '+timeLabel(lv.t)+' · '+money(lv.price,lv.q||a.currency)+(hh&&hh.fixed?' · '+hh.fixed+' bad price'+(hh.fixed>1?'s':'')+' fixed':'')):'Ticker: '+esc(a.dataSymbol||a.symbol)}</div></div></div>`;}).join('')}</div>`:''}
   </div>
   <h2 class="sec">Up and down colours</h2>
-  <div class="card stack"><div class="note">Up and down values always show an arrow (▲ ▼) as well as a colour. If green and red are hard to tell apart, Bloomberg's colour-blind research suggests blue for up and red for down.</div>
-   <div class="seg" role="group">${[['std','Green / red'],['cvd','Blue / red']].map(([k,l])=>`<button data-updown="${k}" aria-pressed="${(S.settings.updown||'std')===k}">${l}</button>`).join('')}</div></div>
+  <div class="card stack"><div class="note" data-keepsign>Up and down values show an arrow (▲ ▼) as well as a colour, unless you hide the arrows below. If green and red are hard to tell apart, Bloomberg's colour-blind research suggests blue for up and red for down.</div>
+   <div class="seg" role="group">${[['std','Green / red'],['cvd','Blue / red']].map(([k,l])=>`<button data-updown="${k}" aria-pressed="${(S.settings.updown||'std')===k}">${l}</button>`).join('')}</div>
+   <div class="look-row" style="margin-top:6px"><span class="lbl2" data-keepsign>Arrows ▲ ▼</span><div class="seg" role="group"><button data-arrows="on" aria-pressed="${arrowsOn()}">Show</button><button data-arrows="off" aria-pressed="${!arrowsOn()}">Hide</button></div></div>
+   <div class="hint">Hide: up and down are shown by colour only, without arrows or + and − signs.</div></div>
   ${currencySettingsHTML()}
   <h2 class="sec">Install on your phone</h2>
   <div class="card stack">
@@ -2682,12 +2736,20 @@ afterRender(()=>{recordNav();});
 const SIGN_RE=/(^|[\s(\[·\/:=•])([+−]|^-)(?=[$£€]?\s?\d)/g;
 const SKIP_TAGS=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','NOSCRIPT']);
 function hasArrow(el){const a=el&&el.closest&&el.closest('.up,.down');if(!a)return false;return !a.closest('.prog')&&!a.classList.contains('lk');}
-function arrowText(node){const txt=node.nodeValue;if(!txt||!/[+−-]/.test(txt))return;
+/* Settings → Up and down colours → Arrows: Show / Hide */
+function arrowsOn(){return !(typeof S!=='undefined'&&S&&S.settings&&S.settings.arrows==='off');}
+function applyArrows(){if(arrowsOn())delete document.documentElement.dataset.arrows;else document.documentElement.dataset.arrows='off';}
+/* ▲ or ▼ for a value, or nothing when arrows are hidden */
+function arw(v,eps=0){return !arrowsOn()?'':v>eps?'▲':v<-eps?'▼':'';}
+function arrowText(node){let txt=node.nodeValue;if(!txt)return;
+  /* arrows hidden: also take out any ▲ ▼ written straight into a text */
+  if(!arrowsOn()&&/[▲▼]/.test(txt)){const par=node.parentNode;if(par&&!(par.closest&&par.closest('[data-keepsign]'))){txt=txt.replace(/[▲▼]\u00a0?\s?/g,'');node.nodeValue=txt;}}
+  if(!/[+−-]/.test(txt))return;
   SIGN_RE.lastIndex=0;if(!SIGN_RE.test(txt))return;SIGN_RE.lastIndex=0;
   const par=node.parentNode;if(!par||SKIP_TAGS.has(par.nodeName)||(par.closest&&par.closest('[data-keepsign],[contenteditable]')))return;
   const strip=hasArrow(par);
   const plain=strip||par.nodeName==='OPTION'||par.namespaceURI==='http://www.w3.org/2000/svg';
-  if(plain){node.nodeValue=txt.replace(SIGN_RE,(m,pre,s)=>pre+(strip?'':(s==='+'?'▲':'▼')));return;}
+  if(plain){node.nodeValue=txt.replace(SIGN_RE,(m,pre,s)=>pre+(strip||!arrowsOn()?'':(s==='+'?'▲':'▼')));return;}
   const frag=document.createDocumentFragment();let last=0;txt.replace(SIGN_RE,(m,pre,s,off)=>{
     frag.appendChild(document.createTextNode(txt.slice(last,off)+pre));
     const sp=document.createElement('span');sp.className='arw';sp.textContent=s==='+'?'▲':'▼';frag.appendChild(sp);
@@ -2732,7 +2794,7 @@ function setSummary(k){const L=look();const T=tblOpt();const O=curOpt();
     case 'look':return (L.mode==='day'?'Day':'Night')+' mode · accent, background, fonts, card transparency';
     case 'tables':return (T.style==='full'?'Full numbers':'Compact K/M')+' · '+(T.sep==='comma'?'comma':'dot')+' decimals · '+(L.tables==='scroll'?'slide sideways':'fit to screen');
     case 'currency':return 'Overview '+O.pages.overview+' · Holdings '+O.pages.holdings+' · Insights '+O.pages.analysis;
-    case 'updown':return (S.settings.updown==='cvd'?'Blue / red':'Green / red')+' with ▲ ▼ arrows';
+    case 'updown':return (S.settings.updown==='cvd'?'Blue / red':'Green / red')+(arrowsOn()?' with ▲ ▼ arrows':' · arrows hidden');
     case 'arrange':return 'Move, hide and add cards on each page';
     case 'household':return S.portfolios.some(p=>p.id==='pf_family')?'Set up: '+S.portfolios.map(p=>p.name).join(', '):'Track your and your partner\'s savings together';
     case 'expl':return 'Calm mode '+(UI.calm?'on':'off')+' · explanation texts '+(UI.expl==='off'?'hidden':'shown')+' · amounts '+(UI.privStart?'hidden':'shown')+' at start';
@@ -3389,7 +3451,7 @@ function drawShareCard(o){const D=shareData(o);if(!D||!D.m)return null;const W=1
   const cs=getComputedStyle(document.documentElement);const UP=cs.getPropertyValue('--up').trim()||'#1FE98A',DN=cs.getPropertyValue('--down').trim()||'#FF4A4A',AMB=cs.getPropertyValue('--amber').trim()||'#FFA028';
   const mono='"IBM Plex Mono",ui-monospace,Menlo,monospace',sans='"IBM Plex Sans",-apple-system,Helvetica,Arial,sans-serif';
   g.fillStyle='#08090B';g.fillRect(0,0,W,H);g.fillStyle='#121418';const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();};
-  const pctS=v=>v==null?'—':(v>=0?'▲ ':'▼ ')+nf2.format(Math.abs(v*100))+' %';const col=v=>v==null?'#8A8F98':v>=0?UP:DN;
+  const pctS=v=>v==null?'—':(arrowsOn()?(v>=0?'▲ ':'▼ '):'')+nf2.format(Math.abs(v*100))+' %';const col=v=>v==null?'#8A8F98':v>=0?UP:DN;
   g.fillStyle=AMB;g.font=`700 44px ${mono}`;g.fillText('LACAG',80,120);g.fillStyle='#8A8F98';g.font=`500 36px ${sans}`;
   const mName=MON[+D.per.slice(5)-1]+' '+D.per.slice(0,4)+(o.period==='this'?' (so far)':'');g.fillText(mName,80,175);
   rr(60,230,W-120,430,36);g.fillStyle='#121418';g.fill();
@@ -3478,7 +3540,16 @@ let PC_SLOTS=[];
 function pcDrawW(){const v=document.querySelector('#view');const w=v?v.clientWidth-34:0;return w>420?Math.round(w):360;}
 /* Performance chart options (⚙ on the card): bars overlapping or side by side, how see-through your bar is, week…5Y buttons on/off */
 function pcOpt(){return Object.assign({style:'overlap',see:35,recent:true},UI.pcOpt||{});}
-function pcBarsSVG(slots,avgIn){const O=pcOpt();const side=O.style==='side';const fa=side?.95:Math.max(.15,1-(+O.see||0)/100);const W=pcDrawW(),H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
+/* running total through the period: your return from the start of the period to each day (and the index's), placed in time over the bars */
+function pcCumLine(M,Z,slots,win){const base=win.bi>=0?Z.IDX[win.bi]:1;if(!(base>0))return null;const first=win.from+1,last=win.to;const n=last-first+1;if(n<1)return null;
+  const step=Math.max(1,Math.ceil(n/160));const days=[];for(let d=first;d<=last;d+=step)days.push(d);if(days[days.length-1]!==last)days.push(last);
+  const xOf=d=>{for(let k=0;k<slots.length;k++){const w=slots[k].w;if(!w)continue;const a=w.from+1,b=w.to;if(d>=a-0.5&&d<=b)return k+(b>a?(d-a+1)/(b-a+1):1);}return null;};
+  const me=[],ix=[];const id=pcIdx('perf');
+  me.push([xOf(first)!=null?Math.floor(xOf(first)):0,0]);if(id)ix.push([me[0][0],0]);
+  for(const d of days){const i=d-M.d0;if(i<0||i>=M.N)continue;const x=xOf(d);if(x==null)continue;me.push([x,Z.IDX[i]/base-1]);
+    if(id){const r=idxRet(id,win.from,d,UI.ccy);if(r!=null&&isFinite(r))ix.push([x,r]);}}
+  return {me,ix:ix.length>2?ix:null};}
+function pcBarsSVG(slots,avgIn,cum){const O=pcOpt();const side=O.style==='side';const fa=side?.95:Math.max(.15,1-(+O.see||0)/100);const W=pcDrawW(),H=190,pt=10,pb=24;let mid;const n=slots.length;const sw=W/n,bw=Math.min(26,sw*0.56);
   const vals=slots.flatMap(s=>s.w?[s.w.st.twr,s.w.idx]:[]).filter(v=>v!=null&&isFinite(v));let hi=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi-lo<0.002){hi+=0.001;lo-=0.001;}const pad_=(hi-lo)*0.06;hi+=hi>0?pad_:0;lo-=lo<0?pad_:0;
   const y=v=>pt+(hi-v)/(hi-lo)*(H-pt-pb);mid=y(0);
   let svg=`<svg class="pc-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Performance per period">`;
@@ -3487,11 +3558,17 @@ function pcBarsSVG(slots,avgIn){const O=pcOpt();const side=O.style==='side';cons
     if(hasI){const yy=y(iv);svg+=`<rect x="${xi}" y="${Math.min(yy,mid)}" width="${b2}" height="${Math.max(1,Math.abs(yy-mid))}" rx="2" fill="var(--pc-idx)"/>`;}
     const v=s.w.st.twr;mine.push(v);const yy=y(v);const col=v>=0?'var(--up)':'var(--down)';const hh=Math.max(1,Math.abs(yy-mid));
     svg+=`<rect x="${xm}" y="${Math.min(yy,mid)}" width="${b2}" height="${hh}" rx="2" fill="${col}" fill-opacity="${fa.toFixed(2)}"${!side&&hasI&&fa<.9?` stroke="${col}" stroke-width="1.2" vector-effect="non-scaling-stroke"`:''}/>`;});
+  if(cum&&cum.me.length>1){const all=cum.me.concat(cum.ix||[]).map(p=>p[1]);let ch=Math.max(0,...all),cl_=Math.min(0,...all);if(ch-cl_<1e-4){ch+=0.001;cl_-=0.001;}const yc=v=>pt+4+(ch-v)/(ch-cl_)*(H-pt-pb-8);const xs=x=>x*sw;
+    const path=pts=>pts.map((p,i)=>(i?'L':'M')+xs(p[0]).toFixed(1)+' '+yc(p[1]).toFixed(1)).join(' ');
+    if(cum.ix)svg+=`<path d="${path(cum.ix)}" fill="none" stroke="var(--pc-cumidx)" stroke-width="1.6" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`;
+    svg+=`<path d="${path(cum.me)}" fill="none" stroke="var(--pc-cum)" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
+    const L=cum.me[cum.me.length-1];svg+=`<circle cx="${xs(L[0])}" cy="${yc(L[1])}" r="3" fill="var(--pc-cum)"/>`;}
   const avg=avgIn!==undefined?avgIn:(mine.length?Math.pow(mine.reduce((p,v)=>p*(1+v),1),1/mine.length)-1:null);if(avg!=null)svg+=`<line x1="0" x2="${W}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
   svg+=`<line class="pc-cur" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="var(--fg)" opacity="0" stroke-width="1"/></svg>`;return {svg,avg};}
+let PC_CUM=null;
 function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</div><div class="tr sub"><span class="tl">No data</span></div>`;const w=s.w;
   return `<div class="th">${esc(s.title)}</div>
-   <div class="tr"><span class="sw" style="background:${w.st.twr>=0?'var(--up)':'var(--down)'}"></span><span class="tl">Performance</span><span class="tv ${cl(w.st.twr)}">${pct(w.st.twr)}</span></div>
+   <div class="tr"><span class="sw" style="background:${w.st.twr>=0?'var(--up)':'var(--down)'}"></span><span class="tl">Performance</span><span class="tv ${cl(w.st.twr)}">${pct(w.st.twr)}</span></div>${PC_CUM&&PC_CUM.Z&&w.ei>=0?(()=>{const c=PC_CUM.Z.IDX[w.ei]/PC_CUM.base-1;return isFinite(c)?`<div class="tr"><span class="sw" style="background:var(--pc-cum)"></span><span class="tl">Running total</span><span class="tv ${cl(c)}">${pct(c)}</span></div>`:'';})():''}
    <div class="tr"><span class="sw"></span><span class="tl">Gain / loss</span><span class="tv ${cl(w.st.gain)}">${F(w.st.gain,{sign:true})}</span></div>
    ${pcIdx('perf')?`<div class="tr"><span class="sw" style="background:var(--pc-idx)"></span><span class="tl">${esc(pcIdxName('perf'))}</span><span class="tv ${w.idx==null?'':cl(w.idx)}">${w.idx==null?'—':pct(w.idx)}</span></div>`:''}
    <div class="tr"><span class="sw"></span><span class="tl">Transaction costs</span><span class="tv">${F(conv(compute(),w.fees))}</span></div>`;}
@@ -3515,16 +3592,17 @@ function perfCardHTML(M,Z){PC_CARD='perf';const st=pcState(M);const slots=pcSlot
   /* Ø = the average return per bar: per year for All time (same as Total value), per month or per day otherwise, over the real number of days */
   const unitDays={day:1,month:30.4375,year:365}[rg.unit];let avgInfo=st.per==='all'?'avgPcAll':rg.unit==='day'?'avgPcDay':/^\d{4}$/.test(st.per)?'avgPcYear':'avgPcRecent';
   if(win){const days=win.ei-win.bi;avg=st.per==='all'?avgStartAnnual(M,Z):(days>0?Math.pow(1+win.st.twr,unitDays/days)-1:null);if(rg.unit==='year'&&st.per!=='all')avgInfo='avgPcAll';}
-  if(st.type==='bar'){const b=pcBarsSVG(slots,avg);body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
+  PC_CUM=st.type==='bar'&&pcOpt().cum&&win?{Z,base:win.bi>=0?Z.IDX[win.bi]:1}:null;
+  if(st.type==='bar'){const b=pcBarsSVG(slots,avg,pcOpt().cum&&win?pcCumLine(M,Z,slots,win):null);body=`<div class="pc-wrap" id="pcWrap">${b.svg}<div class="ctip pc-tip" id="pcTip" hidden></div></div>`;}
   else if(st.type==='heat'){const map=periodReturns(M,Z,'month'),gm=periodGains(M,Z,'month');const ys=st.per==='all'?st.years:/^\d{4}$/.test(st.per)?[+st.per]:st.years.filter(y=>y>=yearOf(Math.max(rg.from+1,M.firstDay))&&y<=yearOf(rg.to));
     body=heatTable(ys,MON,(y,m)=>{const x=map.get(y*12+m);return x==null?null:x-1;},true,(y,m)=>gm.get(y*12+m)??null,'pch');}
   else{body=`<div class="chart" id="pcLine" style="height:200px"></div>`;}
   const types=[['bar','Bar chart'],['heat','Heatmap'],['line','Line chart']];
   return `<section class="card pc-card" data-card="perf"><div class="row-between"><div class="sub-h" style="margin:0">Performance</div>
-    <div class="pc-tools">${bmPick('perf')}<button class="gear-btn" data-act="pccfg" aria-label="Performance chart settings">${iconSm('gear',18)}</button><label class="pc-type"><select id="pcType" aria-label="Chart type">${types.map(([k,l])=>`<option value="${k}" ${st.type===k?'selected':''}>${l}</option>`).join('')}</select></label></div></div>
+    <div class="pc-tools">${bmPick('perf')}<button class="gear-btn" data-act="pccfg" aria-label="Performance chart settings">${iconSm('gear',18)}</button></div></div>
    <div class="pc-pers">${[...(pcOpt().recent?PC_RECENT:[]).map(([k,l])=>[k,st.last&&k===st.per?(k==='y'?'Last year':l.replace('This','Last')):l]),['all','All time'],...st.years.map(y=>[String(y),String(y)])].map(([k,l])=>`<button class="pc-per ${['3Y','5Y'].includes(k)&&rangeShort(k,M.firstDay)?'nodata':''}" data-pcper="${k}" aria-pressed="${String(st.per)===k}">${l}</button>`).join('')}</div>
    ${st.per!=='all'&&!/^\d{4}$/.test(st.per)?`<div class="pc-when">${PC_CANLAST.includes(st.per)?`<div class="seg" role="group"><button data-pclast="0" aria-pressed="${!st.last}">This</button><button data-pclast="1" aria-pressed="${st.last}">Last</button></div>`:''}<span class="small muted">${dateLabel(Math.max(rg.from+1,M.firstDay))} – ${dateLabel(rg.to)}</span></div>`:''}
-   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You${pcIdx('perf')?` <span class="lk" style="background:${st.type==='line'?BM_COLOR[pcIdx('perf')]:'var(--pc-idx)'};margin-left:8px"></span> ${esc(pcIdxName('perf'))}`:''}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false})}</span>${infoBtn(avgInfo)}</span>`:''}</div>
+   <div class="row-between pc-legend"><span class="small muted"><span class="lk" style="background:${st.type==='line'?'var(--accent)':'var(--up)'}"></span> You${pcIdx('perf')?` <span class="lk" style="background:${st.type==='line'?BM_COLOR[pcIdx('perf')]:'var(--pc-idx)'};margin-left:8px"></span> ${esc(pcIdxName('perf'))}`:''}${PC_CUM?' <span class="lk" style="background:var(--pc-cum);margin-left:8px"></span> Running total':''}</span>${avg!=null?`<span class="avg-chip"><span class="avg-ø">Ø</span><span class="${cl(avg)}">${pct(avg,{sign:false})}</span>${infoBtn(avgInfo)}</span>`:''}</div>
    ${body}${pcBreakdown(M,Z,win)}</section>`;}
 /* interactions: tap or slide a finger over the bars */
 function pcShow(e){const wrap=$('#pcWrap');if(!wrap||!PC_SLOTS.length)return;const r=wrap.getBoundingClientRect();const x=Math.max(0,Math.min(r.width-1,e.clientX-r.left));const i=Math.floor(x/r.width*PC_SLOTS.length);
@@ -3562,12 +3640,14 @@ afterRender(()=>{if(UI.tab==='analysis'&&$('#pcLine'))mountPcLine();});
 
 document.addEventListener('change',e=>{const c=e.target.dataset&&e.target.dataset.cardbm;if(!c)return;UI.cardBm=Object.assign({},UI.cardBm,{[c]:e.target.value});saveUI();softRender();if(!NET.blocked)fetchBenchmarks();});
 
-function pcCfgSheet(){const draw=()=>{const O=pcOpt();return `<div class="look-row"><span class="lbl2">You and the index</span><div class="seg" role="group"><button data-pco="style:overlap" aria-pressed="${O.style!=='side'}">Overlapping</button><button data-pco="style:side" aria-pressed="${O.style==='side'}">Side by side</button></div></div>
+function pcCfgSheet(){const draw=()=>{const O=pcOpt();const ty=['bar','heat','line'].includes(UI.pcType)?UI.pcType:'bar';return `<div class="look-row"><span class="lbl2">Chart</span><div class="seg" role="group">${[['bar','Bars'],['heat','Heatmap'],['line','Line']].map(([k,l])=>`<button data-pco="type:${k}" aria-pressed="${ty===k}">${l}</button>`).join('')}</div></div>
+   ${ty==='bar'?`<div class="look-row" style="margin-top:14px"><span class="lbl2">Running total line over the bars</span><div class="seg" role="group"><button data-pco="cum:1" aria-pressed="${!!O.cum}">On</button><button data-pco="cum:0" aria-pressed="${!O.cum}">Off</button></div></div><div class="hint">How your return adds up through the period, ending at the period's total. The index gets a dashed line.</div>`:''}
+   ${ty==='bar'?`<div style="margin-top:14px"></div>`:''}<div class="look-row"><span class="lbl2">You and the index</span><div class="seg" role="group"><button data-pco="style:overlap" aria-pressed="${O.style!=='side'}">Overlapping</button><button data-pco="style:side" aria-pressed="${O.style==='side'}">Side by side</button></div></div>
    ${O.style!=='side'?`<div class="look-row col" style="margin-top:14px"><span class="lbl2">See-through: your bar ${O.see} %</span><input type="range" min="0" max="80" step="5" value="${O.see}" data-pcsee="1" aria-label="How see-through your bar is"><div class="hint">Higher lets you see the index bar behind yours. Your bar keeps a solid outline.</div></div>`:'<div class="hint" style="margin-top:8px">The index bar stands on the left, yours on the right.</div>'}
    <div class="look-row" style="margin-top:14px"><span class="lbl2">Week, month, quarter, YTD, 1Y, 3Y, 5Y buttons</span><div class="seg" role="group"><button data-pco="recent:1" aria-pressed="${O.recent}">Show</button><button data-pco="recent:0" aria-pressed="${!O.recent}">Hide</button></div></div>`;};
   openSheet('Performance chart',`<div id="pcoBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#pcoBody');
     const set=(k,v)=>{UI.pcOpt=Object.assign({},pcOpt(),{[k]:v});saveUI();softRender();};
-    body.addEventListener('click',e=>{const b=e.target.closest('[data-pco]');if(!b)return;const [k,v]=b.dataset.pco.split(':');set(k,k==='recent'?v==='1':v);body.innerHTML=draw();});
+    body.addEventListener('click',e=>{const b=e.target.closest('[data-pco]');if(!b)return;const [k,v]=b.dataset.pco.split(':');if(k==='type'){UI.pcType=v;saveUI();softRender();}else set(k,k==='recent'||k==='cum'?v==='1':v);body.innerHTML=draw();});
     body.addEventListener('input',e=>{if(e.target.dataset.pcsee){set('see',+e.target.value);const l=body.querySelector('.look-row.col .lbl2');if(l)l.textContent='See-through: your bar '+e.target.value+' %';}});});}
 onTap(e=>{if(e.target.closest('[data-act="pccfg"]'))pcCfgSheet();});
 
@@ -3788,7 +3868,7 @@ function assetRangePct(a,mk,r){const arr=mk.priceCur[a.id];const fd=firstDateFor
   if(r!=='MAX'&&rangeShort(r,dn(fd)))return '<span class="rp"></span>';let bi=r==='MAX'?first:Math.max(first,rangeBase(r,mk.today)-mk.d0);bi=Math.max(0,Math.min(bi,n-1));
   const p0=arr[bi],p1=arr[n];if(!(p0>0)||!(p1>0))return '<span class="rp"></span>';return rpSpan(p1/p0-1);}
 function rpSpan(v){const av=Math.abs(v*100);const t=av>=999.5?(av>=9999.5?Math.round(av/1000):String(Math.round(av/100)/10).replace('.',','))+'k%':fmtPct(Math.abs(v),{dec:av>=9.95?0:1,sign:false,compact:true});
-  return `<span class="rp ${v>=0.0005?'rp-u':v<=-0.0005?'rp-d':''}">${v>=0.0005?'▲':v<=-0.0005?'▼':''}${t}</span>`;}
+  return `<span class="rp ${v>=0.0005?'rp-u':v<=-0.0005?'rp-d':''}">${arw(v,0.0005-1e-12)}${t}</span>`;}
 
 /* ---------- full price history: DAILY prices for the last 10 years (Yahoo gives only monthly prices for "max"),
    older years from "max" added before that. Used by holding charts and all-time-high alerts. ---------- */
@@ -4092,6 +4172,116 @@ onTap(async e=>{const b=e.target.closest('[data-act="syncon"],[data-act="syncnow
         <div class="btns" style="margin-top:8px"><button class="btn sm primary" data-syncpick="remote">Use the synced one</button><button class="btn sm" data-syncpick="local">Use this device's</button></div>
         <div class="small muted" style="margin-top:6px">The one not chosen is kept as a copy on this device.</div></div></div>`;}}
   catch(x){err.textContent=String(x.message||x);}finally{b.disabled=false;b.textContent='Turn on sync';}});
+
+/* ================= one card design: every card is one box with its title and its buttons on the top line ================= */
+/* Cards were built in two ways: a title above a box (Allocation, Movers, Currency effect, Dividends, Costs, Positions)
+   or a title inside the box (Performance, Compare, Concentration). After each page is drawn, both are given the same
+   shape: one box, a header line with the title on the left and the card's buttons on the right. */
+const CARD_TITLES={hsum:'Holdings summary',chart:'Main chart'};
+function cardHeads(){const v=$('#view');if(!v)return;
+  v.querySelectorAll('[data-card]').forEach(card=>{if(card.dataset.cnorm)return;card.dataset.cnorm='1';const id=card.dataset.card;
+    let t=card.querySelector(':scope > h2.sec, :scope > .row-between > h2.sec, :scope > .sub-h, :scope > .row-between > .sub-h, :scope > .month-h, :scope > .card > .row-between > .sub-h');
+    if(id==='hero')return; /* Total value keeps its own big layout */
+    if(!t&&CARD_TITLES[id]){ /* cards without a title get one */
+      const box=card.classList.contains('card')?card:card.querySelector(':scope > .card');if(!box)return;
+      if(id==='chart'){const row=box.querySelector(':scope > .row-between');if(!row)return;
+        row.insertAdjacentHTML('beforebegin',`<div class="c-head"><div class="sub-h c-title ctitle" role="button" data-collapse="chart">${CARD_TITLES[id]}</div></div>`);
+        const tools=row.querySelector('.ch-tools');if(tools)box.querySelector('.c-head').appendChild(tools);row.classList.add('c-sub');}
+      else box.insertAdjacentHTML('afterbegin',`<div class="c-head"><div class="sub-h c-title ctitle" role="button" data-collapse="${id}">${CARD_TITLES[id]}</div></div>`);
+      if(card!==box){card.classList.add('c-shell');box.classList.add('c-flat');}else card.classList.add('c-box');
+      card.classList.toggle('collapsed',!!(UI.collapsed||{})[id]);return;}
+    if(!t)return;t.classList.add('c-title');
+    const row=t.parentElement.classList.contains('row-between')?t.parentElement:null;
+    if(row)row.classList.add('c-head');else{const h=document.createElement('div');h.className='c-head';t.before(h);h.appendChild(t);}
+    if(card.classList.contains('card'))card.classList.add('c-box');
+    else{card.classList.add('c-shell');card.querySelectorAll(':scope > .card, :scope > .list, :scope > .ptable, :scope > .bars, :scope > .note, :scope > div:not(.c-head)').forEach(n=>n.classList.add('c-flat'));}});}
+afterRender(cardHeads);
+/* the look of the titles (examples A, B, C) */
+function applyCardLook(){document.documentElement.dataset.ct=['a','b','c'].includes(UI.cardLook)?UI.cardLook:'a';}
+applyCardLook();
+
+onTap(e=>{const b=e.target.closest('[data-arrows]');if(!b)return;S.settings.arrows=b.dataset.arrows==='off'?'off':'on';if(S.demo)lsSet('lq_state',S);else Store.save();applyArrows();render();});
+applyArrows();afterRender(applyArrows); /* also after the saved data is loaded or synced */
+/* Settings → Appearance → Card titles: A Clean · B Accent mark · C Compact */
+{const _ls=lookSettingsHTML;lookSettingsHTML=function(){const cur=['a','b','c'].includes(UI.cardLook)?UI.cardLook:'a';
+  const row=`<div class="look-row"><span class="lbl2">Card titles</span><div class="seg" role="group">${[['a','Clean'],['b','Accent mark'],['c','Compact']].map(([k,l])=>`<button data-cardlook="${k}" aria-pressed="${cur===k}">${l}</button>`).join('')}</div></div><div class="hint">Clean: white titles. Accent mark: a small coloured bar before each title. Compact: smaller titles and buttons, so more fits on the screen.</div>`;
+  const h=_ls();const at=h.indexOf('<div><button class="btn sm" data-lkreset="1">');return at>=0?h.slice(0,at)+row+h.slice(at):h+row;};}
+onTap(e=>{const b=e.target.closest('[data-cardlook]');if(!b)return;UI.cardLook=b.dataset.cardlook;saveUI();applyCardLook();softRender();});
+{const _ss=setSummary;setSummary=function(k){const s=_ss(k);if(k!=='look')return s;return s+' · '+({a:'clean',b:'accent',c:'compact'}[['a','b','c'].includes(UI.cardLook)?UI.cardLook:'a'])+' titles';};}
+
+/* ================= Gain per holding: three views (Bars · Split · Columns), any period ================= */
+/* For one holding over a period (day before start → last day):
+     gain = value at the end − value at the start − money put in (buys − sales, fees included) + dividends
+   which is exactly how the whole portfolio's gain is counted, so the holdings add up to the investments' gain.
+   Split (B): currency part = each day's value in the asset's own currency × that day's change in the krone rate;
+              dividends = dividends received; price part = the rest. The three always add up to the gain. */
+const GL_PERIODS=[['1W','1W'],['1M','1M'],['YTD','YTD'],['1Y','1Y'],['3Y','3Y'],['MAX','All time']];
+function glOpt(){return Object.assign({view:'bars',unit:'kr',per:'MAX',sold:true,sort:'gain',top:10},UI.glOpt||{});}
+function glSet(k,v){UI.glOpt=Object.assign({},glOpt(),{[k]:v});saveUI();softRender();}
+function glRows(M,o){const bi=o.per==='MAX'?-1:Math.max(-1,rangeBase(o.per,M.today)-M.d0),ei=M.N-1;const out=[];
+  for(const h of M.holdings){if(h.kind!=='asset'||!h.AV)continue;const cur=h.a.currency;
+    let cf=0,dv=0,buys=0,fx=0;for(let i=bi+1;i<=ei;i++){cf+=h.ACF[i];dv+=h.ADIV[i];if(h.ACF[i]>0)buys+=h.ACF[i];
+      if(cur!=='NOK'&&i>0){const prev=h.AV[i-1];if(prev){const f0=M.fxAt(cur,i-1),f1=M.fxAt(cur,i);if(f0>0&&f1>0)fx+=prev/f0*(f1-f0);}}}
+    const v0=bi>=0?h.AV[bi]:0,v1=h.AV[ei];const gain=v1-v0-cf+dv;const held=v0>0||buys>0||v1>0;
+    if(!held&&Math.abs(gain)<0.5)continue;if(!o.sold&&!(h.qty>0))continue;
+    const base=v0+buys;out.push({h,sym:h.a.symbol,name:h.a.name||h.a.symbol,sold:!(h.qty>0),gain,pct:base>0?gain/base:null,fx,div:dv,price:gain-fx-dv});}
+  const key=o.unit==='%'&&o.view!=='split'?(r=>r.pct==null?-Infinity:r.pct):(r=>r.gain);
+  out.sort(o.sort==='name'?((a,b)=>a.sym.localeCompare(b.sym)):((a,b)=>key(b)-key(a)));
+  return {rows:out,total:out.reduce((s,r)=>s+r.gain,0),bi,ei};}
+const glK=(M,v)=>conv(M,v);
+function glVal(M,r,o){return o.unit==='%'&&o.view!=='split'?(r.pct==null?'—':pct(r.pct)):F(glK(M,r.gain),{sign:true});}
+let GL_OPEN=new Set();
+function gainCardHTML(M){const o=glOpt();const {rows:all,total}=glRows(M,o);const top=o.top==='all'?all.length:+o.top||10;
+  let rows=all;let more=0;if(o.sort!=='name'&&all.length>top){/* keep the biggest gains and the biggest losses */const k=Math.ceil(top/2);const keep=new Set([...all.slice(0,top-Math.min(k,all.filter(r=>r.gain<0).length)),...all.filter(r=>r.gain<0).slice(-Math.min(k,all.filter(r=>r.gain<0).length))]);rows=all.filter(r=>keep.has(r));more=all.length-rows.length;}
+  const perName=(GL_PERIODS.find(x=>x[0]===o.per)||[])[1]||'All time';
+  const unitSeg=o.view==='split'?'':`<div class="seg gl-unit" role="group"><button data-glo="unit:kr" aria-pressed="${o.unit==='kr'}">kr</button><button data-glo="unit:%" aria-pressed="${o.unit==='%'}">%</button></div>`;
+  let body='';
+  if(!rows.length)body=`<div class="muted small" style="padding:6px 0">No gains or losses in this period.</div>`;
+  else if(o.view==='columns')body=glColumns(M,rows,o);
+  else body=glBars(M,rows,o);
+  return `<section class="card gl-card" data-card="gains"><div class="row-between"><div class="sub-h" style="margin:0">${o.view==='split'?'Where the gain came from':'Gain per holding'}</div><div class="pc-tools">${unitSeg}<button class="gear-btn" data-act="glcfg" aria-label="Gain per holding settings">${iconSm('gear',18)}</button></div></div>
+   <div class="pc-pers">${GL_PERIODS.map(([k,l])=>`<button class="pc-per ${k!=='MAX'&&rangeShort(k,M.firstDay)?'nodata':''}" data-glo="per:${k}" aria-pressed="${o.per===k}">${l}</button>`).join('')}</div>
+   ${o.view==='split'?`<div class="gl-leg small muted"><span><i style="background:var(--c1)"></i>Price</span><span><i style="background:var(--c2)"></i>Currency</span><span><i style="background:var(--c3)"></i>Dividends</span><span><i class="gl-stripe"></i>a loss part</span></div>`:''}
+   ${body}
+   <div class="gl-tot"><span>Total · ${esc(perName.toLowerCase()==='all time'?'all time':perName)}${o.sold?'':' · held now'}</span><span class="num ${cl(total)}">${F(glK(M,total),{sign:true})}</span></div>
+   ${more?`<div class="small muted" style="margin-top:4px">${more} smaller ${more>1?'holdings':'holding'} not shown · <button class="linkbtn" data-glo="top:all">Show all</button></div>`:''}
+   <div class="small muted expl" style="margin-top:4px">${o.view==='columns'?'Bar height is the gain; the % above is that holding\'s own return.':o.view==='split'?'The three parts add up to each holding\'s gain.':'Grey names are sold holdings. Tap a row for price, currency and dividends.'}</div></section>`;}
+function glBars(M,rows,o){const split=o.view==='split';const pctMode=o.unit==='%'&&!split;
+  const val=r=>pctMode?(r.pct||0):r.gain;
+  let P=0,N=0;for(const r of rows){if(split){let p=0,n=0;for(const x of [r.price,r.fx,r.div]){if(x>0)p+=x;else n-=x;}P=Math.max(P,p);N=Math.max(N,n);}else{const v=val(r);if(v>0)P=Math.max(P,v);else N=Math.max(N,-v);}}
+  const span=P+N||1;const z=N/span*100;
+  return `<div class="gl-list">${rows.map(r=>{let seg='';
+    if(split){let up=z,dn=z;for(const [x,c] of [[r.price,'var(--c1)'],[r.fx,'var(--c2)'],[r.div,'var(--c3)']]){if(Math.abs(x)<0.5)continue;const w=Math.abs(x)/span*100;
+        if(x>0){seg+=`<span class="gl-bar" style="left:${up}%;width:${w}%;background:${c}"></span>`;up+=w;}else{dn-=w;seg+=`<span class="gl-bar gl-neg" style="left:${dn}%;width:${w}%;background:${c}"></span>`;}}}
+    else{const v=val(r);const w=Math.abs(v)/span*100;seg=`<span class="gl-bar" style="left:${v>=0?z:z-w}%;width:${w}%;background:${v>=0?'var(--up)':'var(--down)'}"></span>`;}
+    const open=GL_OPEN.has(r.h.a.id);
+    return `<div class="gl-row ${r.sold?'sold':''} ${open?'open':''}" data-glrow="${esc(r.h.a.id)}" role="button" tabindex="0"><span class="gl-sym" title="${esc(r.name)}">${esc(r.sym)}</span><span class="gl-track"><span class="gl-zero" style="left:${z}%"></span>${seg}</span><span class="gl-v num ${cl(pctMode?(r.pct||0):r.gain)}">${glVal(M,r,o)}</span>
+      ${open||split?`<div class="gl-det small">${split?'':esc(r.name)+' · '}<span>Price ${F(glK(M,r.price),{sign:true})}</span> · <span>Currency ${F(glK(M,r.fx),{sign:true})}</span> · <span>Dividends ${F(glK(M,r.div))}</span>${!split&&r.pct!=null?` · <span>${pct(r.pct)}</span>`:''}</div>`:''}</div>`;}).join('')}</div>`;}
+function glColumns(M,rows,o){const pctMode=o.unit==='%';const v=r=>pctMode?(r.pct||0):r.gain;
+  const colW=58,base=pcDrawW()>420?pcDrawW():320,scroll=rows.length*colW>base,W=scroll?rows.length*colW:base,H=210,pt=18,pb=38;const vals=rows.map(v);let hi=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi-lo<1e-9){hi+=1;lo-=1;}
+  const y=x=>pt+(hi-x)/(hi-lo)*(H-pt-pb);const sw=W/rows.length,bw=Math.min(34,sw*0.55);const y0=y(0);
+  let s=`<svg class="gl-svg" viewBox="0 0 ${W} ${H}" ${scroll?`width="${W}" height="${H}"`:`width="100%" preserveAspectRatio="xMidYMid meet"`} role="img" aria-label="Gain per holding"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--line)" stroke-dasharray="2 3"/>`;
+  rows.forEach((r,i)=>{const cx=sw*i+sw/2,yy=y(v(r));const up=v(r)>=0;const col=up?'var(--up)':'var(--down)';
+    s+=`<rect x="${cx-bw/2}" y="${Math.min(yy,y0)}" width="${bw}" height="${Math.max(1.5,Math.abs(yy-y0))}" rx="3" fill="${col}" ${r.sold?'fill-opacity=".55"':''}/>`;
+    const lab=pctMode?F(glK(M,r.gain),{sign:true}):(r.pct==null?'':pct(r.pct));
+    if(lab)s+=`<text x="${cx}" y="${up?yy-5:y0-5}" text-anchor="middle" font-size="10" class="num" fill="${col}">${esc(lab.replace(/\s?kr$/,''))}</text>`;
+    s+=`<text x="${cx}" y="${H-20}" text-anchor="middle" font-size="11" font-weight="700" fill="${r.sold?'var(--muted)':'var(--fg)'}">${esc(r.sym.slice(0,7))}</text>`;
+    s+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="9.5" fill="var(--muted)" class="num">${esc(pctMode?pct(r.pct||0):fmtK(glK(M,r.gain),{sign:true}))}</text>`;});
+  return `<div class="gl-cols">${s}</svg></div>`;}
+function glCfgSheet(){const draw=()=>{const o=glOpt();return `<div class="look-row"><span class="lbl2">View</span><div class="seg" role="group">${[['bars','Bars'],['split','Split'],['columns','Columns']].map(([k,l])=>`<button data-glo="view:${k}" aria-pressed="${o.view===k}">${l}</button>`).join('')}</div></div>
+   <div class="hint">Bars: gain or loss per holding. Split: the gain divided into price, currency and dividends. Columns: one column per holding.</div>
+   <div class="look-row" style="margin-top:14px"><span class="lbl2">Sort</span><div class="seg" role="group"><button data-glo="sort:gain" aria-pressed="${o.sort!=='name'}">Biggest first</button><button data-glo="sort:name" aria-pressed="${o.sort==='name'}">Name</button></div></div>
+   <div class="look-row" style="margin-top:14px"><span class="lbl2">Sold holdings</span><div class="seg" role="group"><button data-glo="sold:1" aria-pressed="${o.sold}">Show</button><button data-glo="sold:0" aria-pressed="${!o.sold}">Hide</button></div></div>
+   <div class="look-row" style="margin-top:14px"><span class="lbl2">How many</span><div class="seg" role="group"><button data-glo="top:10" aria-pressed="${o.top!=='all'}">Top 10</button><button data-glo="top:all" aria-pressed="${o.top==='all'}">All</button></div></div>`;};
+  openSheet('Gain per holding',`<div id="gloBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#gloBody');body.addEventListener('click',()=>setTimeout(()=>{body.innerHTML=draw();},0));});}
+onTap(e=>{const b=e.target.closest('[data-glo]');if(b){const [k,v]=b.dataset.glo.split(':');glSet(k,k==='sold'?v==='1':v);return;}
+  if(e.target.closest('[data-act="glcfg"]')){glCfgSheet();return;}
+  const r=e.target.closest('[data-glrow]');if(r&&glOpt().view==='bars'){const id=r.dataset.glrow;if(GL_OPEN.has(id))GL_OPEN.delete(id);else GL_OPEN.add(id);softRender();}});
+/* the card lives on Insights after Performance; Arrange can move or hide it */
+{const lib=Object.assign({},CARD_LIB);for(const k of Object.keys(CARD_LIB))delete CARD_LIB[k];for(const [k,v] of Object.entries(lib)){CARD_LIB[k]=v;if(k==='perf')CARD_LIB.gains={t:'Gain per holding',p:'analysis'};}}
+{const _va=viewAnalysis;viewAnalysis=function(v){_va(v);const s=UI.asub||'performance';if(s!=='performance'||v.querySelector('[data-card="gains"]'))return;const M=compute();if(!M)return;
+  const perf=v.querySelector('[data-card="perf"]');const h=gainCardHTML(M);if(perf)perf.insertAdjacentHTML('afterend',h);else{const any=v.querySelector('[data-card]');if(any)any.insertAdjacentHTML('beforebegin',h);else v.insertAdjacentHTML('beforeend',h);}};}
+setTimeout(()=>{try{Object.assign(window.__lacag,{glRows:(o)=>glRows(compute(),Object.assign(glOpt(),o||{}))});}catch(e){}},0); /* test hook */
 
 /* ================= events ================= */
 onTap(async e=>{
