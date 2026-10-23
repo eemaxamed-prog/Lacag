@@ -782,6 +782,37 @@ body.wide2 .chart-card .chart{height:340px}
 .gl-cols{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
 .gl-svg{display:block}
 .gl-unit button{padding:4px 10px}
+/* budget: where your pay goes */
+.bv-inc{display:flex;flex-direction:column;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.bv-ir{display:grid;grid-template-columns:minmax(0,1fr) auto 14px;gap:10px;align-items:center;background:none;border:0;color:var(--fg);text-align:left;padding:9px 0;font-size:var(--fs-m)}
+.bv-ir + .bv-ir{border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.bv-ir.off .bv-in,.bv-ir.off .num{color:var(--muted)}
+.bv-ir.add .bv-in{color:var(--accent);font-weight:600;font-size:var(--fs-s)}
+.bv-in{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bv-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:nowrap}
+.bv-head .seg button{padding:4px 10px}.bv-head .seg button:disabled{opacity:.4}
+.bv-ring{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center}
+@media (max-width:340px){.bv-ring{grid-template-columns:1fr;justify-items:center}}
+.bv-sum{display:flex;flex-direction:column;gap:5px;font-size:var(--fs-s);min-width:0}
+.bv-sr{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:6px;align-items:center}
+.bv-sn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bv-sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.bv-left{background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 4px)}
+.bv-list{display:flex;flex-direction:column;gap:10px}
+.bv-gh{display:grid;grid-template-columns:10px minmax(0,1fr) auto 56px;gap:8px;align-items:center;font-weight:700;font-size:var(--fs-m)}
+.bv-gp{text-align:right;font-weight:400}
+.bv-c{display:grid;grid-template-columns:minmax(0,1fr) minmax(60px,34%) auto;gap:10px;align-items:center;font-size:var(--fs-s);margin:5px 0 0 18px}
+.bv-cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bv-tr{height:8px;background:var(--surface2);border-radius:4px;position:relative;overflow:hidden}.bv-tr span{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.bv-ca{text-align:right;min-width:62px}
+.bv-flow svg,.bv-map svg{display:block}
+.bv-map{position:relative}
+.bv-ink{fill:#000}
+.bv-tip{position:absolute;left:8px;top:8px;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px 9px;color:var(--fg)}
+.bv-leg{display:flex;gap:6px 12px;flex-wrap:wrap}.bv-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.bv-sum{max-width:340px}
+.bv-c{grid-template-columns:minmax(0,1fr) minmax(60px,34%) auto}
+@media (min-width:760px){.bv-list{display:grid;grid-template-columns:1fr 1fr;gap:14px 32px;align-items:start}.bv-c{grid-template-columns:minmax(0,1fr) minmax(80px,40%) auto}}
 
 </style>
 <header class="top"><div class="top-in">
@@ -803,7 +834,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610221912";
+const LACAG_BUILD="202610231333";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -907,7 +938,7 @@ function defaultAccounts(){return [
   {id:'crypto',name:'Krypto',kind:'crypto',broker:'Kraken',currency:'NOK',tracksCash:false},
   {id:'cash',name:'Sparing',kind:'cash',broker:'',currency:'NOK',tracksCash:true}];}
 function defaultPlan(){return {birthYear:1990,retireAge:67,lifeAge:90,desiredMonthly:40000,navYearly:300000,otherYearly:60000,pensionTax:0.25,monthlySaving:5000,realReturn:0.04,events:[]};}
-function blankState(){const accounts=defaultAccounts();return {v:2,accounts,portfolios:[{id:'nabad',name:'Nabad',accountIds:accounts.map(a=>a.id)}],assets:[],txs:[],prices:[],fx:Object.assign({},DEFAULT_FX),
+function blankState(){const accounts=defaultAccounts();return {v:2,accounts,portfolios:[{id:'nabad',name:'My portfolio',accountIds:accounts.map(a=>a.id)}],assets:[],txs:[],prices:[],fx:Object.assign({},DEFAULT_FX),
   settings:{tdKey:''},buyPlan:{freq:'quarter',amount:15000},plan:defaultPlan(),goals:[],demo:false,updated:0};}
 function migrate(s){
   if(!s||!s.v)return null;
@@ -2404,13 +2435,15 @@ function defaultMatch(){const r=[];const add=(cat,words)=>words.forEach(kw=>r.pu
   return r;}
 function defaultBudget(){
   const C_=(id,name,group,amount,extra={})=>Object.assign({id,name,group,amount,on:true,overrides:{}},extra);
-  return {v:1,incomes:[{id:'inc1',name:'Take-home pay',amount:41867.70,on:true,overrides:{}}],
+  /* a made-up starting budget: amounts are picked at random within normal ranges, so no one's real numbers are ever in the app */
+  const rnd=(lo,hi,step=50)=>Math.round((lo+Math.random()*(hi-lo))/step)*step;
+  return {v:1,incomes:[{id:'inc1',name:'Take-home pay',amount:rnd(34000,52000,100)+rnd(0,99,1)/100,on:true,overrides:{}}],
     groups:[{id:'housing',name:'Housing'},{id:'living',name:'Living costs'},{id:'other',name:'Other costs'},{id:'fixed',name:'Fixed costs'},{id:'savings',name:'Savings'}],
-    cats:[C_('rent','Housing','housing',17955),C_('power','Power & internet','housing',2500),
-      C_('food','Food','living',9000,{rule:{type:'week',trips:3}}),C_('car','Car','living',3500),C_('leisure','Leisure & holidays','living',1000),C_('anett','Anett','living',1000),
-      C_('shop','Shopping','other',2000),
-      C_('kinder','Kindergarten','fixed',2620),C_('loan','Student loan','fixed',1640),C_('nito','NITO','fixed',445),
-      C_('save_me','Savings – me','savings',8000,{on:false}),C_('save_wife','Savings – wife','savings',10000,{on:false})],
+    cats:[C_('rent','Rent or mortgage','housing',rnd(11000,19000)),C_('power','Power & internet','housing',rnd(1500,3200)),
+      C_('food','Food','living',rnd(6000,10000,100),{rule:{type:'week',trips:3}}),C_('car','Transport','living',rnd(1500,4000)),C_('leisure','Leisure & holidays','living',rnd(800,2500)),C_('gifts','Gifts','living',rnd(300,1200)),
+      C_('shop','Shopping','other',rnd(1000,3000)),
+      C_('kinder','Childcare','fixed',rnd(1500,3300)),C_('loan','Student loan','fixed',rnd(900,2500)),C_('union','Insurance & union','fixed',rnd(300,900)),
+      C_('save_me','Savings – me','savings',rnd(3000,9000,500),{on:false}),C_('save_partner','Savings – partner','savings',rnd(3000,9000,500),{on:false})],
     savingsTargetPct:0,tx:[],match:defaultMatch()};
 }
 function B(){if(!S.budget||!S.budget.v)S.budget=defaultBudget();return S.budget;}
@@ -2441,18 +2474,14 @@ function viewBudget(v,head){
   const b=B();const ym=bym();const m=monthNo(ym);const r=budgetMonth(m);const inc=r.income||1;
   const diffMonth=b.incomes.some(x=>x.overrides&&x.overrides[m]!=null&&x.overrides[m]!=='')||b.cats.some(c=>c.overrides&&c.overrides[m]!=null&&c.overrides[m]!=='');
   const groups=b.groups.map(g=>{const items=r.cats.filter(x=>x.c.group===g.id);return {g,items,sum:items.reduce((s,x)=>s+x.v,0),offItems:b.cats.filter(c=>c.group===g.id&&c.on===false)};});
-  /* the split of your pay: each part shows its name and % when there is room, only the % when less, and is always listed below */
-  const parts=groups.filter(x=>x.sum>0).map(x=>({name:x.g.name,v:x.sum,col:groupColor(x.g.id)}));if(r.left>0)parts.push({name:'Left over',v:r.left,left:true});
-  const pc=v=>fmtPct(v/inc,{dec:1,sign:false});
-  const bar=parts.map(x=>`<span class="${x.left?'left':''}" style="width:${x.v/inc*100}%;${x.left?'':'background:'+x.col}" title="${esc(x.name)} · ${pc(x.v)}"><i class="sb-l" data-long="${esc(x.name)} ${pc(x.v)}" data-short="${pc(x.v)}">${esc(x.name)} ${pc(x.v)}</i></span>`).join('');
-  const legend=`<div class="sb-legend">${parts.map(x=>`<div class="sb-li"><span class="sb-sw ${x.left?'left':''}" style="${x.left?'':'background:'+x.col}"></span><span class="sb-n">${esc(x.name)}</span><span class="sb-p num">${pc(x.v)}</span><span class="sb-a num">${bkr(x.v)}</span></div>`).join('')}</div>`;
   const target=b.savingsTargetPct||0;const savePct=r.totalSave/inc*100;
   const act=actualsFor(ym);const hasTx=b.tx.some(t=>t.date.startsWith(ym));
   const rulesList=r.cats.filter(x=>x.c.rule&&x.c.rule.type);
   v.innerHTML=`${head}
   <div class="month-nav"><button class="icon-btn" data-bmonth="-1" aria-label="Previous month">${ICON.chev.replace('<svg','<svg style="transform:rotate(90deg)"')}</button><div class="mn-label">${ymLabel(ym)}${diffMonth?'<span class="pill flat">Different month</span>':''}</div><button class="icon-btn" data-bmonth="1" aria-label="Next month">${ICON.chev.replace('<svg','<svg style="transform:rotate(-90deg)"')}</button></div>
-  <section class="card stack"><div class="row-between"><div><div class="eyebrow">Take-home pay</div><div class="big2 num">${bkr(r.income,{dec:true})}</div></div><button class="btn sm" data-binc="${b.incomes[0]?b.incomes[0].id:'__new'}">Edit pay</button></div>
-   <div class="stackbar sb-big" role="img" aria-label="How your pay is split">${bar}</div>${legend}
+  <section class="card stack bv-card"><div><div class="eyebrow">${b.incomes.filter(x=>x.on!==false).length>1?'Income, after tax':'Take-home pay'}</div><div class="big2 num">${bkr(r.income,{dec:true})}</div></div>
+   ${incomesHTML(r,b,m)}
+   ${budgetVizHTML(r,b,ym,act,hasTx)}
    <div class="sumgrid"><div><div class="k">Spending</div><div class="v">${bkr(r.spent,{dec:true})}</div><div class="small muted">${pct1(r.spent/inc)}</div></div>
     <div><div class="k">Savings</div><div class="v">${bkr(r.saved,{dec:true})}</div><div class="small muted">${pct1(r.saved/inc)}</div></div>
     <div><div class="k">${r.left>=0?'Left over':'Short by'}</div><div class="v ${r.left<0?'down':''}">${bkr(Math.abs(r.left),{dec:true})}</div><div class="small muted">${pct1(Math.abs(r.left)/inc)}</div></div>
@@ -3209,7 +3238,7 @@ beforeRender(()=>{if(calmOn()){if(['1D','1W'].includes(UI.range))UI.range='1M';i
 const OWNERS={me:'Me',partner:'Partner',shared:'Shared'};
 function partnerName(){return (S.household&&S.household.partner)||'Partner';}
 function householdHTML(){const accs=S.accounts;const pn=partnerName();
-  return `<div class="card stack"><div class="note keep">Track your wife's savings next to yours. Give each account an owner, then create the household portfolios: <b>Nabad</b> (yours and shared), <b>${esc(pn)}</b> and <b>Family</b> (everything). Switch between them with the portfolio button at the top.</div>
+  return `<div class="card stack"><div class="note keep">Track your partner's savings next to yours. Give each account an owner, then create the household portfolios: <b>Nabad</b> (yours and shared), <b>${esc(pn)}</b> and <b>Family</b> (everything). Switch between them with the portfolio button at the top.</div>
    <div class="field"><label for="hhName">Partner's name</label><input id="hhName" value="${esc(S.household&&S.household.partner||'')}" placeholder="e.g. her first name"></div>
    <div class="list" style="background:var(--surface2)">${accs.map(a=>`<div class="item" style="cursor:default"><div class="mid"><div class="t1">${esc(a.name)}</div><div class="t2">${esc(ACCOUNT_KINDS[a.kind]||'')}</div></div><select class="mini" data-owner="${a.id}">${Object.entries(OWNERS).map(([k,l])=>`<option value="${k}" ${(a.owner||'me')===k?'selected':''}>${k==='partner'?esc(pn):l}</option>`).join('')}</select></div>`).join('')}</div>
    <div class="hint">Add her accounts first under Settings → Accounts (e.g. "${esc(pn)} ASK"), import her trades into them, then set the owner here.</div>
@@ -4282,6 +4311,85 @@ onTap(e=>{const b=e.target.closest('[data-glo]');if(b){const [k,v]=b.dataset.glo
 {const _va=viewAnalysis;viewAnalysis=function(v){_va(v);const s=UI.asub||'performance';if(s!=='performance'||v.querySelector('[data-card="gains"]'))return;const M=compute();if(!M)return;
   const perf=v.querySelector('[data-card="perf"]');const h=gainCardHTML(M);if(perf)perf.insertAdjacentHTML('afterend',h);else{const any=v.querySelector('[data-card]');if(any)any.insertAdjacentHTML('beforebegin',h);else v.insertAdjacentHTML('beforeend',h);}};}
 setTimeout(()=>{try{Object.assign(window.__lacag,{glRows:(o)=>glRows(compute(),Object.assign(glOpt(),o||{}))});}catch(e){}},0); /* test hook */
+
+/* ================= Budget: where your pay goes — Ring (default), Flow (Sankey) and Map (treemap); Plan or Spent; several incomes ================= */
+function bvOpt(){return Object.assign({view:'ring',mode:'plan'},UI.bvOpt||{});}
+function bvSet(k,v){UI.bvOpt=Object.assign({},bvOpt(),{[k]:v});saveUI();softRender();}
+/* drawing width: the real width of the card's inside, so text is never stretched */
+function bvW(){const v=document.querySelector('#view');const w=v?v.clientWidth-30:330;return Math.max(280,Math.min(900,Math.round(w)));}
+/* the numbers to draw: groups with their categories (plan amounts, or what was really spent this month) */
+function bvData(r,b,act,mode){const groups=b.groups.map(g=>{const cats=r.cats.filter(x=>x.c.group===g.id).map(x=>({id:x.c.id,name:x.c.name,v:mode==='spent'?Math.max(0,act.by[x.c.id]||0):x.v})).filter(c=>c.v>0.5);
+    return {id:g.id,name:g.name,col:groupColor(g.id),cats,v:cats.reduce((s,c)=>s+c.v,0)};}).filter(g=>g.v>0.5);
+  if(mode==='spent'&&act.unc>0.5)groups.push({id:'__unc',name:'Not sorted yet',col:'var(--c8)',cats:[{id:'__unc',name:'Not sorted yet',v:act.unc}],v:act.unc});
+  const out=groups.reduce((s,g)=>s+g.v,0);const left=r.income-out;return {groups,out,left,income:r.income};}
+const bvPc=(v,inc)=>fmtPct(inc>0?v/inc:0,{dec:1,sign:false});
+/* ---- C: ring with Left over in the middle + every category with its own bar ---- */
+function bvRing(D){const inc=D.income||1;const R=62,C=2*Math.PI*R;let off=0,arcs='';
+  for(const g of D.groups){const l=Math.min(1,g.v/Math.max(inc,D.out))*C;if(l>0.5)arcs+=`<circle r="${R}" cx="80" cy="80" fill="none" stroke="${g.col}" stroke-width="22" stroke-dasharray="${Math.max(0.5,l-2).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 80 80)"/>`;off+=l;}
+  const maxCat=Math.max(1,...D.groups.flatMap(g=>g.cats.map(c=>c.v)));
+  return `<div class="bv-ring"><svg viewBox="0 0 160 160" width="150" height="150" role="img" aria-label="Your pay split into groups"><circle r="${R}" cx="80" cy="80" fill="none" stroke="var(--surface2)" stroke-width="22"/>${arcs}
+     <text x="80" y="74" text-anchor="middle" font-size="11" fill="var(--muted)">${D.left>=0?'Left over':'Short by'}</text><text x="80" y="95" text-anchor="middle" font-size="17" font-weight="700" class="num" fill="${D.left>=0?'var(--fg)':'var(--down)'}">${esc(bkr(Math.abs(D.left)))}</text></svg>
+   <div class="bv-sum">${D.groups.map(g=>`<div class="bv-sr"><span class="bv-sw" style="background:${g.col}"></span><span class="bv-sn">${esc(g.name)}</span><span class="num">${bvPc(g.v,inc)}</span></div>`).join('')}
+     <div class="bv-sr"><span class="bv-sw bv-left"></span><span class="bv-sn">${D.left>=0?'Left over':'Short by'}</span><span class="num">${bvPc(Math.abs(D.left),inc)}</span></div></div></div>
+  <div class="bv-list">${D.groups.map(g=>`<div class="bv-g"><div class="bv-gh"><span class="bv-sw" style="background:${g.col}"></span><span class="bv-gn">${esc(g.name)}</span><span class="num">${esc(bkr(g.v))}</span><span class="num muted bv-gp">${bvPc(g.v,inc)}</span></div>
+     ${g.cats.slice().sort((a,b)=>b.v-a.v).map(c=>`<div class="bv-c"><span class="bv-cn">${esc(c.name)}</span><span class="bv-tr"><span style="width:${(c.v/maxCat*100).toFixed(1)}%;background:${g.col}"></span></span><span class="num bv-ca">${esc(bkr(c.v))}</span></div>`).join('')}</div>`).join('')}</div>`;}
+/* ---- A: flow from your pay to the groups and on to every category ---- */
+function bvFlow(D){const inc=D.income||1;const W=bvW();const lab=Math.min(170,Math.max(118,W*0.42));const x0=0,w0=10,x1=Math.round((W-lab)*0.42),w1=10,x2=Math.round(W-lab-10),w2=8;
+  const nCats=D.groups.reduce((s,g)=>s+g.cats.length,0);const gapG=8,gapC=3;const minH=13;
+  const total=Math.max(inc,D.out);const avail=Math.max(260,nCats*minH*1.6);const sc=avail/total;
+  /* each category gets at least room for its label; the streams keep their true thickness */
+  let s='';let y0=0,yg=0,yc=0;const parts=D.groups.concat(D.left>0.5?[{name:'Left over',col:'var(--muted)',v:D.left,cats:[],left:true}]:[]);
+  for(const g of parts){const h=g.v*sc;const mid=(x0+w0+x1)/2;
+    s+=`<path d="M${x0+w0} ${y0.toFixed(1)} C${mid} ${y0.toFixed(1)},${mid} ${yg.toFixed(1)},${x1} ${yg.toFixed(1)} L${x1} ${(yg+h).toFixed(1)} C${mid} ${(yg+h).toFixed(1)},${mid} ${(y0+h).toFixed(1)},${x0+w0} ${(y0+h).toFixed(1)}Z" fill="${g.col}" fill-opacity=".28"/>`;
+    s+=`<rect x="${x1}" y="${yg.toFixed(1)}" width="${w1}" height="${Math.max(2,h).toFixed(1)}" rx="2" fill="${g.col}"/>`;
+    s+=`<text x="${x1-5}" y="${(yg+Math.max(h,10)/2+4).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="${g.col}">${bvPc(g.v,inc)}</text>`;
+    let cy=yg;const m2=(x1+w1+x2)/2;
+    if(g.left)s+=`<text x="${x1+w1+6}" y="${(yg+Math.max(h,10)/2+4).toFixed(1)}" font-size="10.5" fill="var(--muted)">Left over ${esc(bkr(g.v))}</text>`;
+    for(const c of g.cats){const ch=c.v*sc;const slot=Math.max(ch,minH);
+      s+=`<path d="M${x1+w1} ${cy.toFixed(1)} C${m2} ${cy.toFixed(1)},${m2} ${yc.toFixed(1)},${x2} ${yc.toFixed(1)} L${x2} ${(yc+ch).toFixed(1)} C${m2} ${(yc+ch).toFixed(1)},${m2} ${(cy+ch).toFixed(1)},${x1+w1} ${(cy+ch).toFixed(1)}Z" fill="${g.col}" fill-opacity=".22"/>`;
+      s+=`<rect x="${x2}" y="${yc.toFixed(1)}" width="${w2}" height="${Math.max(1.5,ch).toFixed(1)}" rx="2" fill="${g.col}"/>`;
+      s+=`<text x="${x2+w2+5}" y="${(yc+Math.min(slot,Math.max(ch,10))/2+4).toFixed(1)}" font-size="10.5" fill="var(--fg)">${esc(c.name.length>18?c.name.slice(0,17)+'…':c.name)} <tspan fill="var(--muted)" class="num">${esc(bkr(c.v))}</tspan></text>`;
+      cy+=ch;yc+=slot+gapC;}
+    y0+=h;yg+=Math.max(h,g.left?14:h)+gapG;yc=Math.max(yc,yg);if(g.cats.length)yc+=gapG-gapC;}
+  const H=Math.ceil(Math.max(yg,yc)+4);
+  s=`<rect x="${x0}" y="0" width="${w0}" height="${(inc*sc).toFixed(1)}" rx="2" fill="var(--fg)"/>`+s;
+  return `<div class="bv-flow"><svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMinYMin meet" role="img" aria-label="Your pay flowing to groups and categories">${s}</svg></div>`;}
+/* ---- B: a map of your pay: one box per category, sized by amount, grouped by colour (squarified treemap) ---- */
+function bvSquarify(items,x,y,w,h){const out=[];let rest=items.filter(i=>i.v>0).slice().sort((a,b)=>b.v-a.v);let tot=rest.reduce((s,i)=>s+i.v,0);
+  while(rest.length){const short=Math.min(w,h);const area=w*h;let row=[],best=Infinity;
+    for(let k=0;k<rest.length;k++){const cand=rest.slice(0,k+1);const s=cand.reduce((a,i)=>a+i.v,0)/tot*area;const side=s/short;
+      const worst=Math.max(...cand.map(i=>{const a=i.v/tot*area;const o=a/side;return Math.max(side/o,o/side);}));if(worst<=best){best=worst;row=cand;}else break;}
+    const rs=row.reduce((a,i)=>a+i.v,0);const rArea=rs/tot*area;
+    if(w>=h){const rw=rArea/h;let cy=y;for(const i of row){const ih=i.v/rs*h;out.push({i,x,y:cy,w:rw,h:ih});cy+=ih;}x+=rw;w-=rw;}
+    else{const rh=rArea/w;let cx=x;for(const i of row){const iw=i.v/rs*w;out.push({i,x:cx,y,w:iw,h:rh});cx+=iw;}y+=rh;h-=rh;}
+    rest=rest.slice(row.length);tot-=rs;}
+  return out;}
+function bvMap(D){const inc=D.income||1;const W=bvW();const H=Math.round(Math.min(420,Math.max(240,W*0.85)));
+  const top=D.groups.map(g=>({v:g.v,g})).concat(D.left>0.5?[{v:D.left,left:true}]:[]);let s='';
+  for(const t of bvSquarify(top,0,0,W,H)){
+    if(t.i.left){s+=`<rect x="${t.x+1}" y="${t.y+1}" width="${Math.max(0,t.w-2)}" height="${Math.max(0,t.h-2)}" rx="5" fill="var(--surface2)" stroke="var(--line)"/>`;if(t.w>60&&t.h>30)s+=`<text x="${t.x+8}" y="${t.y+17}" font-size="11" fill="var(--muted)">Left over</text><text x="${t.x+8}" y="${t.y+31}" font-size="10.5" class="num" fill="var(--muted)">${esc(bkr(D.left))}</text>`;continue;}
+    const g=t.i.g;for(const c of bvSquarify(g.cats.map(c=>({v:c.v,c})),t.x,t.y,t.w,t.h)){const k=c.i.c;const f=k.v/g.v;
+      s+=`<g data-bvtip="${esc(k.name+' · '+bkr(k.v)+' · '+bvPc(k.v,inc))}"><rect x="${(c.x+1).toFixed(1)}" y="${(c.y+1).toFixed(1)}" width="${Math.max(0,c.w-2).toFixed(1)}" height="${Math.max(0,c.h-2).toFixed(1)}" rx="5" fill="${g.col}" fill-opacity="${(0.6+0.4*f).toFixed(2)}"/>`;
+      const nm=k.name;if(c.w>64&&c.h>34)s+=`<text x="${c.x+8}" y="${c.y+17}" font-size="11.5" font-weight="700" class="bv-ink">${esc(nm.length*6.4>c.w-12?nm.slice(0,Math.max(3,Math.floor((c.w-16)/6.4)))+'…':nm)}</text><text x="${c.x+8}" y="${c.y+31}" font-size="10.5" class="num bv-ink">${esc(c.w>118?bkr(k.v)+' · '+bvPc(k.v,inc):bkr(k.v))}</text>`;
+      else if(c.w>34&&c.h>18)s+=`<text x="${c.x+5}" y="${c.y+14}" font-size="9.5" font-weight="700" class="bv-ink">${esc(nm.slice(0,Math.max(2,Math.floor((c.w-8)/6))))}</text>`;s+='</g>';}
+    s+=`<rect x="${t.x+1}" y="${t.y+1}" width="${Math.max(0,t.w-2)}" height="${Math.max(0,t.h-2)}" rx="5" fill="none" stroke="var(--surface)" stroke-width="2.5"/>`;}
+  return `<div class="bv-map"><svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMinYMin meet" role="img" aria-label="Map of your pay">${s}</svg><div class="bv-tip small" id="bvTip" hidden></div></div>
+   <div class="bv-leg small">${D.groups.map(g=>`<span><i style="background:${g.col}"></i>${esc(g.name)} <b class="num">${bvPc(g.v,inc)}</b></span>`).join('')}${D.left>0.5?`<span class="muted"><i class="bv-left"></i>Left over ${esc(bkr(D.left))}</span>`:''}</div>`;}
+/* the whole visual part of the pay card */
+function budgetVizHTML(r,b,ym,act,hasTx){const o=bvOpt();const mode=o.mode==='spent'&&hasTx?'spent':'plan';const D=bvData(r,b,act,mode);
+  const body=!D.groups.length?`<div class="muted small">${mode==='spent'?'Nothing sorted into categories this month yet.':'Add costs to see where your pay goes.'}</div>`:o.view==='flow'?bvFlow(D):o.view==='map'?bvMap(D):bvRing(D);
+  return `<div class="bv-head"><span class="sub-h" style="margin:0">Where your pay goes</span><span class="pc-tools"><span class="seg" role="group"><button data-bvo="mode:plan" aria-pressed="${mode==='plan'}">Plan</button><button data-bvo="mode:spent" aria-pressed="${mode==='spent'}" ${hasTx?'':'disabled title="Import your bank transactions to see what you spent"'}>Spent</button></span><button class="gear-btn" data-act="bvcfg" aria-label="Chart settings">${iconSm('gear',18)}</button></span></div>
+   ${mode==='spent'?`<div class="small muted">What really left your accounts in ${esc(ymLabel(ym))}, from your bank transactions.</div>`:''}${body}`;}
+function bvCfgSheet(){const draw=()=>{const o=bvOpt();return `<div class="look-row"><span class="lbl2">View</span><div class="seg" role="group">${[['ring','Ring'],['flow','Flow'],['map','Map']].map(([k,l])=>`<button data-bvo="view:${k}" aria-pressed="${o.view===k}">${l}</button>`).join('')}</div></div>
+   <div class="hint">Ring: groups in a ring and every category with its own bar. Flow: your pay streaming into groups and categories. Map: one box per category, sized by its share of your pay.</div>`;};
+  openSheet('Where your pay goes',`<div id="bvoBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#bvoBody');body.addEventListener('click',()=>setTimeout(()=>{body.innerHTML=draw();},0));});}
+/* incomes: every income on its own line, each one editable; add as many as you like */
+function incomesHTML(r,b,m){const list=b.incomes;const n=list.length;
+  return `<div class="bv-inc">${list.map(x=>`<button class="bv-ir ${x.on===false?'off':''}" data-binc="${esc(x.id)}"><span class="bv-in">${esc(x.name||'Income')}${x.on===false?' <span class="pill flat">off</span>':''}${x.overrides&&x.overrides[m]!=null&&x.overrides[m]!==''?' <span class="pill flat">this month</span>':''}</span><span class="num">${esc(bkr(x.on===false?0:amt(x,m),{dec:true}))}</span><span class="set-chev">›</span></button>`).join('')}
+   <button class="bv-ir add" data-binc="__new"><span class="bv-in">+ Add income</span></button></div>`;}
+onTap(e=>{const b=e.target.closest('[data-bvo]');if(b&&!b.disabled){const [k,v]=b.dataset.bvo.split(':');bvSet(k,v);return;}if(e.target.closest('[data-act="bvcfg"]'))bvCfgSheet();});
+/* tap a box in the Map to see its name and amount */
+onTap(e=>{const t=e.target.closest('[data-bvtip]');const tip=document.getElementById('bvTip');if(!tip)return;if(!t){tip.hidden=true;return;}tip.textContent=t.dataset.bvtip;tip.hidden=false;});
 
 /* ================= events ================= */
 onTap(async e=>{
