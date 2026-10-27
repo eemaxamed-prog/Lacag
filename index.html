@@ -718,18 +718,6 @@ body.wide2 .chart-card .chart{height:340px}
 .al-stack .al-s{display:none;font-size:var(--fs-xs);margin-top:4px}
 .al-stack .al-card.open .al-s{display:block}
 .al-stack .al-foot{gap:14px;font-size:var(--fs-s)}
-/* budget: the split of your pay, with labels that fit the screen */
-.stackbar.sb-big{height:clamp(24px,3.2vw,32px);border-radius:8px;gap:2px;margin-top:2px}
-.stackbar.sb-big span{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:3px}
-.sb-l{font-style:normal;font-weight:700;font-size:clamp(10.5px,1.4vw,13px);white-space:nowrap;padding:0 4px;line-height:1;color:#000}
-.stackbar.sb-big .left .sb-l{color:var(--fg)}
-.sb-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px;margin-top:2px}
-.sb-li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;column-gap:6px;align-items:center;font-size:var(--fs-s)}
-.sb-sw{width:10px;height:10px;border-radius:3px}
-.sb-sw.left{background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 4px)}
-.sb-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-p{text-align:right;color:var(--fg)}
-.sb-a{grid-column:2/4;color:var(--muted);font-size:var(--fs-xs)}
 :root{--pc-cum:#FFD84D;--pc-cumidx:#9AA3B5}
 :root[data-look="day"]{--pc-cum:#B07A00;--pc-cumidx:#6B7280}
 /* ===== one card design: one box, title + buttons on the top line ===== */
@@ -813,11 +801,22 @@ body.wide2 .chart-card .chart{height:340px}
 .bv-sum{max-width:340px}
 .bv-c{grid-template-columns:minmax(0,1fr) minmax(60px,34%) auto}
 @media (min-width:760px){.bv-list{display:grid;grid-template-columns:1fr 1fr;gap:14px 32px;align-items:start}.bv-c{grid-template-columns:minmax(0,1fr) minmax(80px,40%) auto}}
+/* show / hide amounts in the top bar */
+.top-eye{width:38px;height:38px;flex:none;color:var(--label)}
+.top-eye.on{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+@media (max-width:480px){.top-in{gap:6px;padding-left:12px;padding-right:12px}.top .icon-btn{width:34px;height:34px;border-radius:10px}.top .icon-btn svg{width:17px;height:17px}.pf-btn{padding:5px 6px 5px 9px;font-size:var(--fs-s);max-width:34vw}.brand-mark{width:24px;height:24px}.calm-chip{padding:4px 7px;min-height:30px}.top .chip{padding:4px 7px;font-size:var(--fs-xs)}}
+@media (max-width:360px){.top-in{gap:4px;padding-left:8px;padding-right:8px}.top .icon-btn{width:30px;height:30px;border-radius:9px}.top .icon-btn svg{width:16px;height:16px}.pf-btn{max-width:28vw;padding:4px 4px 4px 7px}.brand-mark{width:22px;height:22px}.calm-chip{padding:3px 6px;min-height:28px}.top .chip{padding:3px 6px}}
+/* fee with currency */
+.fee-row{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:6px}
+.fee-ccy{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:0 6px;font-size:var(--fs-m);color:var(--fg)}
+.fee-fx{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.fee-fx input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:9px 12px;font-size:var(--fs-l);min-width:0}
+.sh-row .btn{flex:none}
 
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
-  <button class="pf-btn" data-act="switch" aria-label="Switch portfolio"><span id="pfName">Nabad</span><span data-icon="chev" style="display:contents"></span></button><span class="spacer"></span>
+  <button class="pf-btn" data-act="switch" aria-label="Switch portfolio"><span id="pfName">Nabad</span><span data-icon="chev" style="display:contents"></span></button><button class="icon-btn top-eye" id="eyeTop" data-act="priv" aria-label="Hide amounts" aria-pressed="false"></button><span class="spacer"></span>
   <span class="chip" id="status"><span class="dot"></span>Starting…</span>
   <button class="icon-btn" id="refreshBtn" data-act="refresh" aria-label="Update prices"><span data-icon="refresh" style="display:contents"></span></button>
   <button class="icon-btn primary" data-act="add" aria-label="Add"><span data-icon="plus" style="display:contents"></span></button>
@@ -834,7 +833,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610231333";
+const LACAG_BUILD="202610271730";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1510,6 +1509,8 @@ function renderTop(){
   el.className='chip '+c;el.innerHTML=`<span class="dot"></span>${esc(t)}`;
   $('#refreshBtn').classList.toggle('spin',NET.busy);
   $('#pfName').textContent=portfolio().name;
+  /* show / hide amounts: always in the top bar, next to the portfolio name */
+  const eye=$('#eyeTop');if(eye){eye.innerHTML=ICON[UI.priv?'eyeoff':'eye'];eye.setAttribute('aria-pressed',String(!!UI.priv));eye.setAttribute('aria-label',UI.priv?'Show amounts':'Hide amounts');eye.classList.toggle('on',!!UI.priv);}
 }
 function render(){
   renderTop();
@@ -1722,7 +1723,7 @@ function viewOverview(v){
   const cashPct=M.total?M.cash/M.total:0;
   const compare=bms.filter(x=>x.r&&!x.r.missing);
   v.innerHTML=`${demoBanner()}
-  <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div><button class="eye-btn" data-act="priv" aria-pressed="${!!UI.priv}" aria-label="${UI.priv?'Show amounts':'Hide amounts'}">${ICON[UI.priv?'eyeoff':'eye']}</button>${heroAvgHTML(M,Z,st,key)}</div>
+  <section class="hero card" data-card="hero"><div class="eyebrow" id="heroEy">${esc(portfolio().name)} · total value</div><div class="hero-val"><div class="big" id="heroVal">${F(total)}</div>${heroAvgHTML(M,Z,st,key)}</div>
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted inv-line" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}<div class="pc-tools ch-tools">${perf&&key!=='1D'?bmMulti('chart'):''}<button class="gear-btn" data-act="chartcfg" aria-label="Chart settings">${iconSm('gear',16)}</button></div></div>
@@ -2623,14 +2624,6 @@ onTap(e=>{
   switch(d.bact){case 'import':bankImportSheet();return;case 'uncat':txListSheet(true);return;case 'txlist':txListSheet(false);return;case 'match':matchSheet();return;case 'target':targetSheet();return;}
 });
 
-/* fit the labels inside the pay bar: full name + %, else only %, else nothing (the list below always has all) */
-function fitStackbar(){document.querySelectorAll('.stackbar.sb-big').forEach(bar=>{
-  bar.querySelectorAll('span').forEach(sp=>{const l=sp.querySelector('.sb-l');if(!l)return;
-    const bg=getComputedStyle(sp).backgroundColor;const m=bg.match(/\d+(\.\d+)?/g);if(m&&!sp.classList.contains('left')){const [r,g,b]=m.map(Number);const lum=(0.299*r+0.587*g+0.114*b)/255;l.style.color=lum>0.55?'#000':'#fff';}
-    l.textContent=l.dataset.long;l.hidden=false;l.style.padding="";if(l.scrollWidth<=sp.clientWidth-8)return;
-    l.textContent=l.dataset.short;l.style.padding="0 2px";if(l.scrollWidth<=sp.clientWidth-2)return;l.hidden=true;});
-  if(!bar._ro&&window.ResizeObserver){let lw=bar.clientWidth;bar._ro=new ResizeObserver(()=>{if(Math.abs(bar.clientWidth-lw)>2){lw=bar.clientWidth;fitStackbar();}});bar._ro.observe(bar);}});}
-afterRender(()=>{if(document.querySelector('.stackbar.sb-big'))requestAnimationFrame(fitStackbar);});
 
 /* ================= appearance: night/day, colours, fonts, card transparency, wide tables (per device) ================= */
 const LOOK_DEFAULT={mode:'night',accent:'#FFA028',bg:'',alpha:100,font:'plex',num:'plexmono',tables:'fit'};
@@ -3611,7 +3604,7 @@ function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts
   return `<div class="pb"><div class="pb-h">Capital</div>${row('Invested capital','pbInv',F(inv))}
    <div class="pb-h">Performance breakdown</div>${row('Price gain','pbPrice',F(priceGain,{sign:true}),pc(priceGain),cl(priceGain))}${row('Dividends','pbDiv',F(st.div,{sign:true}),pc(st.div),cl(st.div))}${row('Realised gain','pbReal',F(realised,{sign:true}),pc(realised),cl(realised))}
    <div class="pb-h">Costs</div>${row('Transaction costs','',F(-w.fees*k,{sign:true}))}${row('Taxes (estimated)','pbTax',F(-taxes,{sign:true}))}${row('Ongoing costs','pbOngoing',F(-ongoing,{sign:true}))}
-   <div class="pb-h">Risk and comparison</div>${pcIdx('perf')?row(esc(pcIdxName('perf')),'',w.idx==null?'—':pct(w.idx),w.idx==null?'':`<span class="small muted">you ${(st.twr-w.idx)>=0?'+':'−'}${fmtPct(Math.abs(st.twr-w.idx),{dec:2,sign:false})}</span>`,w.idx==null?'':cl(w.idx)):''}${row('Money added','pbCf',F(st.cf,{sign:true}))}${row('Max drawdown','pbMdd',pct(st.mdd),'',st.mdd<0?'down':'')}${row('Volatility p.a.','pbVol',st.vol!=null?pct(st.vol,{sign:false}):'—')}
+   <div class="pb-h">Risk and comparison</div>${pcIdx('perf')?row(esc(pcIdxName('perf')),'',w.idx==null?'—':pct(w.idx),w.idx==null?'':`<span class="small"><span class="muted">you </span><span class="${cl(st.twr-w.idx)}">${(st.twr-w.idx)>=0?'+':'−'}${fmtPct(Math.abs(st.twr-w.idx),{dec:2,sign:false})}</span></span>`,w.idx==null?'':cl(w.idx)):''}${row('Money added','pbCf',F(st.cf,{sign:true}))}${row('Max drawdown','pbMdd',pct(st.mdd),'',st.mdd<0?'down':'')}${row('Volatility p.a.','pbVol',st.vol!=null?pct(st.vol,{sign:false}):'—')}
    <div class="pb-total">${row('<b>Total return</b>','',F(st.gain,{sign:true}),'',cl(st.gain))}${row('<b>Internal rate of return</b>','pbIrr',st.irr!=null?pct(st.irr):'—','',st.irr!=null?cl(st.irr):'')}${row('<b>True time-weighted return</b>','pbTwr',pct(st.twr),'',cl(st.twr))}</div></div>`;}
 Object.assign(INFO,{pbInv:'Money you have put in minus what you have taken out, up to the end of the period.',pbPrice:'Change in the value of what you hold, after costs, not counting dividends and gains already taken by selling.',
   pbDiv:'Dividends received in the period (after foreign tax).',pbReal:'Gains or losses locked in by selling during the period (first-in-first-out).',pbTax:'Estimated Norwegian tax on gains realised by selling in the period, after skjerming. Uses your tax rules in Settings.',pbOngoing:'Estimated yearly fund fees (TER) charged inside your funds during the period. Add each fund\'s TER under Holdings → Details.',
@@ -3798,7 +3791,7 @@ async function alData(inst){const a=inst.a;const ys=helperUrl()?ySym(a):null;con
   try{if(!NET.blocked){const r=await fetchFullHist(a);if(r){s=r.s;price=r.price;cur=r.cur;}}}catch(e){}
   if(!s||!s.length){const h=C.hist[histKey(a)];s=h&&h.s?h.s.slice():[];}
   if(!s.length)return null;const today=localToday();const last=s[s.length-1];const cut=ds(dn(today)-30);
-  const r={t:Date.now(),ath:Math.max(...s.map(x=>x[1])),top30:Math.max(...s.filter(x=>x[0]>=cut).map(x=>x[1]),last[1]),prev:last[0]===today&&s.length>1?s[s.length-2][1]:last[1],price:price||last[1],cur};
+  const r={t:Date.now(),ath:Math.max(...s.map(x=>x[1])),top30:Math.max(...s.filter(x=>x[0]>=cut).map(x=>x[1]),last[1]),prev:last[0]===today&&s.length>1?s[s.length-2][1]:last[1],price:price||null,cur}; /* no fresh price from the helper: the holding's own live price is used, never an old daily close */
   if(a.cls==='crypto'){const p0=priceAtMidnight(a);if(p0&&(!cur||p0.q===cur))r.prev=p0.p;} /* crypto: today starts at 00:00 Norway time */
   C.adata[key]=r;return r;}
 let ALERTS=[],AL_BUSY=false;
@@ -3820,22 +3813,27 @@ async function checkAlerts(){const cfg=alertCfg();if(!cfg.on||AL_BUSY){if(!cfg.o
     if(refsChanged)savePlan();
     /* a closed alert stays closed until the price recovers, or falls to the next level */
     UI.alDis=UI.alDis||{};const live=new Set(out.map(x=>x.key));for(const k of Object.keys(UI.alDis))if(!live.has(k))delete UI.alDis[k];saveUI();
-    const seen=new Set();ALERTS=out.filter(x=>{if(seen.has(x.key))return false;seen.add(x.key);return !(UI.alDis[x.key]>=x.level);}).sort((a,b)=>a.drop-b.drop);
+    const seen=new Set();const act=out.filter(x=>{if(seen.has(x.key))return false;seen.add(x.key);return !(UI.alDis[x.key]>=x.level);}).sort((a,b)=>a.drop-b.drop);
+    /* one card per asset: several alert rules on the same asset are shown together, the biggest fall on top */
+    const G=new Map();for(const x of act){const ak=x.key.slice(x.key.indexOf('|')+1);if(!G.has(ak))G.set(ak,Object.assign({},x,{key:ak,items:[]}));G.get(ak).items.push(x);}
+    ALERTS=[...G.values()];
     saveCache();if(UI.tab==='overview')softRender();}finally{AL_BUSY=false;}}
 /* compact alerts: two columns, at most 4 shown; tap one to see its details */
 const AL_BASIS_TINY={ath:'from top',top30:'from 30-day high',day:'today',cost:'from buy price',set:'since alert'};
+/* the other alerts on the same asset, one line per way of measuring (two rules measuring the same way show once) */
+const alAlso=g=>{const seen=new Set([g.basis]);return g.items.filter(y=>{if(seen.has(y.basis))return false;seen.add(y.basis);return true;});};
 function alertsBanner(){if(!ALERTS.length||!alertCfg().on)return '';
   const showAll=!!ALERTS.showAll;const list=showAll?ALERTS:ALERTS.slice(0,4);
   return `<section class="al-stack" aria-label="Price alerts"><div class="al-grid">${list.map(x=>`<div class="al-card ${AL_OPEN.has(x.key)?'open':''}" role="button" tabindex="0" data-alopen="${esc(x.key)}">
-     <div class="al-top"><span class="al-sym">${esc(x.sym)}</span><button class="al-x" data-aldis="${esc(x.key)}:${x.level}" aria-label="Close this alert">${iconSm('close',14)}</button></div>
+     <div class="al-top"><span class="al-sym">${esc(x.sym)}</span><button class="al-x" data-aldis="${esc(x.key)}" aria-label="Close this alert">${iconSm('close',14)}</button></div>
      <div class="al-pct down">${pctTxt(-x.drop)}</div><div class="al-b">${AL_BASIS_TINY[x.basis]||''} · alert ${x.level} %</div>
-     <div class="al-s">${esc(x.name)}${x.watch?' · watchlist':''}${x.price&&x.ref&&!x.pf?` · now ${money(x.price,x.cur)}, was ${money(x.ref,x.cur)}`:''}</div></div>`).join('')}</div>
+     <div class="al-s">${esc(x.name)}${x.watch?' · watchlist':''}${x.price&&x.ref&&!x.pf?` · now ${money(x.price,x.cur)}, was ${money(x.ref,x.cur)}`:''}${alAlso(x).map(y=>`<br>Also <span class="down">${pctTxt(-y.drop)}</span> ${AL_BASIS_TINY[y.basis]||''} · <span style="white-space:nowrap">alert ${y.level} %</span>`).join('')}</div></div>`).join('')}</div>
    <div class="al-foot">${ALERTS.length>list.length?`<button class="linkbtn" data-almore="1">Show ${ALERTS.length-list.length} more</button>`:''}${ALERTS.length>1?`<button class="linkbtn" data-aldis="__all">Close all ${ALERTS.length}</button>`:''}<button class="linkbtn" data-sset-go="alerts">Alert settings</button></div></section>`;}
 const AL_OPEN=new Set(); /* which alerts you opened, kept while the page redraws */
 onTap(e=>{const c=e.target.closest('[data-alopen]');if(c&&!e.target.closest('[data-aldis]')){const k=c.dataset.alopen;if(AL_OPEN.has(k))AL_OPEN.delete(k);else AL_OPEN.add(k);c.classList.toggle('open',AL_OPEN.has(k));}});
 onTap(e=>{if(e.target.closest('[data-almore]')){ALERTS.showAll=true;softRender();return;}const b=e.target.closest('[data-aldis]');if(!b)return;UI.alDis=UI.alDis||{};
-  if(b.dataset.aldis==='__all'){for(const x of ALERTS)UI.alDis[x.key]=x.level;ALERTS=[];}
-  else{const v=b.dataset.aldis;const i=v.lastIndexOf(':');const k=v.slice(0,i),L=+v.slice(i+1);UI.alDis[k]=L;ALERTS=ALERTS.filter(x=>x.key!==k);}
+  if(b.dataset.aldis==='__all'){for(const g of ALERTS)for(const x of g.items)UI.alDis[x.key]=x.level;ALERTS=[];}
+  else{const k=b.dataset.aldis;const g=ALERTS.find(x=>x.key===k);if(g)for(const x of g.items)UI.alDis[x.key]=x.level;ALERTS=ALERTS.filter(x=>x.key!==k);}
   saveUI();softRender();});
 afterRender(()=>{if(UI.tab!=='overview')return;const v=$('#view');if(!v||v.querySelector('.al-stack'))return;const h=alertsBanner();if(!h)return;const bar=v.querySelector('.page-bar');(bar||v.firstChild)?(bar?bar.insertAdjacentHTML('afterend',h):v.insertAdjacentHTML('afterbegin',h)):v.insertAdjacentHTML('afterbegin',h);});
 {const _rf=refresh;refresh=async function(f){await _rf(f);checkAlerts();};}
@@ -4390,6 +4388,114 @@ function incomesHTML(r,b,m){const list=b.incomes;const n=list.length;
 onTap(e=>{const b=e.target.closest('[data-bvo]');if(b&&!b.disabled){const [k,v]=b.dataset.bvo.split(':');bvSet(k,v);return;}if(e.target.closest('[data-act="bvcfg"]'))bvCfgSheet();});
 /* tap a box in the Map to see its name and amount */
 onTap(e=>{const t=e.target.closest('[data-bvtip]');const tip=document.getElementById('bvTip');if(!tip)return;if(!t){tip.hidden=true;return;}tip.textContent=t.dataset.bvtip;tip.hidden=false;});
+
+/* ================= fees in any currency (and in BTC / ETH) ================= */
+/* The trade form gets a currency next to the fee. The fee is turned into kroner with that day's rate (filled in, can be changed).
+   Kroner fee  → stored as before (t.fee in NOK), so every calculation works unchanged.
+   Fee in the same coin you trade (buy BTC, fee in BTC): the coins really received / sent change, so the trade is stored
+     with the true quantity (bought 0,05 − fee, or sold 0,05 + fee) and the money unchanged; the fee you typed is kept for editing.
+   Fee in another coin (buy ETH, fee in BTC): your BTC goes down — a small linked "BTC used for fee" sale is added,
+     and the same kroner amount is the ETH trade's fee. Editing or deleting the trade updates the linked sale too. */
+const FEE_CCYS=['NOK','USD','EUR','GBP','SEK','DKK','CHF','JPY','CAD','AUD','BTC','ETH'];
+const FEE_COIN={BTC:['BTC','XBT'],ETH:['ETH']};
+const isCoin=c=>c==='BTC'||c==='ETH';
+const coinOf=a=>{if(!a||a.cls!=='crypto')return null;const s=String(a.symbol||'').toUpperCase().replace(/[-/:].*$/,'');for(const k in FEE_COIN)if(FEE_COIN[k].includes(s))return k;return null;};
+const FEE_RATE={}; /* cache: ccy|date → NOK per 1 unit */
+/* NOK per 1 unit of a currency or coin on a day: from the app's own rates and prices first, then the free rate services */
+async function feeRate(ccy,date){if(ccy==='NOK')return 1;const key=ccy+'|'+date;if(FEE_RATE[key])return FEE_RATE[key];let r=null;
+  try{if(ccy==='USD'||ccy==='EUR')r=fxForDate(ccy,date);
+    else if(isCoin(ccy)){const a=S.assets.find(x=>coinOf(x)===ccy);const p=a?priceForDate(a,date):null;if(p&&a)r=p*fxForDate(a.currency,date);
+      if(!r){const st=Date.UTC(+date.slice(0,4),+date.slice(5,7)-1,+date.slice(8,10));const rows=await bin(`/api/v3/klines?symbol=${ccy}USDT&interval=1d&startTime=${st}&limit=1`);if(rows&&rows[0])r=+rows[0][4]*fxForDate('USD',date);}}
+    else{for(const h of ['https://api.frankfurter.dev/v1','https://api.frankfurter.app']){try{const j=await getJSON(`${h}/${date}?base=${ccy}&symbols=NOK`,8000);if(j&&j.rates&&j.rates.NOK){r=+j.rates.NOK;break;}}catch(e){}}}}catch(e){}
+  if(r>0)FEE_RATE[key]=r;return r>0?r:null;}
+/* add the currency picker and the rate field to the trade form */
+function feeFormEnhance(sh,t){const fee=sh.querySelector('#fFee');if(!fee||sh.querySelector('#fFeeCcy'))return;const field=fee.closest('.field');const lab=field.querySelector('label');
+  const ccy=t&&t.feeCcy||'NOK';const amt=t&&t.feeCcy&&t.feeCcy!=='NOK'?t.feeAmt:null;
+  lab.textContent='Fee';field.insertAdjacentHTML('beforeend','');
+  fee.insertAdjacentHTML('afterend',`<select id="fFeeCcy" class="fee-ccy" aria-label="Fee currency">${FEE_CCYS.map(c=>`<option ${c===ccy?'selected':''}>${c}</option>`).join('')}</select>`);
+  const wrap=document.createElement('div');wrap.className='fee-row';fee.before(wrap);wrap.appendChild(fee);wrap.appendChild(sh.querySelector('#fFeeCcy'));
+  if(amt!=null)fee.value=inputNum(amt,isCoin(ccy)?8:2);
+  field.insertAdjacentHTML('beforeend',`<div class="fee-fx" id="feeFxWrap" ${ccy==='NOK'?'hidden':''}><label for="fFeeFx" id="lFeeFx">NOK per 1 ${ccy}</label><input id="fFeeFx" inputmode="decimal" value="${t&&t.feeFx?inputNum(t.feeFx,isCoin(ccy)?0:4):''}"><div class="hint" id="feeHint"></div></div>`);
+  const sel=sh.querySelector('#fFeeCcy'),fx=sh.querySelector('#fFeeFx'),hint=sh.querySelector('#feeHint');
+  const assetSel=sh.querySelector('#fAsset');const curA=()=>assetSel&&assetSel.value!=='__new'?assetById(assetSel.value):null;
+  const showHint=()=>{const c=sel.value;const a=curA();const co=coinOf(a);
+    hint.textContent=!isCoin(c)?'':co===c?`The fee is taken from the ${c} you trade, so your ${c} quantity is lowered by it.`:`Your ${c} goes down by the fee; Lacag adds a small "${c} used for fee" sale.`;};
+  const fill=async()=>{const c=sel.value;sh.querySelector('#feeFxWrap').hidden=c==='NOK';sh.querySelector('#lFeeFx').textContent='NOK per 1 '+c;showHint();if(c==='NOK')return;
+    fx.placeholder='…';const r=await feeRate(c,sh.querySelector('#fDate').value||localToday());fx.placeholder='';if(r&&!fx.dataset.typed)fx.value=inputNum(r,isCoin(c)?0:4);recalc();};
+  /* the total box counts the fee in kroner */
+  const recalc=()=>{const tot=sh.querySelector('#fTotal');const c=sel.value;if(c==='NOK'||!tot)return;const q=parseNum(sh.querySelector('#fQty').value),p=parseNum(sh.querySelector('#fPrice').value);const a=curA();
+    const cur=a?a.currency:(sh.querySelector('#fCur')||{}).value||'NOK';const fxa=cur==='NOK'?1:parseNum(sh.querySelector('#fFx').value);const feeN=(parseNum(fee.value)||0)*(parseNum(fx.value)||0);
+    const sell=sh.querySelector('[data-ttype="sell"][aria-pressed="true"]');if(q>0&&p>0&&fxa>0)tot.value=inputNum(sell?q*p*fxa-feeN:q*p*fxa+feeN,2);};
+  sel.onchange=()=>{fx.dataset.typed='';fill();};fx.oninput=()=>{fx.dataset.typed='1';recalc();};
+  fee.addEventListener('input',()=>setTimeout(recalc,0));['#fQty','#fPrice','#fFx'].forEach(s=>{const el=sh.querySelector(s);if(el)el.addEventListener('input',()=>setTimeout(recalc,0));});
+  const dt=sh.querySelector('#fDate');if(dt)dt.addEventListener('change',()=>{fx.dataset.typed='';fill();});if(assetSel)assetSel.addEventListener('change',showHint);
+  if(ccy!=='NOK'&&!(t&&t.feeFx))fill();else showHint();}
+/* when the form is saved: turn the fee into kroner and apply the coin rules */
+function feeApply(rec,feeAmt,ccy,rate,a){delete rec.feeCcy;delete rec.feeAmt;delete rec.feeFx;delete rec.rawQty;delete rec.rawPrice;
+  if(!(feeAmt>0)||ccy==='NOK'){rec.fee=feeAmt>0?feeAmt:0;return null;}
+  rec.feeCcy=ccy;rec.feeAmt=feeAmt;rec.feeFx=rate;const feeNok=feeAmt*rate;
+  const co=coinOf(a);
+  if(isCoin(ccy)&&co===ccy){/* same coin: the true quantity changes, the money stays the same */
+    const q=rec.qty,p=rec.price;rec.rawQty=q;rec.rawPrice=p;const q2=rec.type==='buy'?q-feeAmt:q+feeAmt;if(!(q2>0))return 'The fee is larger than the quantity.';
+    rec.qty=q2;rec.price=q*p/q2;rec.fee=0;rec.feeNokInfo=feeNok;return null;}
+  rec.fee=feeNok;
+  if(isCoin(ccy))return {coin:ccy,qty:feeAmt,nok:feeNok};/* another coin pays the fee: a linked sale of that coin */
+  return null;}
+/* keep the linked "coin used for fee" sale in step with its trade */
+function feeLinkSync(parentId,link,accountId,date){S.txs=S.txs.filter(x=>x.feeOf!==parentId);if(!link||typeof link!=='object')return;
+  const a=S.assets.find(x=>coinOf(x)===link.coin);if(!a)return;const fx=a.currency==='NOK'?1:fxForDate(a.currency,date);const price=link.nok/link.qty/(fx||1);
+  S.txs.push({id:uid(),type:'sell',assetId:a.id,accountId,date,qty:link.qty,price,fx,fee:0,fundAccountId:'__outside',feeOf:parentId,note:'Used to pay a fee'});}
+/* hook into the trade form: show the extra fields, and correct the saved record */
+{const _os=openSheet;openSheet=function(title,body,onMount){return _os(title,body,sh=>{if(onMount)onMount(sh);const root=sh&&sh.querySelector?sh:document;
+  const form=root.querySelector('#txForm');if(!form||!root.querySelector('#fFee'))return;
+  const editId=(()=>{const del=root.querySelector('#delTx');return del?FEE_EDIT:null;})();const t=editId?S.txs.find(x=>x.id===editId):null;
+  feeFormEnhance(root,t);
+  /* before the app's own save runs: put the kroner fee into the plain fee field, after: fix quantity / linked sale */
+  const save=form.onsubmit;form.onsubmit=e=>{const sel=root.querySelector('#fFeeCcy');const ccy=sel?sel.value:'NOK';const feeEl=root.querySelector('#fFee');const amt=parseNum(feeEl.value)||0;
+    const rate=ccy==='NOK'?1:parseNum(root.querySelector('#fFeeFx').value);
+    if(ccy!=='NOK'&&amt>0&&!(rate>0)){e.preventDefault();const err=root.querySelector('#fErr');if(err)err.textContent='Enter the rate for the fee (NOK per 1 '+ccy+').';return;}
+    const before=new Set(S.txs.map(x=>x.id));const editing=t?t.id:null;
+    /* same coin: the plain fee must be 0 (the quantity carries it); otherwise the kroner value */
+    feeEl.value=ccy==='NOK'?feeEl.value:inputNum(amt*rate,2);
+    const r=save.call(form,e);
+    const id=editing||[...S.txs.map(x=>x.id)].find(x=>!before.has(x));const rec=S.txs.find(x=>x.id===id);
+    if(rec&&(rec.type==='buy'||rec.type==='sell')){if(t&&t.rawQty&&rec.qty===t.qty&&rec.price===t.price){/* edited without touching qty/price: start again from the typed values */}
+      const a=assetById(rec.assetId);const link=feeApply(rec,amt,ccy,rate,a);
+      if(typeof link==='string'){toast(link);}feeLinkSync(rec.id,link,rec.accountId,rec.date);Store.save();render();}
+    else if(editing&&!S.txs.some(x=>x.id===editing)){S.txs=S.txs.filter(x=>x.feeOf!==editing);Store.save();render();}
+    return r;};});};}
+/* remember which trade is being edited (the edit window doesn't say), and show the typed quantity / price again when editing */
+let FEE_EDIT=null;
+onTap(e=>{const b=e.target.closest('[data-tx]');if(b)FEE_EDIT=b.dataset.tx;},true);
+{const _os2=openSheet;openSheet=function(title,body,onMount){return _os2(title,body,sh=>{if(onMount)onMount(sh);const root=sh&&sh.querySelector?sh:document;
+  const t=FEE_EDIT&&root.querySelector('#delTx')?S.txs.find(x=>x.id===FEE_EDIT):null;if(t&&t.rawQty){const q=root.querySelector('#fQty'),p=root.querySelector('#fPrice');if(q)q.value=inputNum(t.rawQty,8);if(p)p.value=inputNum(t.rawPrice,6);}});};}
+/* deleting a trade also deletes its linked fee sale */
+setInterval(()=>{if(!S||!S.txs)return;const ids=new Set(S.txs.map(x=>x.id));const orphans=S.txs.filter(x=>x.feeOf&&!ids.has(x.feeOf));if(orphans.length){S.txs=S.txs.filter(x=>!(x.feeOf&&!ids.has(x.feeOf)));Store.save();render();}},3000);
+
+/* ================= sync history: go back to an earlier day (needs helper version 4) ================= */
+/* The helper keeps the last save of each day for 30 days, encrypted like everything else.
+   Going back loads that day's portfolio here and sends it to your other devices as the newest version.
+   The portfolio you had just before is kept on this device ("Bring back that copy"). */
+const SH={days:null,err:'',busy:false};
+async function syncHistoryLoad(){const c=syncCfg();if(!c.on)return;SH.busy=true;SH.err='';syncHistPaint();
+  try{const r=await fetch(syncUrl(c)+'/?sync='+c.id+'&history=1',{headers:{'X-Lacag-Auth':c.auth},cache:'no-store'});const j=await r.json().catch(()=>null);
+    if(!r.ok||!j||!Array.isArray(j.days)){SH.err=(j&&j.error)||'Your helper is an older version: update it to version 4 to keep a history.';SH.days=null;}
+    else SH.days=j.days;}
+  catch(e){SH.err='Could not reach your helper right now.';}finally{SH.busy=false;syncHistPaint();}}
+async function syncGoBack(day){const c=syncCfg();if(!c.on)return;
+  try{const r=await fetch(syncUrl(c)+'/?sync='+c.id+'&day='+day,{headers:{'X-Lacag-Auth':c.auth},cache:'no-store'});const j=await r.json();if(!r.ok||!j.exists)throw new Error(j&&j.error||'No copy for that day');
+    const remote=await openState(c.pass,j);keepPrev('before going back to '+day);S=remote;S.updated=Date.now();lsSet('lq_state',S);VERSION++;
+    const cc=syncCfg();cc.dirty=true;syncSave(cc);await syncPush(true);render();toast('Back to '+dateLabel(dn(day),true)+' on all your devices');}
+  catch(e){toast(String(e.message||e));}}
+function syncHistHTML(){if(SH.busy)return '<div class="small muted">Loading the saved days…</div>';if(SH.err)return `<div class="small amber-v">${esc(SH.err)}</div>`;
+  if(!SH.days)return `<button class="btn sm" data-act="synchist">Show earlier days</button>`;
+  if(!SH.days.length)return '<div class="small muted">No earlier days saved yet. One copy is kept each day you make a change.</div>';
+  return `<div class="list sh-list">${SH.days.map(d=>`<div class="item sh-row"><div class="mid"><div class="t1">${esc(dateLabel(dn(d.day),true))}${d.day===localToday()?' · today':''}</div><div class="t2">${d.updated?'Last change '+esc(timeLabel(d.updated)):''}${d.device?' · '+esc(d.device):''}</div></div>${d.day===localToday()?'':`<button class="btn sm" data-shback="${esc(d.day)}">Go back</button>`}</div>`).join('')}</div>`;}
+function syncHistPaint(){const box=document.getElementById('syncHist');if(box)box.innerHTML=syncHistHTML();}
+{const _sh=syncSettingsHTML;syncSettingsHTML=function(){const h=_sh();if(!syncCfg().on)return h;
+  return h+`<div class="card stack" style="margin-top:12px"><div class="lbl2">History · last 30 days</div><div class="hint">Made a mistake, or an import went wrong? Go back to how your portfolio looked at the end of an earlier day. It changes on all your devices, and what you have now is kept as a copy on this device.</div><div id="syncHist">${syncHistHTML()}</div></div>`;};}
+onTap(e=>{if(e.target.closest('[data-act="synchist"]')){syncHistoryLoad();return;}
+  const b=e.target.closest('[data-shback]');if(b){if(!armed(b,'Tap again to go back'))return;b.disabled=true;syncGoBack(b.dataset.shback);}});
 
 /* ================= events ================= */
 onTap(async e=>{
