@@ -833,7 +833,7 @@ body.wide2 .chart-card .chart{height:340px}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202610271730";
+const LACAG_BUILD="202611041252";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1236,21 +1236,32 @@ async function fetchFx(){
   const first=firstTxDate();const start=ds(Math.min((first?dn(first):dn(localToday())-30)-14,TEN_YEARS_AGO()));
   const hosts=['https://api.frankfurter.dev/v1','https://api.frankfurter.app'];
   const syms=CCYS.filter(c=>c!=='NOK').join(',');
-  const needHist=!C.fx||!C.fx.from||C.fx.from>start||Date.now()-C.fx.t>6*36e5||!C.fx.USD||!C.fx.EUR;
-  let ok=false,lastErr;
-  for(const h of hosts){try{
-    if(needHist){const j=await getJSON(`${h}/${start}..?base=NOK&symbols=${syms}`);const out={t:Date.now(),from:start};
+  const haveHist=C.fx&&C.fx.USD&&C.fx.USD.length&&C.fx.EUR&&C.fx.EUR.length;
+  const needHist=!haveHist||!C.fx.from||C.fx.from>start||Date.now()-C.fx.t>6*36e5;
+  let liveOk=false,histOk=!needHist,lastErr;
+  /* today's rates first: small and quick */
+  for(const h of (helperUrl()?hosts.slice(0,1):hosts)){try{const l=await getJSON(`${h}/latest?base=NOK&symbols=${syms}`,8000);const live={date:localToday(),t:Date.now()};for(const c of CCYS)if(c!=='NOK'&&l.rates[c])live[c]=1/l.rates[c];C.fxLive=live;liveOk=true;NET.fxVia='Frankfurter';break;}catch(e){lastErr=e;}}
+  /* backup: your own price helper (Yahoo), e.g. USDNOK=X */
+  if(!liveOk&&helperUrl()){try{const live={date:localToday(),t:Date.now()};for(const c of CCYS)if(c!=='NOK'){const j=await helperGet(c+'NOK=X','5d');if(j.price>0)live[c]=+j.price;}if(live.USD&&live.EUR){C.fxLive=live;liveOk=true;NET.fxVia='Price helper';}}catch(e){lastErr=e;}}
+  /* the long history (10 years): may take a while; if it fails, the rates you already have are kept */
+  const loadHist=async()=>{for(const h of hosts){try{const j=await getJSON(`${h}/${start}..?base=NOK&symbols=${syms}`,30000);const out={t:Date.now(),from:start};
       for(const c of CCYS)if(c!=='NOK')out[c]=[];
       for(const d of Object.keys(j.rates).sort()){const r=j.rates[d];for(const c of CCYS)if(c!=='NOK'&&r[c])out[c].push([d,1/r[c]]);}
-      C.fx=out;}
-    const l=await getJSON(`${h}/latest?base=NOK&symbols=${syms}`);const live={date:localToday(),t:Date.now()};for(const c of CCYS)if(c!=='NOK'&&l.rates[c])live[c]=1/l.rates[c];C.fxLive=live;
-    ok=true;break;}catch(e){lastErr=e;}}
-  if(!ok)throw lastErr;
+      C.fx=out;histOk=true;break;}catch(e){lastErr=e;}}
+    if(!histOk&&!haveHist&&helperUrl()){try{const out={t:Date.now(),from:start};for(const c of CCYS)if(c!=='NOK'){const j=await helperGet(c+'NOK=X','10y');out[c]=j.series.filter(x=>x[1]>0);}if(out.USD.length&&out.EUR.length){C.fx=out;histOk=true;}}catch(e){lastErr=e;}}};
+  /* with rates already saved, the long history loads in the background and never holds up today's prices */
+  if(needHist){if(haveHist)loadHist().then(()=>{VERSION++;saveCache();renderSoon();});else await loadHist();}
+  NET.fxErr=liveOk&&(histOk||haveHist)?'':String((lastErr&&lastErr.message)||lastErr||'');
+  if(!liveOk&&!(histOk||haveHist))throw lastErr||new Error('No exchange rates');
+  return liveOk;
 }
 const BIN=['https://data-api.binance.vision','https://api.binance.com'];
-async function bin(path){let last;for(const h of BIN){try{return await getJSON(h+path);}catch(e){last=e;}}throw last;}
+async function bin(path){let last;for(const h of BIN){try{return await getJSON(h+path,10000);}catch(e){last=e;}}throw last;}
 const binSym=a=>(a.dataSymbol||a.symbol).toUpperCase().replace(/^XBT$/,'BTC').replace(/[-/]?(USDT|USD)$/,'')+'USDT';
-async function fetchCrypto(a){
+async function fetchCrypto(a){try{await fetchBinance(a);}catch(e){if(!helperUrl())throw e;
+  const ys=a.yahoo||String(a.dataSymbol||a.symbol).toUpperCase().replace(/^XBT$/,'BTC').replace(/[-/:].*$/,'').replace(/(USDT|USD)$/,'')+'-USD';
+  await fetchHelper(Object.assign({},a,{yahoo:ys}));}} /* Binance can't be reached (some work networks block it): the same prices through your price helper */
+async function fetchBinance(a){
   const sym=binSym(a);const key=histKey(a);const first=firstDateFor(a);if(!first)return;
   const h=C.hist[key];const startDay=dn(first)-3;
   if(!h||Date.now()-h.t>6*36e5||h.from>ds(startDay)){
@@ -1292,7 +1303,7 @@ async function fetchHelper(a){const sym=yahooSym(a);if(!sym)throw new Error('Set
 let RS_T=null;function renderSoon(){if(RS_T)return;RS_T=setTimeout(()=>{RS_T=null;if(!document.hidden)softRender();},400);}
 let tdNext=0;
 async function td(endpoint,params){
-  const wait=tdNext-Date.now();if(wait>0)await sleep(wait);tdNext=Date.now()+7800;
+  const slot=Math.max(Date.now(),tdNext);tdNext=slot+7800;if(slot>Date.now())await sleep(slot-Date.now()); /* the free plan allows 8 a minute: each call books its own turn */
   const u=new URL('https://api.twelvedata.com/'+endpoint);for(const [k,v] of Object.entries(params))if(v)u.searchParams.set(k,v);u.searchParams.set('apikey',S.settings.tdKey);
   const j=await getJSON(u.toString());if(j&&j.status==='error')throw new Error(j.message||'Twelve Data error');return j;}
 function tdSym(raw){const [symbol,exchange]=String(raw).trim().split(':');return {symbol,exchange};}
@@ -1317,21 +1328,30 @@ async function fetchBenchmarks(){
     if(!ok)C.err['bm:'+id]=b.id==='OSEBX'?'Not available on your Twelve Data plan':String((lastErr&&lastErr.message)||lastErr);
     VERSION++;saveCache();renderSoon();}
 }
+/* run jobs a few at a time (Twelve Data keeps its own pace inside td()) */
+async function pool(items,n,fn){let i=0;const run=async()=>{while(i<items.length){const x=items[i++];await fn(x);}};await Promise.all(Array.from({length:Math.min(n,items.length)},run));}
 async function refresh(force){
-  if(NET.busy)return;NET.busy=true;renderTop();
+  if(NET.busy)return;NET.busy=true;NET.started=Date.now();renderTop();
   if(force)for(const k in C.live)C.live[k].t=0;
   try{
-    try{await fetchFx();NET.blocked=false;NET.lastOk=Date.now();}catch(e){NET.blocked=true;}
+    let fxOk=false,haveFx=false;
+    try{fxOk=await fetchFx();haveFx=true;}catch(e){haveFx=!!(C.fx&&C.fx.USD&&C.fx.USD.length);}
     NET.checked=true;VERSION++;saveCache();renderSoon();
-    if(!NET.blocked){
-      const active=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));
-      for(const a of active.filter(a=>a.cls==='crypto')){try{await fetchCrypto(a);delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();renderSoon();}
-      for(const a of active.filter(a=>a.cls!=='crypto')){
-        if(!S.settings.tdKey&&!helperUrl()){C.err[a.id]='Add a Twelve Data key or a price helper in Settings → Live prices';continue;}
-        try{if(useHelper(a)){try{await fetchHelper(a);}catch(e){if(!S.settings.tdKey||/:/.test(a.dataSymbol||''))throw e;await fetchTD(a);}}
-          else{try{await fetchTD(a);}catch(e){if(helperUrl()&&/plan|not available|not found|invalid/i.test(String(e.message||e)))await fetchHelper(a);else throw e;}}
-          delete C.err[a.id];}catch(e){C.err[a.id]=String(e.message||e);}VERSION++;saveCache();renderSoon();}
-      await fetchBenchmarks();NET.lastOk=Date.now();}
+    if(haveFx){
+      let got=0;const active=S.assets.filter(a=>S.txs.some(t=>t.assetId===a.id));
+      const one=async a=>{try{
+          if(a.cls==='crypto')await fetchCrypto(a);
+          else{if(!S.settings.tdKey&&!helperUrl()){C.err[a.id]='Add a Twelve Data key or a price helper in Settings → Live prices';return;}
+            if(useHelper(a)){try{await fetchHelper(a);}catch(e){if(!S.settings.tdKey||/:/.test(a.dataSymbol||''))throw e;await fetchTD(a);}}
+            else{try{await fetchTD(a);}catch(e){if(helperUrl()&&/plan|not available|not found|invalid|credits|limit/i.test(String(e.message||e)))await fetchHelper(a);else throw e;}}}
+          delete C.err[a.id];got++;}catch(e){C.err[a.id]=String(e.message||e);}
+        VERSION++;renderSoon();};
+      await pool(active,4,one);saveCache();
+      /* "Saved prices" only when nothing at all could be reached */
+      NET.blocked=!fxOk&&!got&&active.length>0;
+      if(fxOk||got)NET.lastOk=Date.now();
+      if(!NET.blocked)await fetchBenchmarks();}
+    else NET.blocked=true;
   }finally{NET.busy=false;VERSION++;saveCache();renderSoon();}
 }
 
@@ -1965,7 +1985,7 @@ function settingsAllHTML(){
   <div class="card stack"><div class="note">Import CSV files from <b>Nordnet</b> (Transaksjoner og notaer → Eksporter), <b>Kraken</b> (History → Export → Trades) or any broker. Transactions you already have are skipped.</div><div><button class="btn primary sm" data-act="import">${iconSm('import')} Import CSV</button></div></div>
   <h2 class="sec">Live prices</h2>
   <div class="card stack">
-   ${NET.blocked?`<div class="note keep"><b>Live prices are off here.</b> This view blocks internet requests, so Lacag values your holdings from your trade prices and the prices you enter. Put Lacag on your phone (Settings → Install on your phone) for daily prices.</div>`:`<div class="note">Crypto and exchange rates update by themselves for free. Stocks, ETFs and the benchmark indexes need a free key from <b>Twelve Data</b> (twelvedata.com → sign up → API keys). The free plan covers US stocks and US-listed ETFs; European ETFs such as WEBN need a paid plan there, so Lacag gets those through your price helper (below).</div>`}
+   ${NET.blocked?`<div class="note keep"><b>No price service could be reached from this device.</b> Lacag values your holdings with the last prices it has. Tap <b>Test connections</b> below to see which service is blocked here.</div>`:`<div class="note">Crypto and exchange rates update by themselves for free. Stocks, ETFs and the benchmark indexes need a free key from <b>Twelve Data</b> (twelvedata.com → sign up → API keys). The free plan covers US stocks and US-listed ETFs; European ETFs such as WEBN need a paid plan there, so Lacag gets those through your price helper (below).</div>`}
    <div class="field"><label for="tdKey">Twelve Data API key</label><input id="tdKey" autocomplete="off" spellcheck="false" placeholder="Paste your key" value="${esc(S.settings.tdKey)}"></div>
    <div class="btns"><button class="btn primary sm" data-act="savekey">Save key</button><button class="btn sm" data-act="refresh">Update prices now</button></div>
    <div class="field"><label for="helperUrl">Price helper address</label><input id="helperUrl" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://lacag-prices.yourname.workers.dev" value="${esc(S.settings.helper||'')}"><div class="hint">Your own free Cloudflare helper. Used for holdings Twelve Data's free plan doesn't cover, such as WEBN on Xetra.</div></div>
@@ -4497,6 +4517,30 @@ function syncHistPaint(){const box=document.getElementById('syncHist');if(box)bo
 onTap(e=>{if(e.target.closest('[data-act="synchist"]')){syncHistoryLoad();return;}
   const b=e.target.closest('[data-shback]');if(b){if(!armed(b,'Tap again to go back'))return;b.disabled=true;syncGoBack(b.dataset.shback);}});
 
+/* ================= Test connections: which price services this device can reach, and how fast ================= */
+const NC={rows:null,busy:false};
+async function ncTry(name,url,ms,read){const t0=performance.now();
+  try{const j=await getJSON(url,ms);const extra=read?read(j):'';return {name,ok:true,ms:Math.round(performance.now()-t0),extra};}
+  catch(e){const ms2=Math.round(performance.now()-t0);const msg=String(e&&e.name==='AbortError'?'No answer in '+Math.round(ms/1000)+' s':(e&&e.message)||e);
+    return {name,ok:false,ms:ms2,extra:/Failed to fetch|NetworkError|Load failed/i.test(msg)?'Blocked or offline':msg};}}
+async function netCheck(){if(NC.busy)return;NC.busy=true;NC.rows=null;ncPaint();
+  const jobs=[ncTry('Exchange rates (Frankfurter)','https://api.frankfurter.dev/v1/latest?base=NOK&symbols=USD,EUR',12000,j=>j&&j.rates&&j.rates.USD?'1 USD = '+(1/j.rates.USD).toFixed(2).replace('.',',')+' kr':''),
+    ncTry('Crypto prices (Binance)',BIN[0]+'/api/v3/ticker/price?symbol=BTCUSDT',12000,j=>j&&j.price?'BTC '+Math.round(+j.price).toLocaleString('nb-NO')+' USD':'')];
+  if(helperUrl())jobs.push(ncTry('Your price helper',helperUrl()+'/?ping',12000,j=>j&&j.version?'version '+j.version+(j.sync?' · sync on':''):''));
+  else jobs.push(Promise.resolve({name:'Your price helper',ok:null,extra:'Not set'}));
+  if(S.settings.tdKey)jobs.push(ncTry('Twelve Data (stocks, indexes)','https://api.twelvedata.com/api_usage?apikey='+encodeURIComponent(S.settings.tdKey),12000,j=>{if(j&&j.status==='error')throw new Error(j.message);return j&&j.plan_limit?'used '+j.current_usage+' of '+j.plan_limit+' this minute'+(j.daily_usage!=null?' · '+j.daily_usage+' of '+(j.plan_daily_limit||800)+' today':''):'';}));
+  else jobs.push(Promise.resolve({name:'Twelve Data (stocks, indexes)',ok:null,extra:'No key'}));
+  try{NC.rows=await Promise.all(jobs);}finally{NC.busy=false;ncPaint();}}
+const ncHost=()=>{const h=location.hostname;return /claude\.ai|claudeusercontent|anthropic/i.test(h)?'claude':location.protocol==='file:'?'file':h;};
+function ncHTML(){const host=ncHost();
+  const where=host==='claude'?'<div class="note keep"><b>You are in the Claude preview.</b> Live prices are blocked here. Open your own GitHub address (or the app on your home screen) to get prices.</div>':'';
+  const last=NET.lastOk?'Last successful update: '+esc(timeLabel(NET.lastOk)):'No successful update yet on this device';
+  const rows=NC.busy?'<div class="small muted">Testing… (up to 12 s)</div>':NC.rows?`<div class="list nc-list">${NC.rows.map(r=>`<div class="item" style="cursor:default"><div class="mid"><div class="t1">${r.ok===true?'✓ Works':r.ok===false?'✗ Not reached':'– Not used'} · ${esc(r.name)}</div><div class="t2">${r.ok!=null?r.ms+' ms':''}${r.extra?(r.ok!=null?' · ':'')+esc(r.extra):''}</div></div></div>`).join('')}</div>`:'';
+  return `<div class="nc-box stack" id="ncBox">${where}<div class="row-between"><span class="lbl2">Connections</span><button class="btn sm" data-act="netcheck">Test connections</button></div><div class="hint">${last}${NET.fxErr?' · exchange rates: '+esc(NET.fxErr):''}</div>${rows}</div>`;}
+function ncPaint(){const b=document.getElementById('ncBox');if(b)b.outerHTML=ncHTML();}
+afterRender(()=>{const k=document.getElementById('tdKey');if(!k||document.getElementById('ncBox'))return;const card=k.closest('.card');if(card)card.insertAdjacentHTML('afterbegin',ncHTML());});
+onTap(e=>{if(e.target.closest('[data-act="netcheck"]'))netCheck();});
+
 /* ================= events ================= */
 onTap(async e=>{
   const el=e.target.closest('[data-tab],[data-range],[data-mode],[data-alloc],[data-hsort],[data-sub],[data-asub],[data-psub],[data-brk],[data-bm],[data-asset],[data-tx],[data-cashacc],[data-editacc],[data-editpf],[data-pick],[data-goal],[data-event],[data-updown],[data-pmenu],[data-prange],[data-psort],[data-rview],[data-rper],[data-krange],[data-cbm],[data-act]');if(!el||el===document.documentElement||el===document.body)return; /* page-level marks are not buttons */
@@ -4590,7 +4634,7 @@ function boot(){
   const sp=UI.startPage||'overview';if(sp!=='last'){UI.tab=sp;firstView(sp);}
   applyUpdown();VERSION++;render();
   Store.connect();initAsk();refresh(false);
-  setInterval(()=>{if(!document.hidden&&!NET.blocked)refresh(false);},15*60000);
+  setInterval(()=>{if(!document.hidden)refresh(false);},15*60000); /* also tries again after a failed update */
   let lastDay=localToday();setInterval(()=>{if(localToday()!==lastDay){lastDay=localToday();VERSION++;render();}},60000);
 }
 window.__lacag={taxYear:y=>taxYear(y),dataIssues:()=>dataIssues(),compute:()=>compute(),series:(c)=>series(compute(),c||'NOK'),stats:(k,c)=>{const M=compute();return stats(M,series(M,c||'NOK'),k);},project:()=>project(compute()),get S(){return S;},set S(v){S=v;VERSION++;render();},C,bmCompare,startImport,importSheet};
