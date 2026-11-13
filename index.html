@@ -837,6 +837,24 @@ table.rtab thead th.muted2{opacity:.4}
 .mv-sum .end{display:flex;align-items:center;gap:6px}
 .mv-item .mid .t2{white-space:normal;overflow:visible;text-overflow:clip}
 
+/* gain of each trade */
+.tg-row .end{display:flex;flex-direction:column;align-items:flex-end}
+.tg-pill{white-space:nowrap;margin-top:3px}
+.tg-big{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.kvs{padding:2px 14px}.kvs .kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.kvs .kv:last-child{border:0}
+.kvs .kv>span:first-child{color:var(--label)}
+.kvs .kv>span:last-child{text-align:right}
+.tr-list .mv-bar{max-width:220px}
+.tg-row .mid .t2,.tr-list .mid .t2{white-space:normal;overflow:visible;text-overflow:clip}
+.kvs .kv.tot>span:first-child{font-weight:700;color:var(--fg)}.kvs .kv.tot>span:last-child{font-weight:700}
+/* portfolios, settings */
+.tag-mini{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:6px;border:1px solid var(--line);color:var(--label);vertical-align:2px;margin-left:4px}
+.np-opt{align-items:flex-start}.np-opt input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.np-new{margin:0 0 6px 32px}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex:none;margin-top:2px}.radio-dot.on{border:5px solid var(--accent)}
+[data-costm]{align-items:flex-start}
+.pfc-legend{display:flex;flex-wrap:wrap;gap:6px 14px}.pfc-lk{display:inline-flex;align-items:center;gap:6px}.pfc-lk .lk{display:inline-block;width:18px;height:3px;border-radius:2px}
+.pfc-tbl{width:100%;border-collapse:collapse;font-size:14px}.pfc-tbl th{font-weight:400;color:var(--label);font-size:12.5px;text-align:left;padding:6px 4px}.pfc-tbl td{padding:8px 4px;border-top:1px solid var(--line)}.pfc-tbl .num{text-align:right;white-space:nowrap}.pfc-tbl .t2{color:var(--label);font-size:12px}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -857,7 +875,7 @@ table.rtab thead th.muted2{opacity:.4}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611110918";
+const LACAG_BUILD="202611130931";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -881,13 +899,17 @@ const pad=n=>String(n).padStart(2,'0');
 const dn=s=>Math.floor(Date.parse(s+'T00:00:00Z')/DAY);
 const ds=n=>new Date(n*DAY).toISOString().slice(0,10);
 /* the day always follows Norway time (Europe/Oslo, summer and winter time included), wherever the phone is */
-const OSLO_TZ='Europe/Oslo';let OSLO_FMT=null,OSLO_HM=null;
-try{OSLO_FMT=new Intl.DateTimeFormat('en-CA',{timeZone:OSLO_TZ,year:'numeric',month:'2-digit',day:'2-digit'});OSLO_HM=new Intl.DateTimeFormat('en-GB',{timeZone:OSLO_TZ,hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}catch(e){}
+/* the app's time zone: Norway by default, another one can be chosen in Settings → Time zone (S.settings.tz) */
+let OSLO_TZ='Europe/Oslo';let OSLO_FMT=null,OSLO_HM=null;const MID_MEMO={};
+function setAppTz(tz){let f,h;try{f=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'});h=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}catch(e){return false;}
+  OSLO_TZ=tz;OSLO_FMT=f;OSLO_HM=h;for(const k in MID_MEMO)delete MID_MEMO[k];return true;}
+setAppTz('Europe/Oslo');
 function osloDate(ms){if(OSLO_FMT){const p={};for(const x of OSLO_FMT.formatToParts(new Date(ms)))p[x.type]=x.value;return p.year+'-'+p.month+'-'+p.day;}const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function localToday(){return osloDate(Date.now());}
-/* 00:00 Norway time today, as a time stamp (Norway is UTC+1 in winter, UTC+2 in summer) */
-function osloMidnight(){const ymd=localToday();const [y,m,dd]=ymd.split('-').map(Number);
-  for(const off of [1,2,0,3]){const t=Date.UTC(y,m-1,dd)-off*3600e3;if(osloDate(t)===ymd&&osloDate(t-1)!==ymd)return t;}
+/* 00:00 today in the app's time zone, as a time stamp (Norway is UTC+1 in winter, UTC+2 in summer; other zones from UTC−12 to UTC+14, also :30 and :45) */
+function osloMidnight(){const ymd=localToday();const mk=OSLO_TZ+'|'+ymd;if(MID_MEMO[mk])return MID_MEMO[mk];const [y,m,dd]=ymd.split('-').map(Number);
+  const offs=[60,120];for(let o=-14*60;o<=14*60;o+=15)if(o!==60&&o!==120)offs.push(o);
+  for(const off of offs){const t=Date.UTC(y,m-1,dd)-off*60000;if(osloDate(t)===ymd&&osloDate(t-1)!==ymd)return (MID_MEMO[mk]=t);}
   const d=new Date();d.setHours(0,0,0,0);return d.getTime();}
 const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-5);
 const nf0=new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0});
@@ -1101,7 +1123,7 @@ function market(){
 }
 
 function compute(){
-  const P=portfolio();const key=P.id+'|'+P.accountIds.join(',');
+  const P=portfolio();const key=P.id+'|'+P.accountIds.join(',')+'|'+costMethod();
   if(MEMO.model&&MEMO.model.v===VERSION&&MEMO.model.key===key)return MEMO.model.M;
   const inP=id=>!!id&&P.accountIds.includes(id);
   const txs=S.txs.filter(t=>inP(t.accountId)||inP(t.toAccountId)||inP(t.fundAccountId)).filter(t=>!t.assetId||assetById(t.assetId))
@@ -1114,6 +1136,9 @@ function compute(){
   const AV={},ACF={},ADIV={};for(const a of S.assets){AV[a.id]=new Float64Array(N);ACF[a.id]=new Float64Array(N);ADIV[a.id]=new Float64Array(N);}
   const H={};for(const a of S.assets)H[a.id]={qty:0,cost:0,costCur:0,costNoFee:0,realized:0,divs:0,fees:0,invested:0,accs:new Set(),byAcc:{}};
   const cash={};const cashIn={};for(const a of S.accounts){cash[a.id]=0;cashIn[a.id]={dep:0,int:0};}
+  /* lots: each buy is kept as its own lot, so every trade has its own result. Sales take shares first-in-first-out
+     (Norway's rule, per asset and tax group: ASK, IPS and normal accounts are kept apart) or from all lots evenly (average cost) */
+  const METHOD=costMethod();const LOTS={};const TXR={};const SALES=[];for(const a of S.assets)LOTS[a.id]=[];
   const firstDay=dn(txs[0].date);
   let ti=0;let net=0;
   for(let i=0;i<N;i++){const day=d0+i;
@@ -1124,15 +1149,27 @@ function compute(){
         const gross=t.qty*t.price*fx;const fee=t.fee||0;const secIn=inP(t.accountId);
         const src=t.fundAccountId==='__outside'?null:(t.fundAccountId||(acc.tracksCash?acc.id:null));const srcIn=inP(src);
         let nok=0;
-        if(t.type==='buy'){nok=gross+fee;if(secIn){h.qty+=t.qty;h.cost+=nok;h.costCur+=t.qty*t.price;h.costNoFee+=gross;h.fees+=fee;h.invested+=nok;h.accs.add(acc.id);h.byAcc[acc.id]=(h.byAcc[acc.id]||0)+t.qty;}}
+        if(t.type==='buy'){nok=gross+fee;if(secIn){h.qty+=t.qty;h.cost+=nok;h.costCur+=t.qty*t.price;h.costNoFee+=gross;h.fees+=fee;h.invested+=nok;h.accs.add(acc.id);h.byAcc[acc.id]=(h.byAcc[acc.id]||0)+t.qty;
+            LOTS[a.id].push({tx:t.id,date:t.date,acc:acc.id,g:taxKind(t,a),q0:t.qty,q:t.qty,cost:nok,costCur:t.qty*t.price,costNoFee:gross,fee,fx,sold:[]});}}
         else{const q=secIn?Math.min(t.qty,h.qty):t.qty;if(q<=0)continue;nok=q*t.price*fx-fee;
-          if(secIn){const f=q/h.qty;const cb=h.cost*f;h.realized+=nok-cb;h.cost-=cb;h.costCur-=h.costCur*f;h.costNoFee-=h.costNoFee*f;h.qty-=q;h.fees+=fee;h.byAcc[acc.id]=Math.max(0,(h.byAcc[acc.id]||0)-q);if(h.qty<1e-12){h.qty=0;h.cost=0;h.costCur=0;h.costNoFee=0;}}}
+          if(secIn){const f=q/h.qty;let cb,cbCur,cbNoFee;const lots=LOTS[a.id];
+            if(METHOD==='avg'){cb=h.cost*f;cbCur=h.costCur*f;cbNoFee=h.costNoFee*f; /* every lot gives up the same share */
+              for(const l of lots)if(l.q>0){const tq=l.q*f;l.sold.push({tx:t.id,date:t.date,q:tq,cost:l.cost*f});l.q-=tq;l.cost-=l.cost*f;l.costCur-=l.costCur*f;l.costNoFee-=l.costNoFee*f;l.fee-=l.fee*f;}}
+            else{cb=0;cbCur=0;cbNoFee=0;let left=q;const g=taxKind(t,a);
+              const order=lots.filter(l=>l.q>1e-12&&l.g===g).concat(lots.filter(l=>l.q>1e-12&&l.g!==g)); /* oldest first in the same tax group, then the rest */
+              for(const l of order){if(left<=1e-12)break;const tq=Math.min(left,l.q);const part=tq/l.q;
+                const c=l.cost*part;cb+=c;cbCur+=l.costCur*part;cbNoFee+=l.costNoFee*part;l.sold.push({tx:t.id,date:t.date,q:tq,cost:c});
+                l.cost-=c;l.costCur-=l.costCur*part;l.costNoFee-=l.costNoFee*part;l.fee-=l.fee*part;l.q-=tq;left-=tq;if(l.q<=1e-12){l.q=0;l.cost=0;l.costCur=0;l.costNoFee=0;l.fee=0;}}}
+            h.realized+=nok-cb;h.cost-=cb;h.costCur-=cbCur;h.costNoFee-=cbNoFee;h.qty-=q;h.fees+=fee;h.byAcc[acc.id]=Math.max(0,(h.byAcc[acc.id]||0)-q);
+            TXR[t.id]={kind:'sell',q,proceeds:nok,cost:cb,gain:nok-cb,pct:cb>0?(nok-cb)/cb:0,short:t.qty-q>1e-9};SALES.push({date:t.date,tx:t.id,assetId:a.id,gain:nok-cb});
+            if(h.qty<1e-12){h.qty=0;h.cost=0;h.costCur=0;h.costNoFee=0;for(const l of lots){l.q=0;l.cost=0;l.costCur=0;l.costNoFee=0;l.fee=0;}}}}
         const signed=t.type==='buy'?nok:-nok; // money leaving cash / entering securities
         if(secIn){CFI[i]+=signed;ACF[a.id][i]+=signed;}
         if(srcIn){const sa=accById(src);cash[src]-=signed/fxAt(sa.currency,i);if(!secIn)CF[i]-=signed;}
         else if(secIn)CF[i]+=signed;
       }
-      else if(t.type==='split'){const a=assetById(t.assetId);if(!a||!inP(t.accountId)||!(t.ratio>0))continue;const h=H[a.id];const q=h.byAcc[acc.id]||0;const add=q*(t.ratio-1);h.byAcc[acc.id]=q*t.ratio;h.qty+=add;}
+      else if(t.type==='split'){const a=assetById(t.assetId);if(!a||!inP(t.accountId)||!(t.ratio>0))continue;const h=H[a.id];const q=h.byAcc[acc.id]||0;const add=q*(t.ratio-1);h.byAcc[acc.id]=q*t.ratio;const before=h.qty;h.qty+=add;
+        /* the lots get the new number of shares (same cost) */const lq=LOTS[a.id].reduce((s,l)=>s+l.q,0);if(lq>0&&before>0){const k=h.qty/lq;for(const l of LOTS[a.id]){l.q*=k;l.q0*=k;for(const x of l.sold)x.q*=k;}}}
       else if(t.type==='dividend'){const a=assetById(t.assetId);const secIn=inP(t.accountId);const dest=t.fundAccountId==='__outside'?null:(t.fundAccountId||(acc.tracksCash?acc.id:null));
         if(secIn&&a)H[a.id].divs+=t.amount;
         if(secIn){DIVI[i]+=t.amount;if(a)ADIV[a.id][i]+=t.amount;}
@@ -1158,9 +1195,14 @@ function compute(){
     holdings.push({a,kind:'asset',qty:h.qty,value,cost:h.cost,avgCur,avgFx,priceNow:p,fxNow,pricePrev:N>1?priceCur[a.id][L-1]:p,fxPrev:N>1?fxAt(a.currency,L-1):fxNow,gain:value-h.cost,gainPct:h.cost>0?(value-h.cost)/h.cost:0,
       dayChg:h.qty*(p*fxNow-pPrev),dayPct:pPrev>0?(p*fxNow-pPrev)/pPrev:0,priceEffect:(value-h.cost)-h.qty*avgCur*(fxNow-avgFx),fxEffect:h.qty*avgCur*(fxNow-avgFx), /* price part includes fees, so price + currency = unrealised gain exactly */
       realized:h.realized,divs:h.divs,fees:h.fees,invested:h.invested,src:mk.src[a.id],accs:[...h.accs],byAcc:h.byAcc,AV:AV[a.id],ACF:ACF[a.id],ADIV:ADIV[a.id]});}
+  /* each buy's result now: what is left of it, worth at today's price, split into price, currency and fee */
+  for(const a of S.assets)for(const l of LOTS[a.id]){const p=priceCur[a.id][L];const fxNow=fxAt(a.currency,L);const fxBuy=l.costCur>0?l.costNoFee/l.costCur:l.fx;
+    const value=l.q*p*fxNow;const ok=isFinite(p);
+    TXR[l.tx]={kind:'buy',assetId:a.id,q0:l.q0,q:l.q,cost:l.cost,value:ok?value:null,gain:ok?value-l.cost:null,pct:ok&&l.cost>0?(value-l.cost)/l.cost:null,
+      priceEffect:ok?(l.q*p-l.costCur)*fxBuy:null,fxEffect:ok?l.q*p*(fxNow-fxBuy):null,feeLeft:l.fee,fxBuy,fxNow,pNow:p,avgPrice:l.q>0?l.costCur/l.q:null,sold:l.sold,soldQ:l.sold.reduce((s,x)=>s+x.q,0)};}
   const cashRows=[];for(const acc of S.accounts){if(!inP(acc.id))continue;const bal=cash[acc.id];if(Math.abs(bal)<0.005&&!cashIn[acc.id].dep)continue;
     cashRows.push({acc,balance:bal,value:bal*fxAt(acc.currency,L),deposited:cashIn[acc.id].dep,interest:cashIn[acc.id].int});}
-  const M={P,d0,N,today,firstDay,V:VI,CF:CFI,DIV:DIVI,NET:NETI,VT:V,CASH,holdings,cashRows,fxAt,priceCur,txs,total:V[L],invested:VI[L],cash:CASH[L]};
+  const M={P,d0,N,today,firstDay,V:VI,CF:CFI,DIV:DIVI,NET:NETI,VT:V,CASH,holdings,cashRows,fxAt,priceCur,txs,total:V[L],invested:VI[L],cash:CASH[L],TXR,SALES,method:METHOD};
   MEMO.model={v:VERSION,key,M};return M;
 }
 /* re-express the model in a display currency and compute time-weighted returns */
@@ -2223,14 +2265,14 @@ function assetSheet(id){
     ${a.cls==='etf'?`<div class="field"><label for="eLookR">Fund regions (approx. %)</label><textarea id="eLookR" style="min-height:120px">${esc(lookToText(a.look&&a.look.region))}</textarea><div class="hint">One per line, like <code>North America: 64</code>. Leave empty to use the single region above.${a.look===null||!a.look?' <button type="button" class="btn sm" id="useAllWorld">Fill in all-world weights</button>':''}</div></div>
     <div class="field"><label for="eLookS">Fund sectors (approx. %)</label><textarea id="eLookS" style="min-height:120px">${esc(lookToText(a.look&&a.look.sector))}</textarea></div>`:''}
     <div class="btns"><button class="btn sm" data-act="saveasset">Save details</button><button class="btn sm primary" data-act="tradeasset">${iconSm('plus',15)} Trade ${esc(a.symbol)}</button></div>${C.err[a.id]?`<div class="small down">${esc(C.err[a.id])}</div>`:''}</div>
-   <h2 class="sec">Transactions</h2><div class="list">${S.txs.filter(t=>t.assetId===a.id).sort((x,y)=>x.date<y.date?1:-1).map(txLine).join('')}</div>`;
+   ${actGainOn()?assetTradesHTML(a):`<h2 class="sec">Transactions</h2><div class="list">${S.txs.filter(t=>t.assetId===a.id).sort((x,y)=>x.date<y.date?1:-1).map(txLine).join('')}</div>`}`;
   openSheet(a.name||a.symbol,body,()=>{
     const drawA=()=>{const key=UI.drange;const FH=assetHist(a,mk);const cur=FH.cur||a.currency;const from=key==='MAX'?-Infinity:rangeBase(key,mk.today);
       let i0=FH.s.findIndex(p=>p.x>from);if(i0<0)i0=FH.s.length;const all=FH.s.slice(Math.max(0,i0-1)); /* start at the last price ON or BEFORE the period start */const pts=downsample(all.map((_,i)=>i)).map(i=>all[i]);
       const r=pts.length>1?pts[pts.length-1].v/pts[0].v-1:0;$('#aRangeTxt').innerHTML=pts.length>1?`Price ${RANGE_WORD[key]}: <span class="${cl(r)}">${pct(r)}</span> in ${cur}`+(FH.loading?' · <span class="muted">loading full history…</span>':''):'';
       const fb=firstDateFor(a)?dn(firstDateFor(a)):null;let mi=-1;if(fb!=null&&pts.length>2&&fb>pts[0].x){mi=pts.findIndex(p=>p.x>=fb);}
       $$('[data-arange]').forEach(b=>{const k=b.dataset.arange;b.classList.toggle('nodata',k!=='MAX'&&FH.s.length>0&&rangeBase(k,mk.today)<FH.s[0].x-3);const sp=b.querySelector('.rp');if(sp)sp.outerHTML=assetRangePct2(FH,k,mk);});
-      mountChart($('#assetChart'),{main:true,series:[{pts,color:r>=0?'var(--up)':'var(--down)',label:'Price',fmt:'price'}],kind:'price',ccy:cur,markers:mi>0?[{i:mi,color:'var(--accent)',label:'First buy'}]:[],refLine:h.qty&&cur===a.currency?h.avgCur:null,refLabel:'Avg. cost',tipExtra:i=>{const p0=pts[0].v;const v=pts[i].v;const rows=[{label:'Change',text:pct(v/p0-1),cls:cl(v/p0-1)}];if(h.qty)rows.push({label:'vs avg. cost',text:pct(v/h.avgCur-1),cls:cl(v/h.avgCur-1)});return rows;}});};
+      mountChart($('#assetChart'),{main:true,series:[{pts,color:r>=0?'var(--up)':'var(--down)',label:'Price',fmt:'price'}],kind:'price',ccy:cur,markers:mi>0&&!actGainOn()?[{i:mi,color:'var(--accent)',label:'First buy'}]:[],events:actGainOn()?assetTradeEvents(a,pts):[],evLabels:true,refLine:h.qty&&cur===a.currency?h.avgCur:null,refLabel:'Avg. cost',tipExtra:i=>{const p0=pts[0].v;const v=pts[i].v;const rows=[{label:'Change',text:pct(v/p0-1),cls:cl(v/p0-1)}];if(h.qty)rows.push({label:'vs avg. cost',text:pct(v/h.avgCur-1),cls:cl(v/h.avgCur-1)});return rows;}});};
     drawA();loadAssetHist(a,mk).then(ok=>{if(ok&&document.body.contains($('#assetChart')||document.body))drawA();});
     $$('[data-arange]').forEach(b=>b.onclick=()=>{UI.drange=b.dataset.arange;saveUI();$$('[data-arange]').forEach(x=>x.setAttribute('aria-pressed',x===b));drawA();});
     const allw=fv('useAllWorld');if(allw)allw.onclick=()=>{fv('eLookR').value=lookToText(LOOK_ALLWORLD.region);fv('eLookS').value=lookToText(LOOK_ALLWORLD.sector);};
@@ -3052,6 +3094,8 @@ function skjFirstYear(){let f=null;for(const t of S.txs){if(t.type!=='buy')conti
 /* years from your first share or fund buy up to y that have no published rate */
 function skjMissing(y){const f=skjFirstYear();if(f==null)return [];const out=[];for(let x=f;x<=y;x++)if(NOTAX.skj[x]==null)out.push(x);return out;}
 const skjEstimate=y=>skjMissing(y).length>0;
+/* how the cost of sold shares is counted: 'fifo' (first in, first out: Norway, also Germany, Sweden, the USA by default) or 'avg' (average cost: the UK pool, France, Canada, US funds) */
+function costMethod(){return S&&S.settings&&S.settings.costMethod==='avg'?'avg':'fifo';}
 function taxKind(t,a){const acc=accById(t.accountId);if(a&&a.cls==='crypto')return 'crypto';if(acc&&acc.kind==='ask')return 'ask';if(acc&&acc.kind==='ips')return 'ips';return 'share';}
 function txFx(t,a){if(!a||a.currency==='NOK')return 1;return t.fx>0?t.fx:fxForDate(a.currency,t.date);}
 /* one pass through all trades: FIFO lots per asset and tax group, realised gains per sale, yearly skjerming, dividends */
@@ -3641,8 +3685,8 @@ function pcTipHTML(s){if(!s||!s.w)return `<div class="th">${esc(s?s.title:'')}</
    <div class="tr"><span class="sw"></span><span class="tl">Transaction costs</span><span class="tv">${F(conv(compute(),w.fees))}</span></div>`;}
 /* breakdown of the chosen period, like getquin */
 function pcBreakdown(M,Z,w){if(!w)return '';const st=w.st;const fs=ds(w.from),ts=ds(w.to);const k=conv(M,1);
-  let realised=0;try{for(const s of taxModel().sales)if(s.date>fs&&s.date<=ts)realised+=s.gain;}catch(e){}realised*=k;
-  let taxes=0;try{for(const s of taxModel().sales)if(s.date>fs&&s.date<=ts){const r=s.g==='share'?NOTAX.share:s.g==='crypto'?NOTAX.crypto:0;taxes+=Math.max(0,s.gain-(s.skUsed||0))*r;}}catch(e){}taxes*=k;
+  let realised=0;for(const s of M.SALES||[])if(s.date>fs&&s.date<=ts)realised+=s.gain;realised*=k; /* the open portfolio's sales, counted with your cost method */
+  let taxes=0;try{for(const s of taxModel().sales)if(s.date>fs&&s.date<=ts&&s.acc&&M.P.accountIds.includes(s.acc.id)){const r=s.g==='share'?NOTAX.share:s.g==='crypto'?NOTAX.crypto:0;taxes+=Math.max(0,s.gain-(s.skUsed||0))*r;}}catch(e){}taxes*=k;
   let ongoing=0;for(const h of M.holdings){const ter=+h.a.ter;if(!(ter>0))continue;for(let i=Math.max(0,w.bi+1);i<=w.ei;i++)ongoing+=(h.AV[i]||0)*ter/100/365;}ongoing*=k;
   const inv=Z.NET[w.ei];const priceGain=st.gain-st.div-realised;const pc=v=>inv>0?`<span class="${cl(v)} small">${pct(v/inv)}</span>`:'';
   const row=(l,info,v,p,cls='')=>`<div class="pb-row"><span>${l}${info?' '+infoBtn(info):''}</span><span class="pb-v">${p||''}<span class="num ${cls}">${v}</span></span></div>`;
@@ -3773,7 +3817,7 @@ afterRender(()=>{calmChip();});
 onTap(e=>{if(!e.target.closest('[data-act="calmtoggle"]'))return;UI.calm=!UI.calm;saveUI();applyLook();softRender();calmChip();toast(UI.calm?'Calm mode on · daily ups and downs hidden':'Calm mode off');});
 
 /* ================= updates: show the version and offer the newest one when GitHub has it ================= */
-const buildLabel=()=>{const b=LACAG_BUILD;const d=new Date(Date.UTC(+b.slice(0,4),+b.slice(4,6)-1,+b.slice(6,8),+b.slice(8,10),+b.slice(10,12)));const p2=n=>String(n).padStart(2,'0');return `${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;};
+const buildLabel=()=>{const b=LACAG_BUILD;const t=Date.UTC(+b.slice(0,4),+b.slice(4,6)-1,+b.slice(6,8),+b.slice(8,10),+b.slice(10,12));const [y,m,d]=osloDate(t).split('-');return `${d}.${m}.${y} ${timeLabel(t)}`;}; /* in the app's time zone */
 async function checkUpdate(manual){if(!/^https?:/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.host)){if(manual)toast('Version '+buildLabel());return;}
   try{const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});const t=await r.text();const m=t.match(/LACAG_BUILD="(\d{12})"/);
     if(m&&m[1]>LACAG_BUILD){showUpdateBar();}else if(manual)toast('You have the newest version');}catch(e){if(manual)toast('Could not check right now');}}
@@ -4581,8 +4625,8 @@ const MARKETS={US:['America/New_York',570,960,'US'],OL:['Europe/Oslo',540,980,'O
 function marketOf(a){if(a.cls==='crypto')return '24/7';let y=null;try{y=yahooSym(a);}catch(e){}const m=/\.([A-Z]{1,2})$/.exec(y||'');
   if(m)return MARKETS[m[1]]||null;if(a.currency==='USD')return MARKETS.US;if(a.currency==='NOK')return MARKETS.OL;return null;}
 const TZF={};const tzParts=(tz,t)=>{const f=TZF[tz]||(TZF[tz]=new Intl.DateTimeFormat('en-GB',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}));const o={};for(const p of f.formatToParts(new Date(t)))o[p.type]=p.value;return {wd:o.weekday,min:(+o.hour%24)*60+(+o.minute)};};
-const osloHM=t=>new Intl.DateTimeFormat('nb-NO',{timeZone:'Europe/Oslo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t));
-const osloWd=t=>new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Oslo',weekday:'short'}).format(new Date(t));
+const osloHM=t=>OSLO_HM.format(new Date(t));
+const osloWd=t=>new Intl.DateTimeFormat('en-GB',{timeZone:OSLO_TZ,weekday:'short'}).format(new Date(t));
 /* "Open · closes 22:00" / "Closed · opens 15:30" (times in Norway time) */
 const MC_MEMO={};
 function marketChip(a,now=Date.now()){const mk=a.id+'|'+Math.floor(now/60000);if(MC_MEMO[mk]!=null)return MC_MEMO[mk];return (MC_MEMO[mk]=marketChip0(a,now));}
@@ -4625,7 +4669,7 @@ moversBlock=function(M){const D=mvData(M);if(!D.hs.length)return '<div class="ca
 afterRender(()=>{const head=document.querySelector('#view [data-card="movers"] .c-head');if(!head||head.querySelector('[data-act="mvcfg"]'))return;
   head.insertAdjacentHTML('beforeend',`<button class="gear-btn" data-act="mvcfg" aria-label="Today's movers settings">${iconSm('gear',18)}</button>`);});
 function mvCfgSheet(){const draw=()=>{const o=mvOpt();return `<div class="look-row"><span class="lbl2">View</span><div class="seg" role="group">${[['why','Why it moved'],['line',"Today's line"]].map(([k,l])=>`<button data-mvo="view:${k}" aria-pressed="${o.view===k}">${l}</button>`).join('')}</div></div>
-   <div class="hint">${o.view==='line'?"A small line of the price since 00:00 Norway time (dashed line: yesterday's close), the holding's value and its share of your portfolio.":'The price change in the asset’s own currency and the change in the krone rate (together they make the kroner change), whether the market is open (times in Norway time, holidays not included), and how much each holding moved the whole portfolio today.'}</div>`;};
+   <div class="hint">${o.view==='line'?"A small line of the price since 00:00 "+tzWord()+" (dashed line: yesterday's close), the holding's value and its share of your portfolio.":'The price change in the asset’s own currency and the change in the krone rate (together they make the kroner change), whether the market is open (times in '+tzWord()+', holidays not included), and how much each holding moved the whole portfolio today.'}</div>`;};
   openSheet("Today's movers",`<div id="mvoBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#mvoBody');body.addEventListener('click',()=>setTimeout(()=>{body.innerHTML=draw();},0));});}
 onTap(e=>{if(e.target.closest('[data-act="mvcfg"]')){mvCfgSheet();return;}const b=e.target.closest('[data-mvo]');if(b){const [k,v]=b.dataset.mvo.split(':');UI.mvOpt=Object.assign({},mvOpt(),{[k]:v});saveUI();VERSION++;render();}});
 /* period buttons: keep the chosen one in view when the row is swiped */
@@ -4709,6 +4753,229 @@ async function saveFile(name,txt,type){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-NET.lastOk>5*60000)refresh(false);});
+
+
+/* ================= gain or loss of each trade =================
+   Every buy is its own lot. A buy shows what the part you still own has made since you bought it; a sale shows the gain it locked in.
+   Which shares a sale uses follows Settings → Cost method: first in, first out (Norway, default) or average cost.
+   The results come from compute() (M.TXR), so they always add up to the position's gain and the realised gain. */
+const actGainOn=()=>UI.actGain!==false;
+const methodName=()=>costMethod()==='avg'?'average cost':'first in, first out';
+const methodNote=()=>costMethod()==='avg'?'Counted with average cost: every sale takes the same share of each buy (Settings → Cost method).'
+  :'Counted first in, first out, the way Skatteetaten does it: your oldest shares are sold first (Settings → Cost method).';
+function txRes(id){const M=compute();return M&&M.TXR?M.TXR[id]:null;}
+/* the activity row: what is left of the buy is worth now, or the gain a sale locked in */
+{const _tl2=txLine;txLine=function(t){const h=_tl2(t);if(!h||!actGainOn()||(t.type!=='buy'&&t.type!=='sell'))return h;const r=txRes(t.id);if(!r)return h;
+  let extra='';
+  if(r.kind==='buy'){if(r.q<=1e-12)extra=`<div class="t2 muted">All sold</div>`;
+    else if(r.gain!=null)extra=`<div class="t2">Now ${kr(r.value,{dec:true})}${r.soldQ>1e-12?' · '+qtyFmt(r.q)+' of '+qtyFmt(r.q0)+' left':''}</div><span class="pill ${cl(r.gain)} tg-pill">${kr(r.gain,{sign:true,dec:true})} · ${pct(r.pct)}</span>`;}
+  else extra=`<div class="t2">Gain locked in</div><span class="pill ${cl(r.gain)} tg-pill">${kr(r.gain,{sign:true,dec:true})} · ${pct(r.pct)}</span>`;
+  /* the date moves under the details on the left, the result goes under the amount */
+  const m=h.match(/<div class="t2 muted small">([^<]*)<\/div><\/div><\/button>$/);if(!m)return h;
+  let out=h.slice(0,m.index)+extra+'</div></button>';
+  out=out.replace('</div><div class="end">',`<div class="t2 muted small">${m[1]}</div></div><div class="end">`);
+  return out.replace('<button class="item" data-tx=','<button class="item tg-row" data-trade="1" data-tx=');};}
+/* sort the activity by result */
+ACT_F.sort=ACT_F.sort||'new';
+{const _af=activityFilterHTML;activityFilterHTML=function(M){const h=_af(M);if(!actGainOn())return h;const i=h.lastIndexOf('</select>')+9;
+  return h.slice(0,i)+`<select class="mini" id="actSort" aria-label="Sort"><option value="new" ${ACT_F.sort==='new'?'selected':''}>Newest</option><option value="best" ${ACT_F.sort==='best'?'selected':''}>Best trades</option><option value="worst" ${ACT_F.sort==='worst'?'selected':''}>Worst trades</option></select>`+h.slice(i);};}
+{const _al=activityListHTML;activityListHTML=function(M){if(!actGainOn()||ACT_F.sort==='new'||!M.TXR)return _al(M);
+  const g=t=>{const r=M.TXR[t.id];return r&&r.gain!=null&&!(r.kind==='buy'&&r.q<=1e-12)?r.gain:null;};
+  const list=M.txs.filter(t=>(t.type==='buy'||t.type==='sell')&&activityMatch(t)&&g(t)!=null).sort((x,y)=>ACT_F.sort==='best'?g(y)-g(x):g(x)-g(y));
+  if(!list.length)return '<div class="card muted" style="margin-top:12px">No trades match.</div>';
+  return `<div class="small muted" style="margin:12px 2px 0">${list.length} trades · ${ACT_F.sort==='best'?'best':'worst'} first · ${methodName()}</div><div class="list" style="margin-top:8px">${list.map(txLine).join('')}</div>`;};}
+document.addEventListener('change',e=>{if(e.target.id==='actSort'){ACT_F.sort=e.target.value;refreshActivityList();}});
+/* tap a trade: its result. "Edit trade" opens the usual editor */
+const daysBetween=(a,b)=>Math.round(dn(b)-dn(a));
+function tradeSheet(id){const t=S.txs.find(x=>x.id===id);const M=compute();const r=M&&M.TXR&&M.TXR[id];if(!t||!r){if(t&&!S.demo)txSheet(t);return;}
+  const a=assetById(t.assetId);const acc=accById(t.accountId);const kv=(k,v,cls='')=>`<div class="kv"><span>${k}</span><span class="num ${cls}">${v}</span></div>`;
+  const head=`<div class="t2">${t.type==='buy'?'Result since you bought it · '+daysBetween(t.date,localToday())+' days':'Gain locked in by this sale'}</div>`;
+  let body='';
+  if(r.kind==='buy'){
+    if(r.q<=1e-12){body=`${head}<div class="tg-big muted">All sold</div>`;}
+    else if(r.gain==null){body=`${head}<div class="tg-big muted">No price yet</div>`;}
+    else{const fxPart=a.currency!=='NOK';
+      body=`${head}<div class="tg-big ${cl(r.gain)}">${kr(r.gain,{sign:true,dec:true})}</div><span class="pill ${cl(r.pct)}">${pct(r.pct)}</span>
+      <h2 class="sec">Why</h2><div class="card kvs">
+       ${kv(`Price (${money(r.avgPrice,a.currency)} → ${money(r.pNow,a.currency)})`,kr(r.priceEffect,{sign:true,dec:true}),cl(r.priceEffect))}
+       ${fxPart?kv(`${a.currency==='USD'?'Dollar':a.currency==='EUR'?'Euro':a.currency} (${nf2.format(r.fxBuy)} → ${nf2.format(r.fxNow)} kr)`,kr(r.fxEffect,{sign:true,dec:true}),cl(r.fxEffect)):''}
+       ${r.feeLeft>0?kv('Fee you paid',kr(-r.feeLeft,{sign:true,dec:true}),'down'):''}
+       <div class="kv tot"><span>Total</span><span class="num ${cl(r.gain)}">${kr(r.gain,{sign:true,dec:true})}</span></div></div>`;}
+    const sold=(r.sold||[]).filter(x=>x.q>1e-12).map(x=>{const s=M.TXR[x.tx];const st=S.txs.find(y=>y.id===x.tx);if(!s||!st)return '';const g=s.proceeds*x.q/s.q-x.cost;
+      return kv(`Sold ${qtyFmt(x.q)} · ${dateLabel(dn(st.date),true)}`,kr(g,{sign:true,dec:true})+' '+`<span class="small">${pct(x.cost>0?g/x.cost:0)}</span>`,cl(g));}).join('');
+    body+=`<h2 class="sec">The trade</h2><div class="card kvs">${kv('Paid',kr(t.qty*t.price*(a.currency==='NOK'?1:(t.fx||r.fxBuy))+(t.fee||0),{dec:true}))}${r.q>1e-12&&r.soldQ>1e-12?kv('Paid for what is left',kr(r.cost,{dec:true})):''}${r.q>1e-12&&r.value!=null?kv('Worth now',kr(r.value,{dec:true})):''}
+      ${kv('Still own',`${qtyFmt(r.q)} of ${qtyFmt(r.q0)}`)}${acc?kv('Account',esc(acc.name)):''}</div>${sold?`<h2 class="sec">Sold from this buy</h2><div class="card kvs">${sold}</div>`:''}`;}
+  else{const from=[];for(const k in M.TXR){const b=M.TXR[k];if(b.kind!=='buy')continue;for(const x of b.sold||[])if(x.tx===id&&x.q>1e-12){const bt=S.txs.find(y=>y.id===k);if(bt)from.push({bt,x});}}
+    from.sort((p,q)=>p.bt.date<q.bt.date?-1:1);
+    body=`${head}<div class="tg-big ${cl(r.gain)}">${kr(r.gain,{sign:true,dec:true})}</div><span class="pill ${cl(r.pct)}">${pct(r.pct)}</span>
+     <h2 class="sec">The sale</h2><div class="card kvs">${kv('Sold for (after fee)',kr(r.proceeds,{dec:true}))}${kv('Cost of the shares sold',kr(r.cost,{dec:true}))}<div class="kv tot"><span>Gain</span><span class="num ${cl(r.gain)}">${kr(r.gain,{sign:true,dec:true})}</span></div>${r.short?kv('Note','You sold more than you had','down'):''}</div>
+     ${from.length?`<h2 class="sec">Shares taken from</h2><div class="card kvs">${from.map(({bt,x})=>kv(`Buy ${dateLabel(dn(bt.date),true)} · ${money(bt.price,a.currency)}`,`${qtyFmt(x.q)} · ${kr(x.cost,{dec:true})}`)).join('')}</div>`:''}`;}
+  body+=`<div class="note" style="margin-top:12px">${methodNote()}</div>${S.demo?'':`<button class="btn block" style="margin-top:12px" data-tx="${esc(t.id)}">Edit trade</button>`}`;
+  openSheet(`${t.type==='buy'?'Buy':'Sell'} · ${esc(a.symbol)} · ${dateLabel(dn(t.date),true)}`,body);}
+/* capture: a tap on a trade row opens its result instead of the editor */
+onTap(e=>{const b=e.target.closest('[data-trade][data-tx]');if(!b||!actGainOn())return;e.stopPropagation();e.preventDefault();tradeSheet(b.dataset.tx);},true);
+/* the asset's own trades, with a bar for each result, and B / S marks on its price chart */
+function assetTradesHTML(a){const M=compute();if(!M||!M.TXR)return '';
+  const tr=S.txs.filter(t=>t.assetId===a.id&&(t.type==='buy'||t.type==='sell')&&M.TXR[t.id]).sort((x,y)=>x.date<y.date?1:-1);
+  const other=S.txs.filter(t=>t.assetId===a.id&&!(t.type==='buy'||t.type==='sell')).sort((x,y)=>x.date<y.date?1:-1);
+  const gOf=t=>{const r=M.TXR[t.id];return r.kind==='buy'&&r.q<=1e-12?null:r.gain;};
+  const mx=Math.max(1e-9,...tr.map(t=>Math.abs(gOf(t)||0)));
+  const rows=tr.map(t=>{const r=M.TXR[t.id];const g=gOf(t);const w=g==null?0:Math.min(50,Math.abs(g)/mx*50);
+    const what=t.type==='buy'?`Buy ${dateLabel(dn(t.date),true)} · ${qtyFmt(r.q<=1e-12?r.q0:r.q)}${r.soldQ>1e-12&&r.q>1e-12?' of '+qtyFmt(r.q0):''}`:`Sell ${dateLabel(dn(t.date),true)} · ${qtyFmt(r.q)}`;
+    const sub=t.type==='buy'?`at ${money(t.price,a.currency)} · ${r.q<=1e-12?'all sold':'paid '+kr(r.cost,{dec:true})}`:`at ${money(t.price,a.currency)} · gain locked in`;
+    return `<button class="item tg-row" data-trade="1" data-tx="${t.id}"><div class="mid"><div class="t1">${what}</div><div class="t2">${sub}</div><div class="mv-bar" aria-hidden="true"><b></b>${g?`<i class="${g>0?'up-bg':'down-bg'}" style="${g>0?'left':'right'}:50%;width:${w.toFixed(1)}%"></i>`:''}</div></div>
+      <div class="end">${g==null?'<div class="t2 muted">—</div>':`<div class="t1 ${cl(g)}">${kr(g,{sign:true,dec:true})}</div><span class="pill ${cl(r.pct)}">${pct(r.pct)}</span>`}</div></button>`;}).join('');
+  const open=tr.filter(t=>t.type==='buy').reduce((s,t)=>s+(gOf(t)||0),0),locked=tr.filter(t=>t.type==='sell').reduce((s,t)=>s+M.TXR[t.id].gain,0);
+  const h=M.holdings.find(x=>x.a.id===a.id);
+  const sum=tr.length?`<div class="item" style="cursor:default"><div class="mid"><div class="t1">All trades together</div><div class="t2">Still owned${h&&h.qty>0?' (same as the position’s gain)':''}${tr.some(t=>t.type==='sell')?' · locked in by sales':''}</div></div><div class="end"><div class="t1 ${cl(open)}">${kr(open,{sign:true,dec:true})}</div>${tr.some(t=>t.type==='sell')?`<div class="t2 ${cl(locked)}">${kr(locked,{sign:true,dec:true})}</div>`:''}</div></div>`:'';
+  return `${tr.length?`<h2 class="sec">Your trades · ${esc(a.symbol)}</h2><div class="list tr-list">${rows}${sum}</div><div class="hint" style="margin:6px 2px 0">${methodNote()}</div>`:''}
+   ${other.length?`<h2 class="sec">Other entries</h2><div class="list">${other.map(txLine).join('')}</div>`:''}`;}
+function assetTradeEvents(a,pts){const M=compute();if(!M||!M.TXR||!pts.length)return [];const lo=pts[0].x,hi=pts[pts.length-1].x;const out=new Map();
+  const find=d=>{let i=0,j=pts.length-1;while(i<j){const m=(i+j)>>1;if(pts[m].x<d)i=m+1;else j=m;}return i;};
+  for(const t of S.txs){if(t.assetId!==a.id||(t.type!=='buy'&&t.type!=='sell'))continue;const r=M.TXR[t.id];if(!r)continue;const d=dn(t.date);if(d<lo||d>hi)continue;const i=find(d);
+    const g=r.kind==='buy'&&r.q<=1e-12?null:r.gain;
+    const it={t:(t.type==='buy'?'Bought ':'Sold ')+qtyFmt(t.qty)+' × '+money(t.price,a.currency),s:dateLabel(d,true)+(g==null?(r.kind==='buy'&&r.q<=1e-12?' · all sold':''):' · '+(t.type==='buy'?'now ':'locked in ')+kr(g,{sign:true})+' '+pct(r.pct)),color:g==null?'var(--muted)':g>=0?'var(--up)':'var(--down)',g,type:t.type};
+    if(!out.has(i))out.set(i,[]);out.get(i).push(it);}
+  return [...out.entries()].map(([i,items])=>{const g=items.reduce((s,x)=>s+(x.g||0),0);const kinds=[...new Set(items.map(x=>x.type==='buy'?'B':'S'))].join('');
+    return {i,items,color:items.every(x=>x.g==null)?'var(--muted)':g>=0?'var(--up)':'var(--down)',head:dateLabel(pts[i].x,true),label:kinds+arw(g)};});}
+
+
+/* ================= time zone: Norway by default, any other in Settings → Time zone =================
+   It decides when "today" starts (00:00), the 1D numbers, the times shown and the market opening times. Synced like the other settings. */
+const TZ_DEFAULT='Europe/Oslo';
+const TZ_NAMES={'Europe/Oslo':'Norway','Europe/Stockholm':'Sweden','Europe/Copenhagen':'Denmark','Europe/Helsinki':'Finland','Europe/London':'United Kingdom','Europe/Dublin':'Ireland',
+  'Europe/Berlin':'Germany','Europe/Paris':'France','Europe/Amsterdam':'Netherlands','Europe/Brussels':'Belgium','Europe/Madrid':'Spain','Europe/Rome':'Italy','Europe/Zurich':'Switzerland',
+  'Europe/Vienna':'Austria','Europe/Warsaw':'Poland','Europe/Lisbon':'Portugal','Europe/Istanbul':'Turkey','Africa/Mogadishu':'Somalia','Africa/Nairobi':'Kenya','Africa/Addis_Ababa':'Ethiopia',
+  'Africa/Cairo':'Egypt','Africa/Lagos':'Nigeria','Africa/Johannesburg':'South Africa','Asia/Dubai':'United Arab Emirates','Asia/Riyadh':'Saudi Arabia','Asia/Qatar':'Qatar','Asia/Karachi':'Pakistan',
+  'Asia/Kolkata':'India','Asia/Bangkok':'Thailand','Asia/Singapore':'Singapore','Asia/Hong_Kong':'Hong Kong','Asia/Shanghai':'China','Asia/Tokyo':'Japan','Asia/Seoul':'South Korea',
+  'Australia/Sydney':'Australia (Sydney)','Pacific/Auckland':'New Zealand','America/New_York':'USA (New York)','America/Chicago':'USA (Chicago)','America/Denver':'USA (Denver)',
+  'America/Los_Angeles':'USA (Los Angeles)','America/Toronto':'Canada (Toronto)','America/Vancouver':'Canada (Vancouver)','America/Mexico_City':'Mexico','America/Sao_Paulo':'Brazil','UTC':'UTC'};
+const tzCity=tz=>(tz.split('/').pop()||tz).replace(/_/g,' ');
+function tzLabel(tz){return TZ_NAMES[tz]||tzCity(tz);}
+/* "Norway time", "Germany time", "New York time" … for the texts that say which clock is used */
+function tzWord(){const tz=OSLO_TZ;if(tz==='UTC')return 'UTC';const n=TZ_NAMES[tz];return (n&&!/\(/.test(n)?n:tzCity(tz))+' time';}
+function tzOffset(tz,t=Date.now()){try{const p=new Intl.DateTimeFormat('en-GB',{timeZone:tz,timeZoneName:'shortOffset'}).formatToParts(new Date(t)).find(x=>x.type==='timeZoneName');return p?p.value.replace('GMT','UTC'):'';}catch(e){return '';}}
+function tzNow(tz){try{return new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());}catch(e){return '';}}
+function wantedTz(){const t=S&&S.settings&&S.settings.tz;return t&&typeof t==='string'?t:TZ_DEFAULT;}
+/* keep the clock in step with the setting (also when it arrives from your other device) */
+function applyTz(){const want=wantedTz();if(want!==OSLO_TZ){if(!setAppTz(want))setAppTz(TZ_DEFAULT);VERSION++;}}
+beforeRender(()=>{applyTz();});
+function allTimeZones(){let list=[];try{list=Intl.supportedValuesOf('timeZone');}catch(e){}if(!list.length)list=Object.keys(TZ_NAMES);if(!list.includes('UTC'))list.push('UTC');return list;}
+function tzSettingsHTML(){const cur=wantedTz();let dev='';try{dev=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(e){}
+  const named=Object.keys(TZ_NAMES).filter(z=>z!==TZ_DEFAULT).sort((a,b)=>tzLabel(a).localeCompare(tzLabel(b)));const rest=allTimeZones().filter(z=>!TZ_NAMES[z]&&z!==TZ_DEFAULT);
+  const opt=z=>`<option value="${esc(z)}" ${z===cur?'selected':''}>${esc(tzLabel(z))} · ${esc(tzOffset(z))}${TZ_NAMES[z]?'':' · '+esc(z)}</option>`;
+  return `<div class="card stack"><div class="field"><label for="tzSel">The app's clock</label><select id="tzSel">
+     <option value="${TZ_DEFAULT}" ${cur===TZ_DEFAULT?'selected':''}>Norway · ${esc(tzOffset(TZ_DEFAULT))} (default)</option>
+     ${dev&&dev!==TZ_DEFAULT?`<option value="${esc(dev)}" ${cur===dev&&!TZ_NAMES[dev]?'selected':''}>This ${esc(deviceKind())}'s zone: ${esc(tzLabel(dev))} · ${esc(tzOffset(dev))}</option>`:''}
+     <optgroup label="Countries">${named.map(opt).join('')}</optgroup><optgroup label="All time zones">${rest.map(opt).join('')}</optgroup></select></div>
+   <div class="hint">Now ${esc(tzNow(cur))} in ${esc(tzLabel(cur))}. This decides when "today" starts (00:00), the 1D numbers, the times shown and when markets open. Summer and winter time are included. Changes on all your devices.</div>
+   ${cur!==TZ_DEFAULT?'<button class="btn sm" data-act="tzreset" style="align-self:flex-start">Back to Norway time</button>':''}</div>`;}
+function setTz(z){S.settings.tz=z===TZ_DEFAULT?undefined:z;if(S.settings.tz===undefined)delete S.settings.tz;if(S.demo){VERSION++;lsSet('lq_state',S);}else Store.save();applyTz();VERSION++;render();toast('Clock: '+tzLabel(z)+' time');}
+document.addEventListener('change',e=>{if(e.target.id==='tzSel')setTz(e.target.value);});
+onTap(e=>{if(e.target.closest('[data-act="tzreset"]'))setTz(TZ_DEFAULT);});
+
+
+/* ================= new settings: Time zone, and Gains & cost method ================= */
+function costSettingsHTML(){const m=costMethod();const opt=(k,t,d)=>`<button class="item" data-costm="${k}" aria-pressed="${m===k}"><span class="radio-dot ${m===k?'on':''}"></span><div class="mid"><div class="t1">${t}</div><div class="t2">${d}</div></div></button>`;
+  return `<div class="card stack"><span class="lbl2">Which shares a sale uses</span><div class="list">
+     ${opt('fifo','First in, first out (FIFO) · default','The oldest shares are sold first. The rule in Norway (Skatteetaten), and also in Germany, Sweden, Denmark and the USA (its default).')}
+     ${opt('avg','Average cost','Every sale takes the same part of each buy, at your average price. Used in the UK (share pool), France, Canada and for US funds.')}</div>
+   <div class="hint">This changes cost basis, gains on each trade, realised gains and the positions. Your money in and the value stay the same, and the total result (realised + unrealised) is the same with both. The Tax page always follows the Norwegian rule. Changes on all your devices.</div></div>
+   <div class="card stack" style="margin-top:12px"><div class="look-row"><span class="lbl2">Gain on each trade in Activity</span>${seg('actgain',[['1','Shown'],['0','Hidden']],actGainOn()?'1':'0')}</div>
+   <div class="hint">Shown: each buy shows what it has made since you bought it and each sale the gain it locked in. Tap a trade to see why. Your trades and B / S marks also appear on each holding's page.</div></div>`;}
+Object.assign(SET_SECTIONS,{tz:{t:'Time zone',ic:'refresh',own:()=>tzSettingsHTML()},costm:{t:'Gains & cost method',ic:'table',own:()=>costSettingsHTML()}});
+{const g=SET_GROUPS.find(x=>x[0]==='Numbers & currency')||SET_GROUPS[0];for(const k of ['costm','tz'])if(!g[1].includes(k))g[1].push(k);}
+if(typeof SET_KW==='object'){SET_KW.tz='time zone clock tidssone norway norge today midnight 00:00 country land';SET_KW.costm='fifo first in first out average cost gain trade cost basis kostpris gevinst lifo method';}
+{const _ss=setSummary;setSummary=function(k){if(k==='tz')return tzLabel(wantedTz())+' · '+tzOffset(wantedTz())+(wantedTz()==='Europe/Oslo'?' (default)':'');
+  if(k==='costm')return (costMethod()==='avg'?'Average cost':'First in, first out (Norway)')+' · trade gains '+(actGainOn()?'shown':'hidden');return _ss(k);};}
+onTap(e=>{const c=e.target.closest('[data-costm]');if(c){const v=c.dataset.costm;S.settings.costMethod=v==='avg'?'avg':undefined;if(!S.settings.costMethod)delete S.settings.costMethod;
+    if(S.demo){VERSION++;lsSet('lq_state',S);}else Store.save();VERSION++;render();toast(v==='avg'?'Average cost':'First in, first out');return;}
+  const g=e.target.closest('[data-actgain]');if(g){UI.actGain=g.dataset.actgain==='1';saveUI();VERSION++;render();}});
+
+
+/* ================= portfolios kept apart =================
+   A new portfolio gets its own new account. Portfolios only share an account when you choose it (that account then shows "Shared").
+   Everything follows the open portfolio; "Compare portfolios" puts them side by side (in %, not added together); "All accounts" adds everything together, as before. */
+const sharedAcc=id=>S.portfolios.filter(p=>p.id!=='pf_family'&&p.accountIds.includes(id)).length>1;
+const sharedTag=id=>sharedAcc(id)?' <span class="tag-mini">Shared</span>':'';
+{const _ps=portfolioSheet;portfolioSheet=function(id){if(id!=='__new')return _ps(id);
+  const kinds=Object.entries(ACCOUNT_KINDS);const others=S.accounts;
+  openSheet('New portfolio',`<form class="form" id="npForm">
+    <div class="field"><label for="npName">Name</label><input id="npName" placeholder="Long term" autocomplete="off"></div>
+    <span class="lbl2">Its account</span>
+    <label class="item np-opt"><input type="radio" name="npMode" value="new" checked><div class="mid"><div class="t1">Make a new account</div><div class="t2">Only for this portfolio</div></div></label>
+    <div class="np-new"><div class="grid2"><div class="field"><label for="npAcc">Account name</label><input id="npAcc" autocomplete="off"></div>
+      <div class="field"><label for="npKind">Type</label><select id="npKind">${kinds.map(([k,l])=>`<option value="${k}" ${k==='ask'?'selected':''}>${esc(l)}</option>`).join('')}</select></div></div>
+      <div class="field"><label for="npCur">Currency</label><select id="npCur">${CCYS.slice().sort((a,b)=>a==='NOK'?-1:b==='NOK'?1:0).map(c=>`<option>${c}</option>`).join('')}</select></div></div>
+    ${others.length?`<label class="item np-opt"><input type="radio" name="npMode" value="share"><div class="mid"><div class="t1">Only use accounts I already have</div><div class="t2">Pick them below</div></div></label>`:''}
+    ${others.length?`<span class="lbl2" style="margin-top:6px">Share an account (optional)</span><div class="list">${others.map(a=>{const inP=S.portfolios.filter(p=>p.id!=='pf_family'&&p.accountIds.includes(a.id)).map(p=>p.name);
+      return `<label class="item"><input type="checkbox" class="npShare" value="${a.id}" style="width:20px;height:20px"><div class="mid"><div class="t1">${esc(a.name)}${inP.length?` <span class="tag-mini">${esc(inP.join(', '))}</span>`:''}</div><div class="t2">${esc(ACCOUNT_KINDS[a.kind]||a.kind)} · counts in both portfolios</div></div></label>`;}).join('')}</div>`:''}
+    <div class="err" id="npErr"></div><button class="btn primary block" type="submit">Create portfolio</button></form>`,()=>{
+    const nm=fv('npName'),an=fv('npAcc');let typed=false;an.addEventListener('input',()=>{typed=true;});nm.addEventListener('input',()=>{if(!typed)an.value=nm.value;});
+    const sync=()=>{const mode=($$('[name="npMode"]').find(x=>x.checked)||{}).value;const box=document.querySelector('.np-new');if(box)box.hidden=mode!=='new';};$$('[name="npMode"]').forEach(x=>x.onchange=sync);
+    fv('npForm').onsubmit=e=>{e.preventDefault();const name=nm.value.trim();const mode=($$('[name="npMode"]').find(x=>x.checked)||{}).value||'new';const shared=$$('.npShare').filter(x=>x.checked).map(x=>x.value);
+      if(!name){fv('npErr').textContent='Give the portfolio a name.';return;}
+      if(S.portfolios.some(p=>p.name.toLowerCase()===name.toLowerCase())){fv('npErr').textContent='You already have a portfolio with that name.';return;}
+      const ids=[];if(mode==='new'){const accName=(an.value.trim()||name);const acc={id:uid(),name:accName,kind:fv('npKind').value,broker:'',currency:fv('npCur').value,tracksCash:false};S.accounts.push(acc);ids.push(acc.id);}
+      for(const id of shared)if(!ids.includes(id))ids.push(id);
+      if(!ids.length){fv('npErr').textContent='Pick at least one account, or make a new one.';return;}
+      const p={id:uid(),name,accountIds:ids};S.portfolios.push(p);UI.pid=p.id;saveUI();Store.save();closeSheet();VERSION++;render();toast(mode==='new'?`${name} created with its own account`:`${name} created`);};});};}
+/* adding a trade or cash: the open portfolio's accounts first; the others are one tap away in the same list */
+{const _ao=accOptions;accOptions=function(sel,filter=()=>true){const P=portfolio();if(P.id==='__all')return _ao(sel,filter);
+  const opt=a=>`<option value="${a.id}" ${a.id===sel?'selected':''}>${esc(a.name)}${a.broker?' · '+esc(a.broker):''}${sharedAcc(a.id)?' · shared':''}</option>`;
+  const all=S.accounts.filter(filter);const mine=all.filter(a=>P.accountIds.includes(a.id)),rest=all.filter(a=>!P.accountIds.includes(a.id));
+  return mine.map(opt).join('')+(rest.length?`<optgroup label="Other portfolios">${rest.map(opt).join('')}</optgroup>`:'');};}
+/* the "Shared" tag on account lists in Settings */
+afterRender(()=>{document.querySelectorAll('#view [data-editacc]').forEach(b=>{const id=b.dataset.editacc;if(id==='__new'||b.querySelector('.tag-mini'))return;const t=b.querySelector('.t1');if(t&&sharedAcc(id))t.insertAdjacentHTML('beforeend',sharedTag(id));});});
+/* the portfolio list in the top bar: a "Compare portfolios" choice */
+{const _sw=switchSheet;switchSheet=function(){_sw();const list=document.querySelector('#sheet .list');if(!list||S.portfolios.filter(p=>p.id!=='pf_family').length<2)return;
+  const all=list.querySelector('[data-pick="__all"]');const html=`<button class="item" data-act="pfcmpgo"><span class="badge" style="background:var(--surface2);color:var(--fg)">${iconSm('analysis',18)}</span><div class="mid"><div class="t1">Compare portfolios</div><div class="t2">Side by side, not added together</div></div></button>`;
+  if(all)all.insertAdjacentHTML('beforebegin',html);else list.insertAdjacentHTML('beforeend',html);
+  if(all){const t2=all.querySelector('.t2');if(t2)t2.textContent='Everything added together';}};}
+onTap(e=>{if(!e.target.closest('[data-act="pfcmpgo"]'))return;closeSheet();
+  const lay=layoutOf('analysis');const c=lay.find(x=>x.id==='pfcompare');if(c&&c.hidden){c.hidden=false;saveLayout('analysis',lay);}
+  UI.tab='analysis';UI.asub='performance';saveUI();VERSION++;render();setTimeout(()=>{const n=document.querySelector('#view [data-card="pfcompare"]');if(n)n.scrollIntoView({behavior:'smooth',block:'start'});},80);});
+/* ---------- Compare portfolios card (Insights) ---------- */
+CARD_LIB.pfcompare={t:'Compare portfolios',p:'analysis'};
+const PFC_STYLE=[['var(--accent)',null,2.2],['#4DA3FF','7 4',2],['#E6E6E6','2 3',2],['#F472D0','10 3 2 3',2],['#B9C2CF','4 4',1.8]];
+const PFC_MEMO={};
+function computeFor(P){const k=P.id+'|'+VERSION+'|'+costMethod();if(PFC_MEMO[k]!==undefined)return PFC_MEMO[k];
+  const keepPid=UI.pid,keepMemo=MEMO.model;let M=null;try{UI.pid=P.id;M=compute();}finally{UI.pid=keepPid;MEMO.model=keepMemo;}
+  for(const x in PFC_MEMO)if(!x.includes('|'+VERSION+'|'))delete PFC_MEMO[x];return (PFC_MEMO[k]=M);}
+function pfcOpt(){return Object.assign({per:'1Y',bm:''},UI.pfcOpt||{});}
+const PFC_PERS=[['1M','1M'],['YTD','YTD'],['1Y','1Y'],['3Y','3Y'],['MAX','Max']];
+function pfcData(){const o=pfcOpt();const pfs=S.portfolios.filter(p=>p.id!=='pf_family');const rows=[];
+  for(const P of pfs){const M=computeFor(P);if(!M)continue;const Z=series(M,UI.ccy);rows.push({P,M,Z});}
+  if(!rows.length)return null;
+  const today=rows[0].M.today;const base=rangeBase(o.per,today);const first=Math.min(...rows.map(r=>r.M.firstDay));const start=Math.max(base,first-1);
+  return {o,rows,today,start};}
+function pfcHTML(){const pfs=S.portfolios.filter(p=>p.id!=='pf_family');if(pfs.length<2)return '';const D=pfcData();if(!D)return '';const {o,rows}=D;
+  const legend=rows.map((r,i)=>{const [c,d]=PFC_STYLE[i%PFC_STYLE.length];return `<span class="pfc-lk"><span class="lk${d?' dash':''}" style="background:${lkBg(c,d)}"></span>${esc(r.P.name)}</span>`;}).join('')+(o.bm&&C.bm[o.bm]?`<span class="pfc-lk"><span class="lk dash" style="background:${lkBg(BM_COLOR[o.bm]||'#B9C2CF','2 3')}"></span>${esc((BENCHMARKS.find(b=>b.id===o.bm)||{}).name||o.bm)}</span>`:'');
+  const table=rows.map(r=>{const st=stats(r.M,r.Z,o.per);const L=r.M.N-1;const val=r.Z.V[L];const since=r.M.firstDay>D.start+1?`<div class="t2">since ${dateLabel(r.M.firstDay,true)}</div>`:'';
+    return `<tr><td><b>${esc(r.P.name)}</b>${since}</td><td class="num">${F(val)}</td><td class="num ${cl(st.twr)}">${pct(st.twr)}</td></tr>`;}).join('');
+  let bmRow='';if(o.bm&&C.bm[o.bm]){const r0=rows[0];const b=bmSeries(r0.M,o.bm,UI.ccy);if(b){const bi=Math.max(0,Math.ceil(D.start-r0.M.d0));const v=b.p[r0.M.N-1]/b.p[bi]-1;if(isFinite(v))bmRow=`<tr class="muted"><td>${esc((BENCHMARKS.find(x=>x.id===o.bm)||{}).name||o.bm)}</td><td></td><td class="num ${cl(v)}">${pct(v)}</td></tr>`;}}
+  return `<div data-card="pfcompare"><h2 class="sec">Compare portfolios</h2><div class="card stack">
+   <div class="pfc-legend small">${legend}</div><div class="chart" id="pfcChart" style="height:190px"></div>
+   <div class="ranges">${PFC_PERS.map(([k,l])=>`<button data-pfcper="${k}" aria-pressed="${o.per===k}"><span class="rk">${l}</span></button>`).join('')}</div>
+   <div class="tbl-wrap"><table class="pfc-tbl"><thead><tr><th></th><th class="num">Value</th><th class="num">Return ${esc(PFC_PERS.find(x=>x[0]===o.per)[1])}</th></tr></thead><tbody>${table}${bmRow}</tbody></table></div>
+   <div class="hint">Time-weighted return in ${UI.ccy}, so portfolios of different sizes compare fairly. Each line has its own colour and pattern. Shared accounts count in each portfolio they belong to.</div></div></div>`;}
+function pfcDraw(){const host=document.querySelector('#view #pfcChart')||document.getElementById('pfcChart');if(!host)return;const D=pfcData();if(!D)return;const {o,rows,start,today}=D;const r0=rows[0];
+  const days=[];for(let d=Math.ceil(start);d<=today;d++)days.push(d);if(days.length<2)return;
+  /* same start as the table (and the main chart): the day before the period, or the day before the portfolio's first money */
+  const series_=rows.map((r,i)=>{const [c,d,w]=PFC_STYLE[i%PFC_STYLE.length];const M=r.M,Z=r.Z;const sbi=Math.max(-1,rangeBase(o.per,M.today)-M.d0);
+    let fi=0;while(fi<M.N&&!(Z.V[fi]>0))fi++;const bb=Math.max(sbi,fi-1);const b0=bb>=0?Z.IDX[bb]:1;const held=k=>Z.V[k]>0||(k>0&&Z.V[k-1]>0)||k===bb;
+    const pts=days.map(day=>{const k=day-M.d0;return {x:day,v:k>=0&&k<M.N&&k>=bb&&held(k)?Z.IDX[k]/b0-1:NaN};});
+    return {pts,color:c,dash:d,width:w,label:r.P.name,fmt:'pct',noDiff:i>0};});
+  if(o.bm&&C.bm[o.bm]){const b=bmSeries(r0.M,o.bm,UI.ccy);if(b){const k0=Math.max(0,Math.ceil(start)-r0.M.d0);const p0=b.p[k0];series_.push({pts:days.map(day=>{const k=day-r0.M.d0;return {x:day,v:k>=0&&k<r0.M.N?b.p[k]/p0-1:NaN};}),color:BM_COLOR[o.bm]||'#B9C2CF',dash:'2 3',width:1.6,label:(BENCHMARKS.find(x=>x.id===o.bm)||{}).name||o.bm,fmt:'pct',noDiff:true});}}
+  const pick=days.length>400?downsample(days.map((_,i)=>i)):days.map((_,i)=>i);for(const s of series_)s.pts=pick.map(i=>s.pts[i]);
+  mountChart(host,{series:series_,kind:'pct',ccy:UI.ccy});}
+{const _va=viewAnalysis;viewAnalysis=function(v){const r=_va(v);try{if((UI.asub||'performance')==='performance'&&compute()){const h=pfcHTML();if(h){v.insertAdjacentHTML('beforeend',h);pfcDraw();}}}catch(e){console.error(e);}return r;};}
+afterRender(()=>{const head=document.querySelector('#view [data-card="pfcompare"] .c-head');if(head&&!head.querySelector('[data-act="pfccfg"]'))head.insertAdjacentHTML('beforeend',`<button class="gear-btn" data-act="pfccfg" aria-label="Compare portfolios settings">${iconSm('gear',18)}</button>`);
+  if(document.getElementById('pfcChart')&&!document.querySelector('#pfcChart svg'))pfcDraw();});
+onTap(e=>{const b=e.target.closest('[data-pfcper]');if(b){UI.pfcOpt=Object.assign({},pfcOpt(),{per:b.dataset.pfcper});saveUI();softRender();return;}
+  if(e.target.closest('[data-act="pfccfg"]')){const draw=()=>{const o=pfcOpt();return `<div class="look-row"><span class="lbl2">Index line</span><div class="seg" role="group" style="flex-wrap:wrap">${[['','None'],...BENCHMARKS.map(x=>[x.id,x.name])].map(([k,l])=>`<button data-pfcbm="${k}" aria-pressed="${o.bm===k}">${esc(l)}</button>`).join('')}</div></div><div class="hint">An index to compare both portfolios with. Index prices need your Twelve Data key (Settings → Live prices).</div>`;};
+    openSheet('Compare portfolios',`<div id="pfcoBody">${draw()}</div>`,sh=>{const body=sh.querySelector('#pfcoBody');body.addEventListener('click',()=>setTimeout(()=>{body.innerHTML=draw();},0));});return;}
+  const m=e.target.closest('[data-pfcbm]');if(m){UI.pfcOpt=Object.assign({},pfcOpt(),{bm:m.dataset.pfcbm});saveUI();softRender();}});
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
