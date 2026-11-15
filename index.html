@@ -866,6 +866,8 @@ table.rtab thead th.muted2{opacity:.4}
 .mt-tbl tr[data-asset]{cursor:pointer}.mt-tbl .mv-spark{vertical-align:middle;margin:0}
 @media (max-width:480px){.mt-card{padding:4px 12px 6px}.mt-tbl td{font-size:14px}.mt-tbl th{font-size:12px}.mt-tbl th,.mt-tbl td{padding-left:6px}.mt-tbl .t2{font-size:12.5px}
   .mt-tbl .mv-spark{width:38px;height:22px}.mt-tbl th.mt-line{font-size:0}.mt-tbl th.mt-line::after{content:"00:00 →";font-size:12px}}
+.sp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.sp-val{font-size:16px;font-weight:600;margin-top:2px;word-break:break-all;user-select:all;-webkit-user-select:all}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -886,7 +888,7 @@ table.rtab thead th.muted2{opacity:.4}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611152110";
+const LACAG_BUILD="202611152146";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -5000,6 +5002,20 @@ moversBlock=function(M){const D=mvData(M);if(!D.hs.length)return '<div class="ca
   const st=D.st;
   return `<div class="card mt-card"><div class="tbl-wrap"><table class="mt-tbl"><thead><tr><th></th><th class="mt-line">Since 00:00</th><th class="num">Price</th><th class="num">Currency</th><th class="num">Today</th></tr></thead>
     <tbody>${rows}<tr class="mt-sum"><td class="mt-name"><b>Portfolio</b></td><td></td><td></td><td></td><td class="num"><b class="${cl(st.gain)}">${F(conv(M,st.gain),{sign:true})}</b><div class="t2">${pc(st.twr)}</div></td></tr></tbody></table></div></div>`;};
+
+
+/* ================= Settings → Sync: show the sync password (only on a device where sync is on) =================
+   The password is kept on this device so it can keep syncing. It stays hidden until you tap Show, and hides again after 20 seconds. */
+let SP_SHOW=false,SP_TIMER=null;
+function syncPassHTML(){const c=syncCfg();if(!c.on||!c.pass)return '';
+  return `<div class="sp-row" id="spRow"><div class="mid"><div class="lbl2">Sync password</div><div class="sp-val" id="spVal">${SP_SHOW?esc(c.pass):'••••••••••'}</div></div>
+    <div class="btns">${SP_SHOW?'<button class="btn sm" data-act="spcopy">Copy</button>':''}<button class="btn sm" data-act="spshow">${SP_SHOW?'Hide':'Show'}</button></div></div>`;}
+function spPaint(){const r=document.getElementById('spRow');if(r)r.outerHTML=syncPassHTML();}
+{const _sp=syncSettingsHTML;syncSettingsHTML=function(){const h=_sp();const p=syncPassHTML();if(!p)return h;const k='<div class="btns"><button class="btn sm primary" data-act="syncnow">';const i=h.indexOf(k);return i<0?h:h.slice(0,i)+p+h.slice(i);};}
+onTap(e=>{if(e.target.closest('[data-act="spshow"]')){SP_SHOW=!SP_SHOW;clearTimeout(SP_TIMER);if(SP_SHOW)SP_TIMER=setTimeout(()=>{SP_SHOW=false;spPaint();},20000);spPaint();return;}
+  if(e.target.closest('[data-act="spcopy"]')){const c=syncCfg();const done=()=>toast('Password copied');try{navigator.clipboard.writeText(c.pass).then(done,()=>toast('Could not copy: select it and copy by hand'));}catch(err){toast('Could not copy: select it and copy by hand');}}});
+/* leaving the page hides it again */
+beforeRender(()=>{if(SP_SHOW&&!(UI.tab==='settings'&&UI.sset==='sync')){SP_SHOW=false;clearTimeout(SP_TIMER);}});
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
