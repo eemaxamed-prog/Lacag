@@ -888,7 +888,7 @@ table.rtab thead th.muted2{opacity:.4}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611152146";
+const LACAG_BUILD="202611161450";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1089,6 +1089,8 @@ function fxPoints(cur,today){
   const live=C.fxLive&&C.fxLive.date===localToday()?C.fxLive[cur]:null;
   const fallback=h&&h.length?h[h.length-1][1]:S.fx[cur];
   if(live||fallback)m.set(today,live||fallback);
+  /* with live market rates, "today" for a currency starts at 00:00 (the app's time zone), like the rest of the 1D numbers */
+  const mid=live&&C.fxLive.src==='market'&&C.fxDay&&C.fxDay.date===localToday()?C.fxDay[cur]:null;if(mid>0&&mode==='step')m.set(today-1,mid);
   return {pts:[...m.entries()].sort((a,b)=>a[0]-b[0]),mode};
 }
 function dense(points,d0,N,mode){
@@ -1322,6 +1324,9 @@ async function fetchFx(){
   for(const h of (helperUrl()?hosts.slice(0,1):hosts)){try{const l=await getJSON(`${h}/latest?base=NOK&symbols=${syms}`,8000);const live={date:localToday(),t:Date.now()};for(const c of CCYS)if(c!=='NOK'&&l.rates[c])live[c]=1/l.rates[c];C.fxLive=live;liveOk=true;NET.fxVia='Frankfurter';break;}catch(e){lastErr=e;}}
   /* backup: your own price helper (Yahoo), e.g. USDNOK=X */
   if(!liveOk&&helperUrl()){try{const live={date:localToday(),t:Date.now()};for(const c of CCYS)if(c!=='NOK'){const j=await helperGet(c+'NOK=X','5d');if(j.price>0)live[c]=+j.price;}if(live.USD&&live.EUR){C.fxLive=live;liveOk=true;NET.fxVia='Price helper';}}catch(e){lastErr=e;}}
+  /* live market rates through the day, from your price helper. The daily list above only changes once a day (about 16:00),
+     so without this the currency change would read 0 % until then */
+  if(helperUrl()){try{await fetchFxMarket();liveOk=true;}catch(e){}}
   /* the long history (10 years): may take a while; if it fails, the rates you already have are kept */
   const loadHist=async()=>{for(const h of hosts){try{const j=await getJSON(`${h}/${start}..?base=NOK&symbols=${syms}`,30000);const out={t:Date.now(),from:start};
       for(const c of CCYS)if(c!=='NOK')out[c]=[];
@@ -1357,6 +1362,16 @@ const MIC_YAHOO={XETR:'.DE',XFRA:'.F',XAMS:'.AS',XPAR:'.PA',XBRU:'.BR',XLON:'.L'
 function yahooSym(a){if(a.yahoo)return a.yahoo.toUpperCase();const raw=String(a.dataSymbol||a.symbol).toUpperCase();const [sym,ex]=raw.split(':');if(!ex)return sym;return MIC_YAHOO[ex]?sym+MIC_YAHOO[ex]:null;}
 const helperUrl=()=>String(S.settings.helper||'').trim().replace(/\/+$/,'');
 function useHelper(a){return !!helperUrl()&&(!!a.yahoo||/:/.test(a.dataSymbol||'')||!S.settings.tdKey);}
+/* USD/NOK and EUR/NOK right now and every 15 minutes since 00:00, through your price helper (Yahoo) */
+async function fetchFxMarket(){const T0=osloMidnight();const today=localToday();const live={date:today,t:Date.now(),src:'market'};const day={date:today,pts:{}};
+  await Promise.all(CCYS.filter(c=>c!=='NOK').map(async c=>{const j=await getJSON(helperUrl()+'/?symbol='+encodeURIComponent(c+'NOK=X')+'&range=5d&interval=15m',12000);if(!j||j.error)throw new Error((j&&j.error)||'no rate');
+    const pts=(j.points||[]).filter(x=>x&&x[1]>0);const price=j.price>0?+j.price:(pts.length?pts[pts.length-1][1]:0);if(!(price>0))throw new Error('no rate');
+    /* guard against a wrong answer: it must be close to the latest daily rate */
+    const h=C.fx&&C.fx[c];const ref=h&&h.length?h[h.length-1][1]:(C.fxLive&&C.fxLive[c])||0;if(ref>0&&Math.abs(price/ref-1)>0.1)throw new Error('rate out of range');
+    live[c]=price;let mid=null;for(const [t,v] of pts){if(t<=T0)mid=v;else break;}if(mid==null&&pts.length)mid=pts[0][1];if(mid>0)day[c]=mid;day.pts[c]=pts.filter(x=>x[0]>T0);}));
+  C.fxLive=live;C.fxDay=day;NET.fxVia='Price helper (live)';}
+/* the rate at a time today: the last 15-minute rate before it */
+function fxIntra(cur,t,fallback){if(cur==='NOK')return 1;const d=C.fxDay;if(!d||d.date!==localToday()||!C.fxLive||C.fxLive.src!=='market')return fallback;let v=d[cur]||null;const pts=d.pts&&d.pts[cur];if(pts)for(const [tt,x] of pts){if(tt<=t)v=x;else break;}return v>0?v:fallback;}
 async function helperGet(sym,range){const j=await getJSON(helperUrl()+'/?symbol='+encodeURIComponent(sym)+'&range='+range,20000);if(j&&j.error)throw new Error(j.error);if(!j||!Array.isArray(j.series))throw new Error('The helper sent no prices');return j;}
 /* Yahoo sometimes has bad ticks: one day (or two) far off that snaps straight back. A price is treated as a spike
    when it is far from BOTH the days before and the days after it (a real jump stays; a glitch goes back).
@@ -1631,7 +1646,7 @@ function portfolioSeries(M,Z,key,st){
     const now=live.reduce((s,h)=>s+h.qty*h.priceNow*h.fxNow,0);
     const pts=[{x:t0,v:at0/k}];for(const t of [...times].sort((a,b)=>a-b)){let v=0;for(const h of live){const it=C.intra[h.a.id];let p=null;
         if(it&&tNow-it.t<6*3600e3){for(const [tt,pp] of it.s){if(tt<=t)p=pp;else break;}if(p!=null&&it.q&&it.q!==h.a.currency)p=p*M.fxAt(it.q,L)/M.fxAt(h.a.currency,L);}
-        if(p==null)p=h.priceNow;v+=h.qty*p*h.fxNow;}pts.push({x:t,v:v/k});}
+        if(p==null)p=h.priceNow;v+=h.qty*p*fxIntra(h.a.currency,t,h.fxNow);}pts.push({x:t,v:v/k});}
     pts.push({x:tNow,v:now/k});return {time:true,pts,from:t0};}
   const idxs=[];for(let i=st.startI;i<=st.ei;i++)idxs.push(i);const base=st.bi>=0?Z.IDX[st.bi]:1;
   return {time:false,idx:downsample(idxs)};
@@ -2799,7 +2814,7 @@ function currencySettingsHTML(){const O=curOpt();const T=tblOpt();const live=C.f
    <div class="hint">The budget never shows a currency: your pay is in NOK.</div>
   </div>
   <h2 class="sec">Exchange rates</h2><div class="card stack">
-   <div class="note">${live?`Live from the European Central Bank, updated ${esc(timeLabel(live.t))}. Lacag uses each day's rate for your history, so currency moves show up in your returns.`:'Live rates load in the installed app. Until then, Lacag uses the rates below.'}</div>
+   <div class="note">${live?`${live.src==='market'?'Live market rate through your price helper':'Daily rate from the European Central Bank (new each day about 16:00)'}, updated ${esc(timeLabel(live.t))}. Lacag uses each day's rate for your history, so currency moves show up in your returns.`:'Live rates load in the installed app. Until then, Lacag uses the rates below.'}</div>
    <div class="list" style="background:var(--surface2)">${others.map(c=>`<div class="item" style="cursor:default"><div class="mid"><div class="t1">${c} <span class="muted small">· ${CCY_NAMES[c]}</span></div><div class="t2">${live&&live[c]?'Live: '+nf2.format(live[c])+' kr per 1 '+c:'No live rate'}</div></div><div class="end"><input class="fx-in num" id="fx_${c}" inputmode="decimal" aria-label="NOK per 1 ${c}" value="${inputNum(S.fx[c],4)}"></div></div>`).join('')}</div>
    <div class="hint">Your own rates (NOK per 1 unit) are only used when no live rate is available.</div>
    <div><button class="btn sm" data-act="savefx">Save my rates</button></div></div>`;}
