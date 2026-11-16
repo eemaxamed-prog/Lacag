@@ -868,6 +868,9 @@ table.rtab thead th.muted2{opacity:.4}
   .mt-tbl .mv-spark{width:38px;height:22px}.mt-tbl th.mt-line{font-size:0}.mt-tbl th.mt-line::after{content:"00:00 →";font-size:12px}}
 .sp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
 .sp-val{font-size:16px;font-weight:600;margin-top:2px;word-break:break-all;user-select:all;-webkit-user-select:all}
+/* value chart dots and their legend */
+svg.ev-sw,.chart svg.ev-sw,.tip svg.ev-sw{width:12px!important;height:12px!important;flex:0 0 12px;margin-top:3px;vertical-align:-1px;display:inline-block;position:static}.ev-lg{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.ev-lg .ev-sw{margin-top:0}
+.ev-box{margin-top:6px;padding-top:2px;border-top:1px solid var(--line)}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -888,7 +891,7 @@ table.rtab thead th.muted2{opacity:.4}
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611161450";
+const LACAG_BUILD="202611161533";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1493,7 +1496,8 @@ function mountChart(host,cfg){
     ${x1>70?`<text x="${x1/2}" y="${(pt+h-pb)/2}" text-anchor="middle" font-size="11" fill="var(--muted)">No data</text>`:''}`;}
   /* event dots: deposits, withdrawals, buys and sells */
   const EV=(cfg.events||[]).filter(ev=>ev.i>=0&&ev.i<n&&isFinite(S0.pts[ev.i].v)).map(ev=>Object.assign({},ev,{x:X(ev.i),y:Y(S0.pts[ev.i].v)}));
-  for(const ev of EV){svg+=`<circle cx="${ev.x}" cy="${ev.y}" r="5.5" fill="${ev.color}" stroke="var(--bg)" stroke-width="2"/>`;
+  for(const ev of EV){if(ev.kinds&&ev.kinds.length){const dir=ev.y-pt>ev.kinds.length*12?-1:1;ev.kinds.forEach((k,q)=>{svg+=evMark(k,ev.x,ev.y+dir*q*12);});}
+    else svg+=`<circle cx="${ev.x}" cy="${ev.y}" r="5.5" fill="${ev.color}" stroke="var(--bg)" stroke-width="2"/>`;
     if(cfg.evLabels&&ev.label)svg+=`<text x="${Math.min(Math.max(ev.x,16),w-pr-16)}" y="${Math.max(pt+8,ev.y-10)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${ev.color}">${esc(ev.label)}</text>`;}
   if(CO&&!cfg.time&&n>2){/* clean dates: days for short periods, months (Jun) for medium, years for long ones */
     for(const tk of xTicks(S0.pts,w-pr)){const x=X(tk.i);const anchor=x<14?'start':x>w-pr-14?'end':'middle';svg+=`<text x="${x}" y="${h-8}" text-anchor="${anchor}" font-size="11.5" fill="var(--muted)">${esc(tk.l)}</text>`;}}
@@ -1502,24 +1506,29 @@ function mountChart(host,cfg){
   svg+=`<g class="cur" visibility="hidden"><line class="cl" y1="${pt}" y2="${h-pb}" stroke="var(--fg)" stroke-width="1" opacity=".35"/>${cfg.series.map((s,k)=>s.hidden?'':`<circle class="cd" data-k="${k}" r="${k?3.5:5}" fill="var(--bg)" stroke="${s.color}" stroke-width="2.5"/>`).join('')}<text class="ct" y="${pt-4}" font-size="11" fill="var(--muted)" text-anchor="middle"></text></g></svg>`;
   host.innerHTML=svg+'<div class="ctip" hidden></div>';const tip=host.querySelector('.ctip');
   const g=host.querySelector('.cur'),line=g.querySelector('.cl'),dots=g.querySelectorAll('.cd'),txt=g.querySelector('.ct');
-  let raf=0,lastE=null,pinned=false;
+  let raf=0,lastE=null,pinned=false,lastEv=null,prevX=null,touching=false;
+  const evHTML=ev=>ev.items.map(it=>`<div class="ev-it">${it.kind?evSwatch(it.kind):`<span class="sw" style="background:${it.color||ev.color}"></span>`}<div><div class="ev-t">${esc(it.t)}</div>${it.s?`<div class="ev-s">${esc(it.s)}</div>`:''}</div></div>`).join('');
   const place=xsvg=>{const tw=tip.offsetWidth,hw=host.clientWidth;const xpx=xsvg/w*hw;let left=xpx>hw/2?xpx-tw-14:xpx+14;left=Math.max(0,Math.min(hw-tw,left));tip.style.left=left+'px';};
   const show=e=>{const r=host.getBoundingClientRect();const px=(e.clientX-r.left)/r.width*w;const i=Math.max(0,Math.min(n-1,Math.round(px/(w-pr)*(n-1))));
     const x=X(i);line.setAttribute('x1',x);line.setAttribute('x2',x);
     dots.forEach(dt=>{const s=cfg.series[+dt.dataset.k];const p=s.pts[i];if(p&&isFinite(p.v)){dt.setAttribute('cx',x);dt.setAttribute('cy',Y(p.v));dt.setAttribute('visibility','visible');}else dt.setAttribute('visibility','hidden');});
     txt.setAttribute('x',Math.min(Math.max(x,34),w-pr-34));txt.textContent=cfg.xfmt?cfg.xfmt(S0.pts[i].x,true):cfg.time?timeLabel(S0.pts[i].x):dateLabel(S0.pts[i].x,true);
     g.setAttribute('visibility','visible');cfg.onScrub&&cfg.onScrub(i);
-    tip.classList.remove('pinned');tip.innerHTML=tipHTML(cfg,i);tip.hidden=false;place(x);};
+    /* a dot under the line: say what happened that day; crossing a dot gives one haptic tick */
+    let near=null,nd=7;for(const ev of EV){const d=Math.abs(ev.x-x);if(d<nd||ev.i===i){nd=Math.min(d,nd);near=ev;if(ev.i===i)break;}}
+    let crossed=near&&near!==lastEv;if(!crossed&&prevX!=null)for(const ev of EV)if(ev!==lastEv&&ev.x>Math.min(prevX,x)&&ev.x<Math.max(prevX,x)){crossed=true;break;}
+    if(crossed&&touching)haptic();lastEv=near;prevX=x;
+    tip.classList.remove('pinned');tip.innerHTML=tipHTML(cfg,i)+(near?`<div class="ev-box">${evHTML(near)}</div>`:'');tip.hidden=false;place(x);};
   const frame=e=>{lastE={clientX:e.clientX,clientY:e.clientY};if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(lastE)show(lastE);});};
-  const hide=()=>{if(raf){cancelAnimationFrame(raf);raf=0;}lastE=null;g.setAttribute('visibility','hidden');if(!pinned)tip.hidden=true;cfg.onScrub&&cfg.onScrub(null);scrubEnd();};
+  const hide=()=>{if(raf){cancelAnimationFrame(raf);raf=0;}lastE=null;lastEv=null;prevX=null;touching=false;g.setAttribute('visibility','hidden');if(!pinned)tip.hidden=true;cfg.onScrub&&cfg.onScrub(null);scrubEnd();};
   const evAt=e=>{if(!EV.length)return null;const r=host.getBoundingClientRect();const sx=w/r.width,sy=h/r.height;const px=(e.clientX-r.left)*sx,py=(e.clientY-r.top)*sy;
     let best=null,bd=1e9;for(const ev of EV){const d=Math.hypot(ev.x-px,(ev.y-py)*0.8);if(d<bd){bd=d;best=ev;}}return bd<=18*sx?best:null;};
-  const pin=ev=>{pinned=true;g.setAttribute('visibility','hidden');tip.classList.add('pinned');tip.innerHTML=`<div class="th">${esc(ev.head)}</div>${ev.items.map(it=>`<div class="ev-it"><span class="sw" style="background:${it.color||ev.color}"></span><div><div class="ev-t">${esc(it.t)}</div>${it.s?`<div class="ev-s">${esc(it.s)}</div>`:''}</div></div>`).join('')}`;tip.hidden=false;place(ev.x);};
+  const pin=ev=>{pinned=true;g.setAttribute('visibility','hidden');tip.classList.add('pinned');tip.innerHTML=`<div class="th">${esc(ev.head)}</div>${evHTML(ev)}`;tip.hidden=false;place(ev.x);};
   const unpin=()=>{if(pinned){pinned=false;tip.classList.remove('pinned');tip.hidden=true;}};
   /* touch: follow the finger smoothly; sideways movement locks the scrub so the page doesn't steal it */
   let ts=null;
-  const onTS=e=>{if(e.touches.length!==1){ts=null;return;}const t=e.touches[0];const ev=evAt(t);if(ev){pin(ev);ts=null;return;}unpin();
-    ts={x:t.clientX,y:t.clientY,lock:null};scrubStart();frame(t);};
+  const onTS=e=>{if(e.touches.length!==1){ts=null;return;}const t=e.touches[0];const ev=evAt(t);if(ev){pin(ev);haptic();ts=null;return;}unpin();
+    ts={x:t.clientX,y:t.clientY,lock:null};touching=true;scrubStart();frame(t);};
   const onTM=e=>{if(!ts)return;const t=e.touches[0];const dx=Math.abs(t.clientX-ts.x),dy=Math.abs(t.clientY-ts.y);
     if(!ts.lock&&(dx>6||dy>6))ts.lock=dx>=dy*0.7?'h':'v';
     if(ts.lock==='v'){ts=null;hide();return;}
@@ -1530,14 +1539,18 @@ function mountChart(host,cfg){
   host.__off=()=>{host.removeEventListener('touchstart',onTS);host.removeEventListener('touchmove',onTM);host.removeEventListener('touchend',onTE);host.removeEventListener('touchcancel',onTE);};
   /* mouse / pen */
   host.onpointerdown=e=>{if(e.pointerType==='touch')return;const ev=evAt(e);if(ev){pin(ev);return;}unpin();show(e);};
-  host.onpointermove=e=>{if(e.pointerType==='touch'||pinned)return;frame(e);};
+  host.onpointermove=e=>{if(e.pointerType==='touch'||pinned)return;scrubStart(true);frame(e);};
   host.onpointerleave=e=>{if(e.pointerType==='touch')return;if(!pinned)hide();};
 }
 /* while a finger is on a chart, background redraws wait (they used to kill the scrub) */
-const SCRUB={on:false,pending:false};
-function scrubStart(){SCRUB.on=true;}
+const SCRUB={on:false,pending:false,mouse:false,t:0};
+function scrubStart(mouse){SCRUB.on=true;SCRUB.mouse=!!mouse;SCRUB.t=Date.now();}
+/* a short tick when the finger crosses a dot: Android vibrates; iPhones (iOS 17.4 and newer) tick through a hidden switch */
+const haptic=(()=>{let lab=null,last=0;return ()=>{const now=Date.now();if(now-last<60)return;last=now;
+  try{if(navigator.vibrate){navigator.vibrate(8);return;}}catch(e){}
+  try{if(!lab){lab=document.createElement('label');lab.setAttribute('aria-hidden','true');lab.style.cssText='position:fixed;left:-200px;top:0;opacity:0;pointer-events:none';lab.innerHTML='<input type="checkbox" switch tabindex="-1">';document.body.appendChild(lab);}lab.click();}catch(e){}};})();
 function scrubEnd(){if(!SCRUB.on)return;SCRUB.on=false;if(SCRUB.pending){SCRUB.pending=false;setTimeout(()=>softRender(),30);}}
-beforeRender(()=>{if(SCRUB.on){SCRUB.pending=true;return false;}}); /* while a finger scrubs the chart, wait */
+beforeRender(()=>{if(SCRUB.on){if(SCRUB.mouse&&Date.now()-SCRUB.t>4000){SCRUB.on=false;return;}SCRUB.pending=true;return false;}}); /* while a finger scrubs the chart, wait */
 function tipFmt(s,v,cfg){if(!isFinite(v))return '—';const f=s.fmt||(cfg.kind==='pct'?'pct':cfg.kind==='price'?'price':'money');
   if(f==='pct')return pct(v);if(f==='price')return new Intl.NumberFormat('nb-NO',{minimumFractionDigits:2,maximumFractionDigits:v<1?4:2}).format(v)+(cfg.ccy?' '+cfg.ccy:'');return fmtC(v,cfg.ccy||'NOK');}
 function tipHTML(cfg,i){const S0=cfg.series[0];const x=S0.pts[i].x;
@@ -1792,17 +1805,27 @@ function chartCfgSheet(){const draw=()=>{const o=pfOpt();return `<div class="not
     else if(b.dataset.pfsel){const k=b.dataset.pfsel;if(!o.multi)o.sel=[k];else{const i=o.sel.indexOf(k);if(i>=0){if(o.sel.length>1)o.sel.splice(i,1);}else o.sel.push(k);}}
     UI.pf=o;saveUI();body.innerHTML=draw();softRender();});});}
 /* dots for deposits, withdrawals, buys and sells on the value chart */
+/* the dots on the value chart: buys (green ●), sales (red ◆), cash in (white ■) and cash out (purple ■).
+   Green and red follow your Up and down colours; each kind also has its own shape, so colour is never the only difference. */
+const EV_KIND={buy:{c:'var(--up)',l:'Buy'},sell:{c:'var(--down)',l:'Sale'},deposit:{c:'var(--fg)',l:'Cash in'},withdraw:{c:'#B58CFF',l:'Cash out'}};
+const EV_ORDER=['buy','sell','deposit','withdraw'];
+function evMark(kind,x,y,r=5){const c=(EV_KIND[kind]||{}).c||'var(--accent)';const st=`fill="${c}" stroke="var(--bg)" stroke-width="2"`;
+  if(kind==='sell'){const d=r+1.6;return `<path d="M${x} ${y-d}L${x+d} ${y}L${x} ${y+d}L${x-d} ${y}Z" ${st}/>`;}
+  if(kind==='deposit'||kind==='withdraw'){const d=r-0.4;return `<rect x="${x-d}" y="${y-d}" width="${2*d}" height="${2*d}" rx="1.5" ${st}/>`;}
+  return `<circle cx="${x}" cy="${y}" r="${r+0.5}" ${st}/>`;}
+const evSwatch=kind=>`<svg class="ev-sw" width="12" height="12" viewBox="0 0 14 14" aria-hidden="true">${evMark(kind,7,7,4.2)}</svg>`;
 function chartEvents(M,pts,pad){const lo=pts[pad]?pts[pad].x:Infinity,hi=pts[pts.length-1].x;const out=new Map();
   const find=d=>{let a=pad,b=pts.length-1;if(d>hi)return -1;while(a<b){const m=(a+b)>>1;if(pts[m].x<d)a=m+1;else b=m;}return a;};
   for(const t of M.txs||[]){if(!['buy','sell','deposit','withdraw'].includes(t.type))continue;const d=dn(t.date);if(d<lo-1||d>hi)continue;const i=find(d);if(i<0)continue;
     const a=t.assetId&&assetById(t.assetId);const acc=accById(t.accountId);const when=dateLabel(d,true)+(t.time?' · '+t.time:'');let it;
     if(t.type==='buy'||t.type==='sell'){if(!a)continue;const tot=t.qty*t.price*(t.fx||1)+(t.type==='buy'?1:-1)*(t.fee||0);
-      it={trade:true,sym:a.symbol,t:(t.type==='buy'?'Bought ':'Sold ')+a.symbol+' · '+qtyFmt(t.qty)+' × '+money(t.price,a.currency),s:when+' · '+F(conv(M,tot))};}
-    else it={trade:false,t:(t.type==='deposit'?'Deposit':'Withdrawal')+(acc?' · '+acc.name:''),s:when+' · '+F(conv(M,Math.abs(t.amount)))};
-    if(t.note)it.s+=' · “'+t.note+'”';
+      it={trade:true,kind:t.type,sym:a.symbol,t:(t.type==='buy'?'Bought ':'Sold ')+a.symbol,s:qtyFmt(t.qty)+' × '+money(t.price,a.currency)+' · '+F(conv(M,tot)),when};}
+    else it={trade:false,kind:t.type,t:(t.type==='deposit'?'Cash in':'Cash out')+' · '+F(conv(M,Math.abs(t.amount))),s:acc?acc.name:'',when};
+    if(t.note)it.s+=(it.s?' · ':'')+'“'+t.note+'”';
     if(!out.has(i))out.set(i,[]);out.get(i).push(it);}
-  return [...out.entries()].map(([i,items])=>{const tr=items.filter(x=>x.trade);const syms=[...new Set(tr.map(x=>x.sym))];
-    return {i,items:items.map(x=>Object.assign(x,{color:x.trade?'var(--accent)':'var(--fg)'})),color:tr.length?'var(--accent)':'var(--fg)',head:dateLabel(pts[i].x,true),label:syms.length?syms[0]+(syms.length>1?'+'+(syms.length-1):''):''};});}
+  return [...out.entries()].map(([i,items])=>{const kinds=EV_ORDER.filter(k=>items.some(x=>x.kind===k));const days=new Set(items.map(x=>x.when));
+    for(const x of items){x.color=EV_KIND[x.kind].c;if(days.size>1)x.s=x.when+(x.s?' · '+x.s:'');}
+    return {i,items,kinds,color:EV_KIND[kinds[0]].c,head:dateLabel(pts[i].x,true),label:''};});}
 /* true when a period reaches back before your first data */
 function rangeShort(r,firstDay){if(r==='MAX'||r==='1D')return false;return rangeBase(r,dn(localToday()))<firstDay-1;}
 /* the main chart and the Return card each have their own index selection */
@@ -1842,7 +1865,7 @@ function viewOverview(v){
     <div class="hero-chg"><span id="heroChg" class="${cl(st.gain)}">${F(st.gain,{sign:true})}</span><span id="heroPct" class="pill ${cl(st.twr)}">${pct(st.twr)}</span><span class="when" id="heroWhen">${RANGE_WORD[key]}</span></div>
     <div class="small muted inv-line" style="margin-top:4px">Investments <span class="amber-v">${F(invNow)}</span> · Cash <span class="amber-v">${F(conv(M,M.cash))}</span> (<span class="amber-v">${pct1(cashPct)}</span>)</div></section>
   <section class="card chart-card" data-card="chart"><div class="row-between">${seg('mode',[['value','Value'],['perf','Performance']],UI.mode)}<div class="pc-tools ch-tools">${perf&&key!=='1D'?bmMulti('chart'):''}<button class="gear-btn" data-act="chartcfg" aria-label="Chart settings">${iconSm('gear',16)}</button></div></div>
-  <div class="legend-row"><div class="legend-line small muted">${!perf?'<span class="lk solid"></span>'+(M.__group?esc(M.__group.name):'Investments')+' <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' <span class="lk" style="background:var(--accent);width:8px;height:8px;border-radius:50%"></span>Trades <span class="lk" style="background:var(--fg);width:8px;height:8px;border-radius:50%"></span>Cash':''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div></div>
+  <div class="legend-row"><div class="legend-line small muted">${!perf?`<span class="lk solid" style="background:${st.gain>=0?'var(--up)':'var(--down)'}"></span>`+(M.__group?esc(M.__group.name):'Investments')+' <span class="lk dash"></span>Money you put in'+(UI.events&&key!=='1D'?' '+EV_ORDER.map(k=>`<span class="ev-lg">${evSwatch(k)}${EV_KIND[k].l}</span>`).join(' '):''):`${pfOpt().sel.map(k=>`<span class="lk" style="background:${lkBg(CLS_LINE[k][1],k==='all'||CLS_LINE[k][2]==='1 0'?null:CLS_LINE[k][2])}"></span>${esc(k==='all'?portfolio().name:CLS_LINE[k][0])} `).join('')}${compare.map(x=>` <span class="lk" style="background:${lkBg(BM_COLOR[x.b.id],BM_DASH[x.b.id])}"></span>${esc(x.b.name)}`).join('')}`}</div></div>
   <div class="chart" id="mainChart"></div>
   <div class="ranges${chartOpt().rpct?' with-rp':''}" role="group" aria-label="Period">${RANGES.map(r=>`<button data-range="${r}" aria-pressed="${r===key}" class="${rangeShort(r,M.firstDay)?'nodata':''}" title="${rangeShort(r,M.firstDay)?'Your history is shorter than this period':''}"><span class="rk">${r}</span>${chartOpt().rpct?rangePctHTML(M,Z,r):''}</button>`).join('')}</div>
 </section>
@@ -1865,7 +1888,7 @@ function viewOverview(v){
   const pad=0; /* periods longer than your history: the chart starts at your first data; the period button is shown faded instead */
   const events=!perf&&UI.events&&ser.idx?chartEvents(M,series_[0].pts,pad):[];
   const reset=()=>{heroEy.textContent=eyTotal;heroVal.textContent=F(total);heroChg.textContent=F(st.gain,{sign:true});heroChg.className=cl(st.gain);heroPct.textContent=pct(st.twr);heroPct.className='pill '+cl(st.twr);heroWhen.textContent=RANGE_WORD[key];};
-  const draw=()=>mountChart(host,{main:true,rangeKey:key,series:series_,kind:perf?'pct':'money',ccy:UI.ccy,diff:perf&&series_.length>1,time:ser.time,noData:pad,events,evLabels:events.length<=10,onScrub:i=>{
+  const draw=()=>mountChart(host,{main:true,rangeKey:key,series:series_,kind:perf?'pct':'money',ccy:UI.ccy,diff:perf&&series_.length>1,time:ser.time,noData:pad,events,evLabels:false,onScrub:i=>{
     if(i==null)return reset();if(pad){if(i<pad){heroEy.textContent=portfolio().name+' · no data yet';heroWhen.textContent=dateLabel(series_[0].pts[i].x,true);return;}i-=pad;}heroEy.textContent=portfolio().name+' · investments';
     if(!ser.idx){const p=pts[i],f=pts[0];heroVal.textContent=F(p.v);const g=p.v-f.v;heroChg.textContent=F(g,{sign:true});heroChg.className=cl(g);const r=f.v?g/f.v:0;heroPct.textContent=pct(r);heroPct.className='pill '+cl(r);heroWhen.textContent=ser.time?'at '+timeLabel(p.x):dateLabel(p.x,true);return;}
     const di=ser.idx[i];const s2=statsIdx(M,Z,st.bi,di);heroVal.textContent=F(Z.V[di]);heroChg.textContent=F(s2.gain,{sign:true});heroChg.className=cl(s2.gain);heroPct.textContent=pct(s2.twr);heroPct.className='pill '+cl(s2.twr);heroWhen.textContent='to '+dateLabel(M.d0+di,true);}});
@@ -5031,6 +5054,27 @@ onTap(e=>{if(e.target.closest('[data-act="spshow"]')){SP_SHOW=!SP_SHOW;clearTime
   if(e.target.closest('[data-act="spcopy"]')){const c=syncCfg();const done=()=>toast('Password copied');try{navigator.clipboard.writeText(c.pass).then(done,()=>toast('Could not copy: select it and copy by hand'));}catch(err){toast('Could not copy: select it and copy by hand');}}});
 /* leaving the page hides it again */
 beforeRender(()=>{if(SP_SHOW&&!(UI.tab==='settings'&&UI.sset==='sync')){SP_SHOW=false;clearTimeout(SP_TIMER);}});
+
+
+/* ================= steady controls on PC and phone =================
+   Prices, sync and alerts redraw the page in the background. That used to close a drop-down list you had just opened, throw the cursor
+   out of a field you were typing in, and reset a "tap again to confirm" button. Now a background redraw waits while you are using a control;
+   it runs as soon as you are done. Redraws you cause yourself (a tap, a choice) are never held back. */
+let IN_EVT=false,CTRL_T=0;const HOLD={pending:false};
+for(const t of ['click','change','input','submit','keydown'])document.addEventListener(t,()=>{IN_EVT=true;setTimeout(()=>{IN_EVT=false;},0);},true);
+for(const t of ['pointerdown','keydown','focusin','input'])document.addEventListener(t,e=>{if(e.target&&e.target.closest&&e.target.closest('#view'))CTRL_T=Date.now();},true);
+function busyControl(){const v=document.getElementById('view');if(!v)return false;
+  if(v.querySelector('[data-armed]'))return Date.now()-CTRL_T<8000; /* waiting for the second tap */
+  const a=document.activeElement;if(!a||!v.contains(a))return false;
+  const ctl=a.tagName==='SELECT'||a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&!/^(checkbox|radio|button|submit|range|file|color)$/i.test(a.type||''));
+  return ctl&&Date.now()-CTRL_T<45000;}
+beforeRender(()=>{if(IN_EVT){HOLD.pending=false;return;}if(busyControl()){HOLD.pending=true;return false;}HOLD.pending=false;});
+const holdRelease=()=>setTimeout(()=>{if(HOLD.pending&&!busyControl()){HOLD.pending=false;softRender();}},60);
+document.addEventListener('focusout',holdRelease,true);
+/* after picking from a list with the mouse or a finger, let go of it, so the page keeps updating */
+let SEL_PTR=0;document.addEventListener('pointerdown',e=>{if(e.target&&e.target.tagName==='SELECT')SEL_PTR=Date.now();},true);
+document.addEventListener('change',e=>{const el=e.target;if(el&&el.tagName==='SELECT'&&Date.now()-SEL_PTR<120000)setTimeout(()=>{if(document.activeElement===el)el.blur();holdRelease();},0);});
+setInterval(()=>{if(HOLD.pending&&!busyControl()){HOLD.pending=false;if(!document.hidden)softRender();}},5000);
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
