@@ -891,6 +891,48 @@ svg.ev-sw,.chart svg.ev-sw,.tip svg.ev-sw{width:12px!important;height:12px!impor
 .bl-lv{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.bl-l{font-size:12.5px;padding:2px 8px;border-radius:7px;border:1px solid var(--line);color:var(--fg);white-space:nowrap}
 .bl-l.hit{border-color:var(--up);color:var(--up);font-weight:700}
 @media (max-width:480px){.bl-tbl td{font-size:14px}.bl-tbl th,.bl-tbl td{padding-left:6px}}
+/* ================= one look everywhere ================= */
+:root{--gap-x:var(--gap);--gap:24px;--pad:20px;--box-edge:1px solid var(--line);--box-shadow:none}
+:root[data-lspace="compact"]{--gap:10px;--pad:12px}
+:root[data-lspace="normal"]{--gap:16px;--pad:16px}
+:root[data-lspace="roomy"]{--gap:24px;--pad:20px}
+@media (min-width:900px){:root:root{--gap-x:calc(var(--gap) + clamp(0px,(100vw - 900px)*.008,8px))}}
+:root[data-lcorner="square"]{--r:6px}:root[data-lcorner="round"]{--r:14px}:root[data-lcorner="rounder"]{--r:20px}
+:root[data-ledge="shade"]{--box-edge:1px solid transparent;--box-shadow:0 6px 22px rgb(0 0 0 / .35)}
+:root[data-ledge="none"]{--box-edge:1px solid transparent}
+html[data-mode="day"][data-ledge="shade"],:root[data-ledge="shade"][data-mode="light"]{--box-shadow:0 4px 16px rgb(0 0 0 / .08)}
+
+/* the box: cards with their own title, gathered sections, cards on their own, and the same in Settings and windows */
+#view .c-shell,#view .c-box,#view .ubox-lone,#sheetBody .c-shell,#sheetBody .ubox-lone,.ss-body .card,.set-body > .card,.set-body > form.card,#view .set-body .ubox-lone{
+  background:color-mix(in srgb,var(--surface) calc(var(--card-alpha,100)*1%),transparent);border:var(--box-edge);border-radius:var(--r);padding:var(--pad)!important;box-shadow:var(--box-shadow)}
+#view .ubox > .c-flat,#sheetBody .ubox > .c-flat,#view .c-shell > .c-flat{background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;margin:0}
+#view .ubox > .c-flat + .c-flat,#sheetBody .ubox > .c-flat + .c-flat,#view .c-shell > .c-flat + .c-flat{margin-top:calc(var(--pad) * .7)}
+.ubox > .c-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;margin:0 0 calc(var(--pad) * .6)}
+.ubox > .c-head h2.sec{margin:0!important}
+.ubox.ubox-empty > .c-head{margin:0}
+/* inside a box: the old headings become sub-headings */
+#view [data-card] h2.sec:not(.c-title),#view .ubox h2.sec:not(.c-title),#sheetBody .ubox h2.sec:not(.c-title){margin:calc(var(--pad) * .9) 0 8px;font-size:var(--fs-s)}
+#view .c-head{margin-bottom:calc(var(--pad) * .6)}
+
+/* the same space between all boxes */
+#view > * + .ubox,#view > * + .ubox-lone,#view > * + [data-card],#view > * + .two-col,#view > .ubox + *,#view > .ubox-lone + *,
+#view [data-card] + [data-card],.two-col>div>[data-card]+[data-card],#sheetBody > * + .ubox,#sheetBody > .ubox + *,#sheetBody > * + .ubox-lone,.ss-body .card + .card,.ss-body > * + .card,.set-body > * + *{margin-top:var(--gap-x)!important}
+.two-col{gap:var(--gap-x);margin-top:var(--gap-x)}
+#view > .ubox:first-child,#view > [data-card]:first-child{margin-top:var(--gap-x)}
+/* two boxes side by side end at the same line */
+:root[data-leq="same"] .two-col{align-items:stretch}
+:root[data-leq="same"] .two-col>div{display:flex;flex-direction:column}
+:root[data-leq="same"] .two-col>div>[data-card]:last-child{flex:1 1 auto}
+
+/* B · title above the box */
+:root[data-lsec="above"] #view .c-shell,:root[data-lsec="above"] #view .c-box,:root[data-lsec="above"] #sheetBody .c-shell{position:relative;margin-top:calc(var(--gap-x) + 36px)!important}
+:root[data-lsec="above"] #view .c-shell > .c-head,:root[data-lsec="above"] #view .c-box > .c-head,:root[data-lsec="above"] #sheetBody .c-shell > .c-head,
+:root[data-lsec="above"] #view [data-card] > .card > .c-head{position:absolute;left:2px;right:2px;top:-40px;margin:0}
+:root[data-lsec="above"] #view [data-card].c-shell:has(> .card > .c-head){padding-top:var(--pad)}
+/* C · no boxes, a thin line between sections */
+:root[data-lsec="lines"] #view .c-shell,:root[data-lsec="lines"] #view .c-box,:root[data-lsec="lines"] #view .ubox-lone,:root[data-lsec="lines"] #sheetBody .c-shell,:root[data-lsec="lines"] .ss-body .card{
+  background:transparent!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important;padding:var(--pad) 2px 0!important}
+:root[data-lsec="lines"] .two-col>div>[data-card]{border-top:1px solid var(--line)}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -911,7 +953,7 @@ svg.ev-sw,.chart svg.ev-sw,.tip svg.ev-sw{width:12px!important;height:12px!impor
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611182319";
+const LACAG_BUILD="202611201142";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -4248,7 +4290,8 @@ function wideMode(){const z=parseFloat(getComputedStyle(document.documentElement
 function twoColumns(){const v=$('#view');const on=wideMode()&&['overview','holdings','analysis'].includes(UI.tab);document.body.classList.toggle('wide2',wideMode());
   if(!v||!on)return;let run=[];
   const flush=()=>{if(run.length>=2){const box=document.createElement('div');box.className='two-col';const L=document.createElement('div'),R=document.createElement('div');box.append(L,R);run[0].before(box);
-      for(const n of run)(L.offsetHeight<=R.offsetHeight?L:R).appendChild(n);}run=[];};
+      const hOf=c=>[...c.children].reduce((t,x)=>t+x.offsetHeight,0); /* the content height (the columns themselves are stretched to the same height) */
+      for(const n of run)(hOf(L)<=hOf(R)?L:R).appendChild(n);}run=[];};
   for(const k of [...v.children]){if(k.dataset&&HALF_CARDS.has(k.dataset.card))run.push(k);else flush();}flush();}
 afterRender(twoColumns);
 {let was=null;window.addEventListener('resize',()=>{const w=wideMode();if(was===null){was=w;return;}if(w!==was){was=w;softRender();}});}
@@ -5162,6 +5205,48 @@ onTap(e=>{const b=e.target.closest('[data-bledit]');if(b){blSheet(b.dataset.bled
   const d=e.target.closest('[data-bldel]');if(d){if(!armed(d,'Tap again to remove'))return;S.buyList=blList().filter(x=>x.id!==d.dataset.bldel);if(C.blive)delete C.blive[d.dataset.bldel];savePlan();closeSheet();softRender();return;}
   const s=e.target.closest('[data-blview]');if(s){UI.blView=s.dataset.blview;saveUI();softRender();}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'){const r=e.target.closest&&e.target.closest('tr[data-bledit]');if(r)blSheet(r.dataset.bledit);}});
+
+
+/* ================= one look everywhere (v74) =================
+   Every section on every page, in Settings and in pop-up windows is one box: its title and buttons on the top row, everything else inside.
+   Pages that were built as a loose heading + content are gathered into such a box after drawing, so no page needs its own layout code.
+   Settings → Appearance → Layout: Sections (Boxes · Above · Lines), Spacing (Compact · Normal · Roomy), Corners, Box edge, Side by side on PC. */
+const LAYOUT_DEF={sec:'boxes',space:'roomy',corner:'round',edge:'line',eq:'same'};
+function layoutLook(){return Object.assign({},LAYOUT_DEF,UI.layoutLook||{});}
+function applyLayoutLook(){const L=layoutLook(),r=document.documentElement;r.dataset.lsec=L.sec;r.dataset.lspace=L.space;r.dataset.lcorner=L.corner;r.dataset.ledge=L.edge;r.dataset.leq=L.eq;}
+applyLayoutLook();
+const isHeadEl=n=>n&&n.nodeType===1&&(n.matches('h2.sec')||(n.matches('.row-between')&&!!n.querySelector(':scope > h2.sec')));
+const stopsGroup=n=>isHeadEl(n)||n.matches('[data-card],.ubox,.page-bar,.two-col,.seg-wrap,script,style')||n.hasAttribute('data-stop-box');
+/* gather a loose heading and what follows it (up to the next heading or card) into one box */
+function uboxify(root){if(!root)return;const kids=[...root.children];
+  for(const n of kids){if(!n.isConnected||n.parentElement!==root||!isHeadEl(n))continue;
+    const box=document.createElement('section');box.className='ubox c-shell';
+    let head;if(n.matches('.row-between')){head=n;n.classList.add('c-head');const t=n.querySelector(':scope > h2.sec');if(t)t.classList.add('c-title');}
+    else{head=document.createElement('div');head.className='c-head';n.classList.add('c-title');}
+    n.before(box);if(head!==n){box.appendChild(head);head.appendChild(n);}else box.appendChild(n);
+    let s=box.nextElementSibling;while(s&&!stopsGroup(s)){const nx=s.nextElementSibling;s.classList.add('c-flat');box.appendChild(s);s=nx;}
+    if(box.children.length===1)box.classList.add('ubox-empty');}
+  /* a card on its own, without a heading, still gets the same box */
+  for(const n of [...root.children])if(n.matches('.card,form.card')&&!n.matches('[data-card],.hero,.c-box,.c-shell'))n.classList.add('ubox-lone');}
+function layoutPass(){const v=document.getElementById('view');if(v){uboxify(v);v.querySelectorAll('.ss-body, .set-body').forEach(uboxify);}
+  const sb=document.getElementById('sheetBody');if(sb){uboxify(sb);sb.querySelectorAll(':scope > form, :scope > .form').forEach(uboxify);}}
+afterRender(layoutPass);
+{const _os=openSheet;openSheet=function(title,body,onMount){return _os(title,body,sh=>{try{layoutPass();}catch(e){}if(onMount)onMount(sh);});};}
+/* windows that redraw their own content keep the same look */
+new MutationObserver(()=>{const sb=document.getElementById('sheetBody');if(sb&&[...sb.children].some(isHeadEl))uboxify(sb);}).observe(document.getElementById('sheet')||document.body,{childList:true,subtree:true});
+/* ---------- settings ---------- */
+const LAYOUT_ROWS=[['sec','Sections',[['boxes','Boxes'],['above','Above'],['lines','Lines']],'Boxes: title inside each box. Above: title above the box. Lines: no boxes, a thin line between sections.'],
+  ['space','Spacing',[['compact','Compact'],['normal','Normal'],['roomy','Roomy']],'Space between and inside the boxes. On a big screen it grows a little.'],
+  ['corner','Corners',[['square','Square'],['round','Round'],['rounder','Rounder']],''],
+  ['edge','Box edge',[['line','Line'],['shade','Shade'],['none','None']],''],
+  ['eq','Side by side (PC)',[['same','Same height'],['natural','Natural']],'Two boxes next to each other end at the same line.']];
+function layoutSettingsHTML(){const L=layoutLook();
+  return `<div class="card stack" id="layoutCard"><span class="lbl2">Layout</span>${LAYOUT_ROWS.map(([k,t,opts,h])=>`<div class="look-row"><span>${t}</span>${seg('llook',opts.map(([v,l])=>[k+':'+v,l]),k+':'+L[k])}</div>${h?`<div class="hint">${h}</div>`:''}`).join('')}
+   <button class="btn sm" data-act="llreset" style="align-self:flex-start">Back to default (Boxes · Roomy)</button></div>`;}
+{const _vs=viewSettings;viewSettings=function(v){_vs(v);if(UI.sset==='look'){const b=v.querySelector('.set-body');if(b&&!b.querySelector('#layoutCard'))b.insertAdjacentHTML('afterbegin',layoutSettingsHTML());}};}
+onTap(e=>{const b=e.target.closest('[data-llook]');if(b){const [k,v]=b.dataset.llook.split(':');UI.layoutLook=Object.assign({},layoutLook(),{[k]:v});saveUI();applyLayoutLook();VERSION++;render();return;}
+  if(e.target.closest('[data-act="llreset"]')){UI.layoutLook={};saveUI();applyLayoutLook();VERSION++;render();}});
+if(typeof SET_KW==='object')SET_KW.look=(SET_KW.look||'')+' layout spacing space gap boxes cards corners edge side by side';
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
