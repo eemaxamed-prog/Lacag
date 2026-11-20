@@ -871,6 +871,26 @@ table.rtab thead th.muted2{opacity:.4}
 /* value chart dots and their legend */
 svg.ev-sw,.chart svg.ev-sw,.tip svg.ev-sw{width:12px!important;height:12px!important;flex:0 0 12px;margin-top:3px;vertical-align:-1px;display:inline-block;position:static}.ev-lg{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.ev-lg .ev-sw{margin-top:0}
 .ev-box{margin-top:6px;padding-top:2px;border-top:1px solid var(--line)}
+/* the eye (and the other top-bar buttons) are easy to hit on a phone: the touch area is at least 44 × 44, even when the button looks smaller */
+.top .icon-btn{position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.top .icon-btn::after{content:"";position:absolute;inset:-6px -3px}
+.top-eye{z-index:2}
+.top-eye::after{inset:-8px -6px!important}
+@media (max-width:480px){.top-eye{width:38px!important;height:38px!important}}
+/* buy list */
+.bl-zone{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:6px;background:color-mix(in srgb,var(--up) 16%,transparent);color:var(--up);margin-top:3px;white-space:nowrap}
+.bl-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.bl-tbl th{font-weight:400;color:var(--label);font-size:12.5px;text-align:right;padding:4px 0 8px 8px;white-space:nowrap}
+.bl-tbl td{text-align:right;padding:10px 0 10px 8px;border-top:1px solid var(--line);white-space:nowrap;font-size:14.5px;vertical-align:middle}
+.bl-tbl th:first-child,.bl-tbl td:first-child{padding-left:0;width:20px;text-align:left}.bl-tbl .l{text-align:left;white-space:normal}
+.bl-tbl tr[data-bledit]{cursor:pointer}
+.bl-r1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.bl-track{height:8px;border-radius:4px;background:var(--surface2);position:relative;margin:9px 0 5px}.bl-track i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--accent2,#4DA3FF)}
+.bl-track b{position:absolute;right:0;top:-4px;bottom:-4px;width:2px;background:var(--up)}
+.bl-bar .mid,.bl-step .mid{width:100%}
+.bl-lv{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.bl-l{font-size:12.5px;padding:2px 8px;border-radius:7px;border:1px solid var(--line);color:var(--fg);white-space:nowrap}
+.bl-l.hit{border-color:var(--up);color:var(--up);font-weight:700}
+@media (max-width:480px){.bl-tbl td{font-size:14px}.bl-tbl th,.bl-tbl td{padding-left:6px}}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -891,7 +911,7 @@ svg.ev-sw,.chart svg.ev-sw,.tip svg.ev-sw{width:12px!important;height:12px!impor
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611161533";
+const LACAG_BUILD="202611182319";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -1514,10 +1534,10 @@ function mountChart(host,cfg){
     dots.forEach(dt=>{const s=cfg.series[+dt.dataset.k];const p=s.pts[i];if(p&&isFinite(p.v)){dt.setAttribute('cx',x);dt.setAttribute('cy',Y(p.v));dt.setAttribute('visibility','visible');}else dt.setAttribute('visibility','hidden');});
     txt.setAttribute('x',Math.min(Math.max(x,34),w-pr-34));txt.textContent=cfg.xfmt?cfg.xfmt(S0.pts[i].x,true):cfg.time?timeLabel(S0.pts[i].x):dateLabel(S0.pts[i].x,true);
     g.setAttribute('visibility','visible');cfg.onScrub&&cfg.onScrub(i);
-    /* a dot under the line: say what happened that day; crossing a dot gives one haptic tick */
+    /* a dot under the line: say what happened that day */
     let near=null,nd=7;for(const ev of EV){const d=Math.abs(ev.x-x);if(d<nd||ev.i===i){nd=Math.min(d,nd);near=ev;if(ev.i===i)break;}}
     let crossed=near&&near!==lastEv;if(!crossed&&prevX!=null)for(const ev of EV)if(ev!==lastEv&&ev.x>Math.min(prevX,x)&&ev.x<Math.max(prevX,x)){crossed=true;break;}
-    if(crossed&&touching)haptic();lastEv=near;prevX=x;
+    lastEv=near;prevX=x;
     tip.classList.remove('pinned');tip.innerHTML=tipHTML(cfg,i)+(near?`<div class="ev-box">${evHTML(near)}</div>`:'');tip.hidden=false;place(x);};
   const frame=e=>{lastE={clientX:e.clientX,clientY:e.clientY};if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(lastE)show(lastE);});};
   const hide=()=>{if(raf){cancelAnimationFrame(raf);raf=0;}lastE=null;lastEv=null;prevX=null;touching=false;g.setAttribute('visibility','hidden');if(!pinned)tip.hidden=true;cfg.onScrub&&cfg.onScrub(null);scrubEnd();};
@@ -1527,7 +1547,7 @@ function mountChart(host,cfg){
   const unpin=()=>{if(pinned){pinned=false;tip.classList.remove('pinned');tip.hidden=true;}};
   /* touch: follow the finger smoothly; sideways movement locks the scrub so the page doesn't steal it */
   let ts=null;
-  const onTS=e=>{if(e.touches.length!==1){ts=null;return;}const t=e.touches[0];const ev=evAt(t);if(ev){pin(ev);haptic();ts=null;return;}unpin();
+  const onTS=e=>{if(e.touches.length!==1){ts=null;return;}const t=e.touches[0];const ev=evAt(t);if(ev){pin(ev);ts=null;return;}unpin();
     ts={x:t.clientX,y:t.clientY,lock:null};touching=true;scrubStart();frame(t);};
   const onTM=e=>{if(!ts)return;const t=e.touches[0];const dx=Math.abs(t.clientX-ts.x),dy=Math.abs(t.clientY-ts.y);
     if(!ts.lock&&(dx>6||dy>6))ts.lock=dx>=dy*0.7?'h':'v';
@@ -1545,10 +1565,7 @@ function mountChart(host,cfg){
 /* while a finger is on a chart, background redraws wait (they used to kill the scrub) */
 const SCRUB={on:false,pending:false,mouse:false,t:0};
 function scrubStart(mouse){SCRUB.on=true;SCRUB.mouse=!!mouse;SCRUB.t=Date.now();}
-/* a short tick when the finger crosses a dot: Android vibrates; iPhones (iOS 17.4 and newer) tick through a hidden switch */
-const haptic=(()=>{let lab=null,last=0;return ()=>{const now=Date.now();if(now-last<60)return;last=now;
-  try{if(navigator.vibrate){navigator.vibrate(8);return;}}catch(e){}
-  try{if(!lab){lab=document.createElement('label');lab.setAttribute('aria-hidden','true');lab.style.cssText='position:fixed;left:-200px;top:0;opacity:0;pointer-events:none';lab.innerHTML='<input type="checkbox" switch tabindex="-1">';document.body.appendChild(lab);}lab.click();}catch(e){}};})();
+
 function scrubEnd(){if(!SCRUB.on)return;SCRUB.on=false;if(SCRUB.pending){SCRUB.pending=false;setTimeout(()=>softRender(),30);}}
 beforeRender(()=>{if(SCRUB.on){if(SCRUB.mouse&&Date.now()-SCRUB.t>4000){SCRUB.on=false;return;}SCRUB.pending=true;return false;}}); /* while a finger scrubs the chart, wait */
 function tipFmt(s,v,cfg){if(!isFinite(v))return '—';const f=s.fmt||(cfg.kind==='pct'?'pct':cfg.kind==='price'?'price':'money');
@@ -5075,6 +5092,76 @@ document.addEventListener('focusout',holdRelease,true);
 let SEL_PTR=0;document.addEventListener('pointerdown',e=>{if(e.target&&e.target.tagName==='SELECT')SEL_PTR=Date.now();},true);
 document.addEventListener('change',e=>{const el=e.target;if(el&&el.tagName==='SELECT'&&Date.now()-SEL_PTR<120000)setTimeout(()=>{if(document.activeElement===el)el.blur();holdRelease();},0);});
 setInterval(()=>{if(HOLD.pending&&!busyControl()){HOLD.pending=false;if(!document.hidden)softRender();}},5000);
+
+
+/* ================= Plan → Buying plan → Buy list =================
+   Stocks you want to buy, at the price you want to buy them. Three views (chosen at the top of the card, remembered on this device):
+   Table (like a spreadsheet, closest to target first) · To go (a bar per stock) · Steps (several prices, each with an amount in kroner).
+   Distance = latest price ÷ target − 1 (60,04 against 60 = 0,1 %). At or under a target: "✓ Buy zone". Synced with your other devices. */
+const BL_VIEWS=[['table','Table'],['bars','To go'],['steps','Steps']];
+const blView=()=>BL_VIEWS.some(x=>x[0]===UI.blView)?UI.blView:'table';
+function blList(){if(!Array.isArray(S.buyList)){/* first time: start from the watchlist stocks that already have a "buy below" price */
+    S.buyList=(S.watch||[]).filter(w=>w.below>0).map(w=>({id:uid(),symbol:w.symbol,name:w.name||'',cur:w.cur||'USD',levels:[{price:w.below,amount:null}]}));}
+  return S.buyList;}
+const blLevels=it=>(it.levels||[]).filter(l=>l.price>0).sort((a,b)=>b.price-a.price);
+function blLive(it){return C.blive&&C.blive[it.id]||null;}
+/* the state of one stock: next price not reached yet, how far away, which steps are reached */
+function blState(it){const lv=blLevels(it);const L=blLive(it);const p=L&&L.price>0?L.price:null;
+  if(!lv.length)return {lv,p,next:null,dist:null,hit:0};
+  const hit=p==null?0:lv.filter(l=>p<=l.price).length;const next=lv.find(l=>p==null||p>l.price)||null;
+  return {lv,p,next,dist:p!=null&&next?p/next.price-1:null,hit,zone:p!=null&&p<=lv[0].price,cur:(L&&L.cur)||it.cur};}
+function blSorted(){return blList().slice().sort((a,b)=>{const A=blState(a),B=blState(b);const k=s=>s.next==null?(s.zone?-2:9):s.zone?-1+s.dist:s.dist==null?8:s.dist;return k(A)-k(B);});}
+const blPct=v=>nf1.format(v*100)+' %';
+const blZone=()=>'<span class="bl-zone">✓ Buy zone</span>';
+function blTable(list){return `<div class="tbl-wrap"><table class="bl-tbl"><thead><tr><th>#</th><th class="l">Stock</th><th>Latest</th><th>Target</th><th>Distance</th></tr></thead><tbody>${list.map((it,i)=>{const s=blState(it);const t=s.next||s.lv[s.lv.length-1];
+    return `<tr data-bledit="${it.id}" role="button" tabindex="0"><td class="muted">${i+1}</td><td class="l"><b>${esc(it.name||it.symbol)}</b>${it.name?` <span class="muted">${esc(it.symbol)}</span>`:''}${s.zone?`<div>${blZone()}</div>`:''}</td>
+     <td>${s.p!=null?nf2.format(s.p):blErr(it)}</td><td class="muted">${t?nf2.format(t.price).replace(/,00$/,''):'—'}</td><td><b>${s.dist!=null?blPct(s.dist):s.next==null&&s.zone?'All':'—'}</b></td></tr>`;}).join('')}</tbody></table></div>
+   <div class="hint" style="margin-top:6px">Prices in each stock's own currency. Distance: how far the price must fall to reach the target.</div>`;}
+function blErr(it){const L=blLive(it);return L&&L.err?`<span class="muted small" title="${esc(L.err)}">—</span>`:'<span class="muted">…</span>';}
+function blBars(list){return list.map(it=>{const s=blState(it);const t=s.next||s.lv[0];const fill=s.zone?100:s.dist==null?0:Math.max(0,Math.min(100,(1-s.dist/0.5)*100));
+   const amt=t&&t.amount>0?' · '+kr(t.amount):'';
+   return `<button class="item bl-bar" data-bledit="${it.id}"><div class="mid"><div class="bl-r1"><span><b>${esc(it.symbol)}</b> <span class="muted">${esc(it.name||'')}</span></span><b>${s.zone&&!s.next?blZone():s.dist!=null?blPct(s.dist)+' to go':s.zone?blZone():'—'}</b></div>
+     <div class="bl-track" aria-hidden="true"><i style="width:${fill.toFixed(1)}%"></i><b></b></div>
+     <div class="bl-r1 t2"><span>Now ${s.p!=null?money(s.p,s.cur):'—'}</span><span>Buy at ${t?money(t.price,it.cur):'—'}${amt}</span></div></div></button>`;}).join('');}
+function blSteps(list){return list.map(it=>{const s=blState(it);
+   return `<button class="item bl-step" data-bledit="${it.id}"><div class="mid"><div class="bl-r1"><b>${esc(it.symbol)}</b><span><span class="muted">Now</span> <b>${s.p!=null?money(s.p,s.cur):'—'}</b></span></div>
+     <div class="bl-lv">${s.lv.map(l=>{const h=s.p!=null&&s.p<=l.price;return `<span class="bl-l ${h?'hit':''}">${h?'✓ ':''}${nf2.format(l.price).replace(/,00$/,'')}${l.amount>0?' · '+kr(l.amount):''}</span>`;}).join('')}</div>
+     <div class="t2" style="margin-top:6px">${s.next?`Next step ${money(s.next.price,it.cur)}${s.dist!=null?' · '+blPct(s.dist)+' away':''}`:s.zone?'All steps reached':'No price yet'}${s.hit?` · ${s.hit} of ${s.lv.length} reached`:''}</div></div></button>`;}).join('');}
+function buyListHTML(){const list=blSorted();const v=blView();
+  const total=list.reduce((a,it)=>a+blLevels(it).reduce((b,l)=>b+(l.amount>0?l.amount:0),0),0);
+  return `<h2 class="sec">Buy list</h2><div class="card stack bl-card">
+   <div class="row-between" style="gap:8px;flex-wrap:wrap">${seg('blview',BL_VIEWS,v)}<button class="btn sm primary" data-bledit="__new">${iconSm('plus')} Add</button></div>
+   ${list.length?(v==='bars'?`<div class="list">${blBars(list)}</div><div class="hint">The bar is full at your target price and empty 50 % above it.</div>`:v==='steps'?`<div class="list">${blSteps(list)}</div>`:blTable(list)):'<div class="muted">Add the stocks you want to buy and the price you want to pay.</div>'}
+   ${total>0?`<div class="small muted">Planned in total: <b>${kr(total)}</b></div>`:''}
+   ${list.some(it=>{const L=blLive(it);return L&&L.t;})?`<div class="small muted">Prices updated ${esc(timeLabel(Math.max(...list.map(it=>(blLive(it)||{}).t||0))))}</div>`:''}</div>`;}
+/* edit one stock: ticker, name, currency, up to 4 prices with an amount each */
+function blSheet(id){const it=id==='__new'?{id:'',symbol:'',name:'',cur:'USD',levels:[{price:null,amount:null}]}:blList().find(x=>x.id===id);if(!it)return;
+  const lv=blLevels(it).concat([{},{},{},{}]).slice(0,4);
+  openSheet(id==='__new'?'Add to buy list':'Edit '+esc(it.symbol),`<form class="form" id="blForm">
+   <div class="grid2"><div class="field"><label for="blSym">Ticker</label><input id="blSym" autocapitalize="characters" value="${esc(it.symbol)}" placeholder="NFLX or WEBN:XETR"></div><div class="field"><label for="blName">Name (optional)</label><input id="blName" value="${esc(it.name||'')}"></div></div>
+   <div class="field"><label for="blCur">Currency</label><select id="blCur">${CCYS.map(c=>`<option ${c===it.cur?'selected':''}>${c}</option>`).join('')}</select></div>
+   <span class="lbl2">Buy at (highest first) · amount is optional</span>
+   ${lv.map((l,k)=>`<div class="grid2"><div class="field"><label for="blP${k}">${k?'Then at':'Target price'}</label><input id="blP${k}" inputmode="decimal" value="${l.price>0?inputNum(l.price,2):''}" placeholder="${k?'optional':''}"></div><div class="field"><label for="blA${k}">Amount (kr)</label><input id="blA${k}" inputmode="decimal" value="${l.amount>0?inputNum(l.amount,0):''}" placeholder="optional"></div></div>`).join('')}
+   <div class="err" id="blErr"></div><button class="btn primary block" type="submit">Save</button>${id!=='__new'?`<button class="btn block danger" type="button" data-bldel="${it.id}" style="margin-top:8px">Remove from list</button>`:''}</form>`,()=>{
+   fv('blForm').onsubmit=e=>{e.preventDefault();const sym=fv('blSym').value.trim().toUpperCase();if(!sym){fv('blErr').textContent='Type a ticker.';return;}
+     const levels=[];for(let k=0;k<4;k++){const p=parseNum(fv('blP'+k).value),a=parseNum(fv('blA'+k).value);if(p>0)levels.push({price:p,amount:a>0?a:null});}
+     if(!levels.length){fv('blErr').textContent='Give at least one price.';return;}
+     const list=blList();const x=id==='__new'?{id:uid()}:list.find(y=>y.id===id);const symChanged=x.symbol&&x.symbol!==sym;
+     Object.assign(x,{symbol:sym,name:fv('blName').value.trim(),cur:fv('blCur').value,levels:levels.sort((a,b)=>b.price-a.price)});if(id==='__new')list.push(x);
+     if(symChanged&&C.blive)delete C.blive[x.id];savePlan();closeSheet();softRender();refreshBuyList();};});}
+/* prices: the same sources as the watchlist (your price helper or Twelve Data), at most every 15 minutes */
+async function refreshBuyList(force){if(refreshBuyList.busy)return;refreshBuyList.busy=true;C.blive=C.blive||{};
+  try{for(const it of blList()){const o=C.blive[it.id];if(!force&&o&&Date.now()-o.t<15*60000)continue;
+      try{const r=await watchPrice({symbol:it.symbol,cur:it.cur});if(!(r.price>0))throw new Error('No price');C.blive[it.id]={t:Date.now(),price:r.price,cur:r.cur||it.cur};}
+      catch(e){C.blive[it.id]={t:Date.now(),err:String(e.message||e).slice(0,60)};}
+      if(UI.tab==='plan'&&UI.psub==='buy')softRender();}
+    saveCache();}finally{refreshBuyList.busy=false;}}
+{const _vbp=viewBuyPlan;viewBuyPlan=function(v,M,head){_vbp(v,M,head);const h=v.querySelector('h2.sec');const html=buyListHTML();if(h)h.insertAdjacentHTML('beforebegin',html);else v.insertAdjacentHTML('beforeend',html);
+  if(blList().some(it=>{const o=C.blive&&C.blive[it.id];return !o||Date.now()-o.t>15*60000;}))refreshBuyList();};}
+onTap(e=>{const b=e.target.closest('[data-bledit]');if(b){blSheet(b.dataset.bledit);return;}
+  const d=e.target.closest('[data-bldel]');if(d){if(!armed(d,'Tap again to remove'))return;S.buyList=blList().filter(x=>x.id!==d.dataset.bldel);if(C.blive)delete C.blive[d.dataset.bldel];savePlan();closeSheet();softRender();return;}
+  const s=e.target.closest('[data-blview]');if(s){UI.blView=s.dataset.blview;saveUI();softRender();}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const r=e.target.closest&&e.target.closest('tr[data-bledit]');if(r)blSheet(r.dataset.bledit);}});
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
