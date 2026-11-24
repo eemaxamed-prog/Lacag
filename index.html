@@ -933,6 +933,12 @@ html[data-mode="day"][data-ledge="shade"],:root[data-ledge="shade"][data-mode="l
 :root[data-lsec="lines"] #view .c-shell,:root[data-lsec="lines"] #view .c-box,:root[data-lsec="lines"] #view .ubox-lone,:root[data-lsec="lines"] #sheetBody .c-shell,:root[data-lsec="lines"] .ss-body .card{
   background:transparent!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important;padding:var(--pad) 2px 0!important}
 :root[data-lsec="lines"] .two-col>div>[data-card]{border-top:1px solid var(--line)}
+.avg-pick{display:inline-flex;align-items:center;gap:5px;font:inherit;color:inherit;background:none;border:1px solid var(--line);border-radius:9px;padding:4px 8px;cursor:pointer;touch-action:manipulation}
+.avg-pick:hover{border-color:var(--muted)}.avg-car{color:var(--muted);font-size:12px;margin-left:1px}
+.avg-menu{position:fixed;z-index:60;min-width:220px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 12px 32px rgb(0 0 0 / .45);font-variant-numeric:tabular-nums}
+.avg-mi{display:flex;justify-content:space-between;gap:18px;width:100%;padding:9px 10px;border:0;background:none;color:var(--fg);font:inherit;border-radius:8px;cursor:pointer;text-align:left}
+.avg-mi.on{background:color-mix(in srgb,var(--fg) 9%,transparent);font-weight:700}.avg-mi:disabled{color:var(--muted);opacity:.55;cursor:default}
+.avg-mh{color:var(--muted);font-size:var(--fs-xs);padding:6px 10px 3px;line-height:1.35;max-width:220px}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -953,7 +959,7 @@ html[data-mode="day"][data-ledge="shade"],:root[data-ledge="shade"][data-mode="l
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611201142";
+const LACAG_BUILD="202611241313";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -5247,6 +5253,34 @@ function layoutSettingsHTML(){const L=layoutLook();
 onTap(e=>{const b=e.target.closest('[data-llook]');if(b){const [k,v]=b.dataset.llook.split(':');UI.layoutLook=Object.assign({},layoutLook(),{[k]:v});saveUI();applyLayoutLook();VERSION++;render();return;}
   if(e.target.closest('[data-act="llreset"]')){UI.layoutLook={};saveUI();applyLayoutLook();VERSION++;render();}});
 if(typeof SET_KW==='object')SET_KW.look=(SET_KW.look||'')+' layout spacing space gap boxes cards corners edge side by side';
+
+
+/* ================= Ø average yearly return: All time (default) or the last 3, 5, 10 or 15 years =================
+   Tap the Ø number on the Total value card and pick a period. Time-weighted like before, so deposits and withdrawals don't count as gains.
+   A period longer than your portfolio's life is greyed out ("not yet"). The choice is remembered on this device. */
+const AVG_YEARS=[['all','All time'],[3,'3 years'],[5,'5 years'],[10,'10 years'],[15,'15 years']];
+const avgYearsSel=()=>AVG_YEARS.some(x=>x[0]===UI.avgYears)?UI.avgYears:'all';
+/* the day N years ago (same date; 29 Feb becomes 28 Feb), in the app's time zone */
+function yearsAgoDay(n,today){const [y,m,d]=ds(today).split('-').map(Number);const dd=Math.min(d,new Date(Date.UTC(y-n,m,0)).getUTCDate());return dn(`${y-n}-${String(m).padStart(2,'0')}-${String(dd).padStart(2,'0')}`);}
+function avgYearsAnnual(M,Z,n){if(n==='all')return avgStartAnnual(M,Z);const start=yearsAgoDay(n,M.today);if(start<M.firstDay-1)return null; /* not old enough yet */
+  const bi=start-M.d0,ei=M.N-1;if(bi<0)return null;const st=statsIdx(M,Z,bi,ei);const days=ei-bi;return days>0?Math.pow(1+st.twr,365/days)-1:null;}
+const avgShort=n=>n==='all'?'all time':n+' y';
+{const _h=heroAvgHTML;heroAvgHTML=function(M,Z,st,key){const html=_h(M,Z,st,key);const o=avgOpt();if(o!=='start'&&o!=='both')return html;
+  const n=avgYearsSel();const a=avgYearsAnnual(M,Z,n);
+  const chip=`<span class="avg-chip"><button class="avg-pick" data-act="avgpick" aria-haspopup="true" aria-label="Average yearly return, choose period"><span class="avg-ø">Ø</span><span class="muted small">${avgShort(n)}</span><span class="${a==null?'muted':cl(a)}">${a==null?'—':pct(a,{sign:false})}</span><span class="avg-car" aria-hidden="true">⌄</span></button>${infoBtn('avgStart')}</span>`;
+  return html.replace(/<span class="avg-chip">.*?data-info="avgStart"[^>]*>.*?<\/button><\/span>/,chip);};}
+function avgMenuClose(){const m=document.getElementById('avgMenu');if(m)m.remove();}
+function avgMenuOpen(btn){avgMenuClose();const M=compute();if(!M)return;const Z=series(M,UI.ccy);const cur=avgYearsSel();
+  const rows=AVG_YEARS.map(([k,l])=>{const a=avgYearsAnnual(M,Z,k);const off=a==null&&k!=='all';
+    return `<button class="avg-mi ${k===cur?'on':''}" ${off?'disabled':''} data-avgy="${k}"><span>${l}</span><span class="${off?'':a==null?'muted':cl(a)}">${off?'not yet':a==null?'—':pct(a,{sign:false})}</span></button>`;}).join('');
+  const m=document.createElement('div');m.id='avgMenu';m.className='avg-menu';m.setAttribute('role','menu');
+  m.innerHTML=rows+`<div class="avg-mh">Average per year, time-weighted.${M.firstDay?' All time: since '+esc(dateLabel(M.firstDay,true))+'.':''}</div>`;document.body.appendChild(m);
+  const r=btn.getBoundingClientRect();const w=m.offsetWidth;m.style.left=Math.max(8,Math.min(window.innerWidth-w-8,r.right-w))+'px';m.style.top=(r.bottom+6)+'px';}
+onTap(e=>{const b=e.target.closest('[data-act="avgpick"]');if(b){e.stopPropagation();if(document.getElementById('avgMenu'))avgMenuClose();else avgMenuOpen(b);return;}
+  const it=e.target.closest('[data-avgy]');if(it){if(it.disabled)return;const v=it.dataset.avgy;UI.avgYears=v==='all'?'all':+v;saveUI();avgMenuClose();VERSION++;render();return;}
+  if(!e.target.closest('#avgMenu'))avgMenuClose();},true);
+window.addEventListener('scroll',avgMenuClose,{passive:true});window.addEventListener('resize',avgMenuClose);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')avgMenuClose();});
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
