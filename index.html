@@ -939,6 +939,14 @@ html[data-mode="day"][data-ledge="shade"],:root[data-ledge="shade"][data-mode="l
 .avg-mi{display:flex;justify-content:space-between;gap:18px;width:100%;padding:9px 10px;border:0;background:none;color:var(--fg);font:inherit;border-radius:8px;cursor:pointer;text-align:left}
 .avg-mi.on{background:color-mix(in srgb,var(--fg) 9%,transparent);font-weight:700}.avg-mi:disabled{color:var(--muted);opacity:.55;cursor:default}
 .avg-mh{color:var(--muted);font-size:var(--fs-xs);padding:6px 10px 3px;line-height:1.35;max-width:220px}
+/* Total value: never wrap; the Ø button sits at the right on the same line */
+.hero-val{flex-wrap:nowrap!important;align-items:center;gap:10px}
+.hero-val .big{flex:0 1 auto;min-width:0;white-space:nowrap}
+.hero-val .avg-row{flex:0 0 auto;margin-left:auto}
+.hero-val.hv-tight .avg-row{gap:4px}
+.hero-val.hv-tight .avg-pick{padding:3px 6px;gap:3px}
+.hero-val.hv-tight .avg-car{display:none}
+.hero-val.hv-tight .info-i{display:none}
 </style>
 <header class="top"><div class="top-in">
   <div class="brand" title="Lacag"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-7 4 4 8-10"/></svg></span><span class="brand-name">Lacag</span></div>
@@ -959,7 +967,7 @@ html[data-mode="day"][data-ledge="shade"],:root[data-ledge="shade"][data-mode="l
 <div id="toast" class="toast" hidden role="status"></div>
 <script>
 (function(){
-const LACAG_BUILD="202611241313";
+const LACAG_BUILD="202611241321";
 "use strict";
 /* which device the app is open on, for texts like "only on this iPhone" */
 function deviceKind(){const u=navigator.userAgent||'';return /iPhone/.test(u)?'iPhone':/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?'iPad':/Android/.test(u)?(/Mobile/.test(u)?'Android phone':'Android tablet'):/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':/Linux|CrOS/.test(u)?'computer':'device';}
@@ -5281,6 +5289,32 @@ onTap(e=>{const b=e.target.closest('[data-act="avgpick"]');if(b){e.stopPropagati
   if(!e.target.closest('#avgMenu'))avgMenuClose();},true);
 window.addEventListener('scroll',avgMenuClose,{passive:true});window.addEventListener('resize',avgMenuClose);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')avgMenuClose();});
+
+
+/* ================= Total value: one line, sized to fit =================
+   The big number and the Ø button stay on one line on every screen. When space is short the number gets smaller (down to 24 px)
+   and the Ø button gets more compact; nothing moves to a new line. It is measured again when the screen changes or the number changes
+   (scrubbing the chart, new prices). Rule for the app: big numbers shrink to fit, they don't push other things around. */
+function heroFit(){const row=document.querySelector('#view .hero-val');if(!row)return;const big=row.querySelector('.big');if(!big)return;const avg=row.querySelector('.avg-row');
+  row.classList.remove('hv-tight');big.style.fontSize='';
+  const room=()=>row.clientWidth-(avg?avg.offsetWidth+10:0);
+  if(big.scrollWidth<=room())return;
+  row.classList.add('hv-tight'); /* first make the Ø button smaller */
+  const max=parseFloat(getComputedStyle(big).fontSize)||46;let fs=max;
+  while(fs>24&&big.scrollWidth>room()){fs-=1;big.style.fontSize=fs+'px';}}
+let HF_OBS=null;
+afterRender(()=>{heroFit();const big=document.querySelector('#view .hero-val .big');if(!big)return;
+  if(HF_OBS)HF_OBS.disconnect();HF_OBS=new MutationObserver(()=>requestAnimationFrame(heroFit));HF_OBS.observe(big,{childList:true,characterData:true,subtree:true});});
+window.addEventListener('resize',()=>requestAnimationFrame(heroFit));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>heroFit());
+/* the same rule for every other big number (budget, goals, trade results, sheets): if it doesn't fit its box, it gets smaller instead of overflowing */
+function fitBigAll(root){(root||document).querySelectorAll('.big,.tg-big,.kpi-v,.stat-v').forEach(el=>{if(el.closest('.hero-val'))return;el.style.fontSize='';
+  const box=el.parentElement;if(!box)return;const cs=getComputedStyle(el);if(cs.display==='inline')return;let fs=parseFloat(cs.fontSize)||30;const min=Math.max(16,fs*0.55);
+  const over=()=>el.scrollWidth>el.clientWidth+1||el.getBoundingClientRect().right>box.getBoundingClientRect().right+1;
+  if(!over())return;el.style.whiteSpace='nowrap';while(fs>min&&over()){fs-=1;el.style.fontSize=fs+'px';}});}
+afterRender(()=>requestAnimationFrame(()=>fitBigAll(document.getElementById('view'))));
+window.addEventListener('resize',()=>requestAnimationFrame(()=>{fitBigAll(document.getElementById('view'));fitBigAll(document.getElementById('sheet'));}));
+{const _os=openSheet;openSheet=function(t,b,m){return _os(t,b,sh=>{if(m)m(sh);requestAnimationFrame(()=>fitBigAll(document.getElementById('sheet')));});};}
 
 /* ================= boot ================= */
 function applyUpdown(){if((S.settings&&S.settings.updown)==='cvd')document.documentElement.dataset.updown='cvd';else delete document.documentElement.dataset.updown;}
